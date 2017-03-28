@@ -24,13 +24,10 @@ void hash256(const std::vector<string>& msgvec, SecByteBlock& digest ) {
     hash.Final(digest);
 }
 
-string hmac256(const SecByteBlock& key, const string msg) {
+string hmac256(const SecByteBlock& key, const string& msg) {
     HMAC< SHA256 > hmac(key, key.size());
     string res;
-    StringSource ss(
-            msg, true,
-            new HashFilter(hmac, new StringSink(res)) // HashFilter
-    ); // StringSource
+    StringSource ss(msg, true, new HashFilter(hmac, new StringSink(res)));
     return res;
 }
 
@@ -54,43 +51,41 @@ void PrintKeyAndIV(SecByteBlock& ekey,
     encoder.MessageEnd(); cout << endl;
 }
 
-void b64encode(const byte *raw_bytes, ulong len, string& str) {
-    StringSource ss(
-            raw_bytes, len, true,
-            new Base64URLEncoder(
-                    new StringSink(str)
-            ) // Base64URLEncoder
-    ); // StringSource
+PkCrypto::PkCrypto(string pk, string sk) {
+    if (!sk.empty()) {
+        StringSource ss(sk, true);
+        d.AccessPrivateKey().Load(ss);
+        e = myECIES::Encryptor(d);
+        _can_decrypt = true;
+    } else if (!pk.empty()) {
+        StringSource ss(pk, true);
+        e.AccessPublicKey().Load(ss);
+        _can_decrypt = false;
+    } else {
+        d = myECIES::Decryptor(PRNG, CURVE);
+        e = myECIES::Encryptor(d);
+        _can_decrypt = true;
+    }
 }
 
-void b64decode(const string& str, string& byte_str){
-    StringSource ss(str, true,
-                    new Base64URLDecoder(
-                            new StringSink(byte_str)
-                    ) // Base64URLDecoder
-    ); // StringSource
+string PkCrypto::serialize_pk() {
+    cout << e.StaticAlgorithmName() << endl;
+    string s;
+    StringSink ss(s);
+    e.AccessKey().AccessGroupParameters().SetPointCompression(true);
+    e.AccessKey().AccessGroupParameters().SetEncodeAsOID(true);
+    // e.AccessKey().BEREncode(ss);
+    e.AccessKey().Save(ss);
+    return s;
 }
 
-string b64encode(string in) {
-    string out;
-    b64encode((const byte*)in.data(), in.size(), out);
-    return out;
-}
-string b64decode(string in) {
-    string out;
-    b64decode(in, out);
-    return out;
-}
-
-
-void create_key_pair(SecByteBlock& priv_key, SecByteBlock& pub_key) {
-    OID CURVE = secp256r1();
-    AutoSeededRandomPool prng;
-    ECDH<ECP>::Domain ecdh(CURVE);
-
-    priv_key.resize(ecdh.PrivateKeyLength());
-    pub_key.resize(ecdh.PublicKeyLength());
-    ecdh.GenerateKeyPair(prng, priv_key, pub_key);
+string PkCrypto::serialize_sk() {
+    string s;
+    StringSink ss(s);
+    d.AccessKey().AccessGroupParameters().SetPointCompression(true);
+    d.AccessKey().AccessGroupParameters().SetEncodeAsOID(true);
+    d.AccessKey().BEREncode(ss);
+    return s;
 }
 
 SecByteBlock get_rand_bytes(const uint32_t len) {
@@ -109,7 +104,7 @@ void _slow_hash(const string &pw, const SecByteBlock& salt, SecByteBlock &key) {
                     PBKDF_ITERATION_CNT);
 }
 
-/*
+/**
  * Generate key from the given pw and salt.
  * If the salt is not provided then it will generate a salt.
  */
@@ -179,11 +174,7 @@ void _encrypt(const SecByteBlock &key, const string &msg, const string &extra_da
             encryptor, ctx_sink, false, MAC_SIZE_BYTES
     );
     ctx_sink->Put(iv, iv.size(), true);
-#ifdef DEBUG
-    string key_str;
-    b64encode(key.data(), key.size(), key_str);
-    cout << key_str << endl;
-#endif
+
     // Authenticate the extra data first via AAD_CHANNEL.
     if (!extra_data.empty()) {
         ef.ChannelPut(AAD_CHANNEL, (const byte *) extra_data.data(), extra_data.size(), true);
@@ -233,5 +224,6 @@ void _decrypt(const SecByteBlock &key, const string &ctx, const string &extra_da
     msg.resize( n );
 
     if( n > 0 ) { df.Get( (byte*)msg.data(), n ); }
-    assert( msg.empty() != true );
 }
+
+

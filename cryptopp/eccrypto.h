@@ -330,8 +330,8 @@ struct ECIES
 	: public DL_ES<
 		DL_Keys_EC<EC>,
 		DL_KeyAgreementAlgorithm_DH<typename EC::Point, COFACTOR_OPTION>,
-		DL_KeyDerivationAlgorithm_P1363<typename EC::Point, DHAES_MODE, P1363_KDF2<SHA1> >,
-		DL_EncryptionAlgorithm_Xor<HMAC<SHA1>, DHAES_MODE>,
+		DL_KeyDerivationAlgorithm_P1363<typename EC::Point, DHAES_MODE, P1363_KDF2<SHA256> >,
+		DL_EncryptionAlgorithm_Xor<HMAC<SHA256>, DHAES_MODE>,
 		ECIES<EC> >
 {
 	static std::string CRYPTOPP_API StaticAlgorithmName() {return "ECIES";}	// TODO: fix this after name is standardized

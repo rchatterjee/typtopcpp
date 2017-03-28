@@ -7,7 +7,7 @@
 
 using std::vector;
 
-TEST_CASE("finv(f(m)) == m", "[base64]") {
+TEST_CASE("finv(f(m)) == m", "[pw_crypto]") {
     SECTION ("b64 encode decode") {
         vector<SecByteBlock> raw_bytes(3);
         byte _t1[] = {0x12, 0x12, 0x45, 0xf2, 0x34};
@@ -27,18 +27,41 @@ TEST_CASE("finv(f(m)) == m", "[base64]") {
             REQUIRE(b == 0);
         }
     }
+
     SECTION("pwnecrypt decrypt") {
         string pw = "Super secret pw";
+        byte _t1[] = {0x23, 0x56, 0x00, 0xf4, 0x46, 0xff};
+        string s(_t1, _t1+6);
         string msgs[] = {
                 "Hey here I am",
-                {23, 56, 123, 46, 129},
-                "aaaaaaa"
+                "aaaaaaa",
+                "",
+                {_t1, _t1+6}
         };
+
         for(int i=0; i<3; i++) {
             string ctx, rdata;
             pwencrypt(pw, msgs[i], ctx);
             pwdecrypt(pw, ctx, rdata);
             REQUIRE( rdata == msgs[i] );
         }
+
     }
-};
+
+    SECTION("pk encrypt-decrypt") {
+        PkCrypto pkobj;
+        byte _t1[] = {0x23, 0x56, 0x00, 0xf4, 0x46, 0xff};
+        string msgs[] = {
+                "Hey here I am",
+                "aaaaaaa",
+                {_t1, _t1+6},
+                ""
+        };
+        for(int i=0; i<3; i++) {
+            string ctx, rdata;
+            pkobj.pk_encrypt(msgs[i], ctx);
+            pkobj.pk_decrypt(ctx, rdata);
+            REQUIRE( rdata == msgs[i] );
+        }
+    }
+}

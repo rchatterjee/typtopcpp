@@ -23,13 +23,19 @@ int main(int argc, char* argv[]) {
 
         string digest_str;
         debug_print(digest1.data(), digest1.size(), "Digest");
-
-        string ctx, rdata;
         digest1.resize(AES::BLOCKSIZE);
-//        _encrypt(digest, m, "", ctx);
-//        _decrypt(digest, ctx, "", rdata);
-        pwencrypt(m, m, ctx);
-        pwdecrypt(m, ctx, rdata);
+
+        PkCrypto pkobj;
+        string pk_str = pkobj.serialize_pk();
+        string sk_str = pkobj.serialize_sk();
+        cout << b64encode(pk_str) << endl << pk_str.size() << endl;
+        cout << b64encode(sk_str) << endl << sk_str.size() << endl;
+
+        cout << "stopped here" << endl;
+        string ctx, rdata;
+        pkobj.pk_encrypt(m, ctx);
+        print_raw_byte((const byte*)ctx.data(), ctx.size());
+        pkobj.pk_decrypt(ctx, rdata);
         assert( rdata == m );
     }
     catch(CryptoPP::Exception& ex)

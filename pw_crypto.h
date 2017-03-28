@@ -37,6 +37,11 @@ using CryptoPP::word64;
 using CryptoPP::Exception;
 using CryptoPP::DEFAULT_CHANNEL;
 using CryptoPP::AAD_CHANNEL;
+using CryptoPP::PrivateKey;
+using CryptoPP::PublicKey;
+using CryptoPP::DL_PrivateKey_EC;
+using CryptoPP::DL_PublicKey_EC;
+
 
 #include "cryptopp/secblock.h"
 using CryptoPP::SecByteBlock;
@@ -79,11 +84,15 @@ using CryptoPP::HMAC;
 using CryptoPP::Base64URLEncoder;
 using CryptoPP::Base64URLDecoder;
 
+typedef unsigned long ulong;
+
 static const uint8_t KEYSIZE_BYTES = AES::BLOCKSIZE;  // key size 16 bytes
 static const uint32_t PBKDF_ITERATION_CNT = 1000;
 static const uint32_t MAC_SIZE_BYTES = 16; // size of tag
 static AutoSeededRandomPool PRNG;  // instantiate only one class
+static const OID CURVE = secp256r1();
 
+typedef CryptoPP::ECIES<ECP, CryptoPP::IncompatibleCofactorMultiplication, true> myECIES;
 /* Hashing related functions */
 void hash256(const std::vector<string>&, SecByteBlock&);
 bool harden_pw(const string pw, SecByteBlock& salt, SecByteBlock& key);
@@ -98,10 +107,29 @@ void _encrypt(const SecByteBlock& key, const string& msg, const string& extra_da
 void _decrypt(const SecByteBlock& key, const string& ctx, const string& extra_data, string& msg);
 
 /* Public Key Functions */
-void create_key_pair(SecByteBlock& priv_key, SecByteBlock& pub_key);
-void pk_encrypt(SecByteBlock& pub_key, string& msg);
-void pk_decrypt(SecByteBlock& priv_key, string& msg);
+class PkCrypto {
+private:
+    myECIES::Decryptor d;
+    myECIES::Encryptor e;
+    bool _can_decrypt = false;
+public:
+    PkCrypto(string pk="", string sk="");
+    string serialize_pk();
+    string serialize_sk();
+    inline bool can_decrypt() const { return _can_decrypt; }
 
+    inline void pk_encrypt(const string &msg, string &ctx) {
+        StringSource(msg, true, new CryptoPP::PK_EncryptorFilter(PRNG, e, new StringSink(ctx)));
+    }
+
+    inline void pk_decrypt(const string& ctx, string& msg) {
+        StringSource(ctx, true, new CryptoPP::PK_DecryptorFilter(PRNG, d, new StringSink(msg)));
+    }
+};
+
+CryptoPP::DL_PrivateKey_EC<ECP> generate_privkey();
+void pk_encrypt(const PublicKey& pub_key, const string& msg, string& ctx);
+void pk_decrypt(const PrivateKey& priv_key, const string& ctx, string& msg);
 
 
 void PrintKeyAndIV(SecByteBlock& ekey,
@@ -109,24 +137,36 @@ void PrintKeyAndIV(SecByteBlock& ekey,
                    SecByteBlock& akey);
 
 /* Utility Functions */
-void b64encode(const byte* raw_bytes, ulong len, string& str);
-void b64decode(const string& str, string& byte_str);
+inline void b64encode(const byte* raw_bytes, ulong len, string& str) {
+    StringSource ss( raw_bytes, len, true, new Base64URLEncoder(new StringSink(str), true));
+    // StringSource ss( raw_bytes, len, true, new HexEncoder(new StringSink(str)));
+    cout << str.size() << endl;
+}
+inline void b64decode(const string& str, string& byte_str){
+    StringSource ss(str, true, new Base64URLDecoder(new StringSink(byte_str)));
+}
 inline string b64encode(const SecByteBlock& raw_bytes) {
     string s;
     b64encode(raw_bytes.data(), raw_bytes.size(), s);
     return s;
 }
+
 // Some extra useful functions
-string hmac256(const SecByteBlock& key, const string msg);
-string b64encode(string);
-string b64decode(string);
+string hmac256(const SecByteBlock& key, const string& msg);
+
+// id size is only 8
+inline string compute_id(const SecByteBlock& key, const string& msg) { return hmac256(key, msg).substr(0, 8); }
+inline string b64encode(const string& in){ string out; b64encode((const byte*)in.data(), in.size(), out); return out; }
+inline string b64decode(const string& in) { string out; b64decode(in, out); return out; }
+
 SecByteBlock get_rand_bytes(const uint32_t len);
 
 inline void print_raw_byte(const byte* m, const ulong len) {
-    for (ulong i = 0; i < len; ++i)
-        cout << std::hex << std::setfill('0') << std::setw(2) << m[i] << " ";
-    cout << endl;
+    string s;
+    StringSource(m, len, true, new HexEncoder(new StringSink(s)));
+    cout << s << endl;
 }
+
 inline void debug_print(byte* m, size_t len, string name="") {
 #ifdef DEBUG
     string key_str;

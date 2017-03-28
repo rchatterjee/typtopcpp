@@ -1,0 +1,33 @@
+cmake_minimum_required(VERSION 3.6)
+
+project(typtop_c)
+
+SET(CMAKE_CXX_STANDARD 11)
+SET(CMAKE_C_COMPILER ${CC})
+SET(CMAKE_CXX_COMPILER ${CC})
+set(CMAKE_CXX_FLAGS "-Wall -std=c++11")
+IF(UNIX)
+    IF(APPLE)
+        SET(GUI "Cocoa")
+    ELSE(APPLE)
+        SET(GUI "X11")
+    ENDIF(APPLE)
+ELSE(UNIX)
+    IF(WIN32)
+        SET(GUI "Win32")
+    ELSE(WIN32)
+        SET(GUI "Unknown")
+    ENDIF(WIN32)
+ENDIF(UNIX)
+MESSAGE("GUI system is ${GUI}")
+
+add_subdirectory (cryptopp)
+# include_directories(cryptopp)
+
+add_library(pw_crypto STATIC pw_crypto.cpp)
+target_include_directories (pw_crypto PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(pw_crypto)
+
+# set(SOURCE_FILES main.cpp)
+add_executable(typtop_c main.cpp)
+target_link_libraries(typtop_c pw_crypto)

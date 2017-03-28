@@ -1,7 +1,8 @@
 #include <iostream>
+#include <cassert>
 #include "pw_crypto.h"
 
-int main() {
+int main(int argc, char* argv[]) {
     std::cout << "Hello, World!" << std::endl;
     (void)argc; (void)argv;
 
@@ -14,59 +15,22 @@ int main() {
         message = string(argv[2]);
 
     try {
+        string m = "Hello world";
+        SecByteBlock digest1, digest2, salt;
+        harden_pw(m, salt, digest1);
+        harden_pw(m, salt, digest2);
+        assert( digest1 == digest2 );
 
-        // For derived parameters
-        SecByteBlock ekey(16), iv(16), akey(16);
+        string digest_str;
+        debug_print(digest1.data(), digest1.size(), "Digest");
 
-        DeriveKeyAndIV(password, "authenticated encryption example", 100,
-                       ekey, ekey.size(), iv, iv.size(), akey, akey.size());
-
-        // Create and key objects
-        CBC_Mode<AES>::Encryption encryptor;
-        encryptor.SetKeyWithIV(ekey, ekey.size(), iv, iv.size());
-        CBC_Mode<AES>::Decryption decryptor;
-        decryptor.SetKeyWithIV(ekey, ekey.size(), iv, iv.size());
-        HMAC< SHA256> hmac1;
-        hmac1.SetKey(akey, akey.size());
-        HMAC< SHA256> hmac2;
-        hmac2.SetKey(akey, akey.size());
-
-        // Encrypt and authenticate data
-
-        string cipher, recover;
-        StringSource ss1(message, true /*pumpAll*/,
-                         new StreamTransformationFilter(encryptor,
-                                                        new HashFilter(hmac1,
-                                                                       new StringSink(cipher),
-                                                                       true /*putMessage*/)));
-
-        // Authenticate and decrypt data
-        static const word32 flags = CryptoPP::HashVerificationFilter::HASH_AT_END |
-                                    CryptoPP::HashVerificationFilter::PUT_MESSAGE |
-                                    CryptoPP::HashVerificationFilter::THROW_EXCEPTION;
-
-
-        StringSource ss2(cipher, true /*pumpAll*/,
-                         new HashVerificationFilter(hmac2,
-                                                    new StreamTransformationFilter(decryptor,
-                                                                                   new StringSink(recover)),
-                                                    flags));
-
-        // Print stuff
-
-        cout << "Password: " << password << endl;
-
-        PrintKeyAndIV(ekey, iv, akey);
-
-        cout << "Message: " << message << endl;
-
-        cout << "Ciphertext+MAC: ";
-        HexEncoder encoder(new FileSink(cout));
-
-        encoder.Put((byte*)cipher.data(), cipher.size());
-        encoder.MessageEnd(); cout << endl;
-
-        cout << "Recovered: " << recover << endl;
+        string ctx, rdata;
+        digest1.resize(AES::BLOCKSIZE);
+//        _encrypt(digest, m, "", ctx);
+//        _decrypt(digest, ctx, "", rdata);
+        pwencrypt(m, m, ctx);
+        pwdecrypt(m, ctx, rdata);
+        assert( rdata == m );
     }
     catch(CryptoPP::Exception& ex)
     {

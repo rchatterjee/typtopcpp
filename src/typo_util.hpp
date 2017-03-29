@@ -113,4 +113,17 @@ int edit_distance(const string& s1, const string& s2) {
     return(matrix[s2len][s1len]);
 }
 
+
+string get_homedir(void) {
+#ifdef DEBUG
+    return "./";
+#endif
+    char homedir[1024];
+#ifdef _WIN32
+    snprintf(homedir, MAX_PATH, "%s%s", getenv("HOMEDRIVE"), getenv("HOMEPATH"));
+#else
+    snprintf(homedir, 1024, "%s", getenv("HOME"));
+#endif
+    return strdup(homedir);
+}
 #endif //TYPTOP_C_TYPO_UTIL_HPP

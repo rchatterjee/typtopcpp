@@ -26,20 +26,6 @@ TypTop::~TypTop() {
     rename(db_bak.c_str(), db_fname.c_str());
 }
 
-string get_homedir(void)
-{
-#ifdef DEBUG
-    return "./";
-#endif
-    char homedir[1024];
-#ifdef _WIN32
-    snprintf(homedir, MAX_PATH, "%s%s", getenv("HOMEDRIVE"), getenv("HOMEPATH"));
-#else
-    snprintf(homedir, 1024, "%s", getenv("HOME"));
-#endif
-    return strdup(homedir);
-}
-
 string get_uniq_id() {
     string homdir(get_homedir());
     string UNIQ_ID_FILENAME = homdir + "/.typtop.uniq.id";

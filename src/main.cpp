@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
     /**************************************************************/
     string fname = "./tmp_db";
     TypTop tp(fname, "hello_pass");
-    
+
 
 
 //    }

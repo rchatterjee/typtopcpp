@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
     cout << "stopped here" << endl;
     string ctx, rdata;
     pkobj.pk_encrypt(m, ctx);
-    print_raw_byte((const byte *) ctx.data(), ctx.size());
+    cout << ctx << endl;
     pkobj.pk_decrypt(ctx, rdata);
     assert(rdata == m);
 

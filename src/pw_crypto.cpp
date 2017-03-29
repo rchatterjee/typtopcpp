@@ -69,7 +69,6 @@ void PkCrypto::initialize() {
 }
 
 string PkCrypto::serialize_pk() {
-    cout << e.StaticAlgorithmName() << endl;
     string s;
     StringSink ss(s);
     e.AccessKey().AccessGroupParameters().SetPointCompression(true);
@@ -127,8 +126,8 @@ void pwencrypt(const string &pw, const string &msg, string& ctx) {
     SecByteBlock key;
     harden_pw(pw, salt, key);
 
-    debug_print(key.data(), key.size(), "pwencrypt.Key");
-    debug_print(salt.data(), salt.size(), "pwencrypt.Salt");
+    // debug_print(key.data(), key.size(), "pwencrypt.Key");
+    // debug_print(salt.data(), salt.size(), "pwencrypt.Salt");
 
     string base_ctx;
     _encrypt(key, msg, "", base_ctx);
@@ -146,8 +145,8 @@ void pwdecrypt(const string &pw, const string &ctx, string &msg) {
     SecByteBlock key;
     harden_pw(pw, salt, key);
 
-    debug_print(key.data(), key.size(), "pwdecrypt.Key");
-    debug_print(salt.data(), salt.size(), "pwdecrypt.Salt");
+    // debug_print(key.data(), key.size(), "pwdecrypt.Key");
+    // debug_print(salt.data(), salt.size(), "pwdecrypt.Salt");
 
     _decrypt(key, base_ctx, "", msg);
     // TODO:  <hash_algo>.<iteration_cnt>.<salt>.<ctx>
@@ -191,8 +190,8 @@ void _decrypt(const SecByteBlock &key, const string &ctx, const string &extra_da
     string enc = ctx.substr(AES::BLOCKSIZE, ctx.length()-MAC_SIZE_BYTES-AES::BLOCKSIZE);
     string mac = ctx.substr(ctx.length()-MAC_SIZE_BYTES);
     // Sanity checks
-    cout << ctx.size() << " = " << iv.size() << " + "
-         << enc.size() << " + " << mac.size() << endl;
+//    cout << ctx.size() << " = " << iv.size() << " + "
+//         << enc.size() << " + " << mac.size() << endl;
     assert( iv.size() == AES::BLOCKSIZE );
     assert( mac.size() == MAC_SIZE_BYTES );
     assert( ctx.size() == iv.size() + enc.size() + mac.size() );

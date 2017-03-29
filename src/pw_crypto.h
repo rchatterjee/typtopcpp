@@ -168,10 +168,11 @@ inline string b64decode(const string& in) { string out; b64decode(in, out); retu
 
 SecByteBlock get_rand_bytes(const uint32_t len);
 
-inline void print_raw_byte(const byte* m, const ulong len) {
+inline std::ostream& operator<< (std::ostream& os, SecByteBlock const& value){
     string s;
-    StringSource(m, len, true, new HexEncoder(new StringSink(s)));
-    cout << s << endl;
+    StringSource(value.data(), value.size(), true, new HexEncoder(new StringSink(s)));
+    os << s;
+    return os;
 }
 
 inline void debug_print(byte* m, size_t len, string name="") {

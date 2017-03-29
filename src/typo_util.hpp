@@ -41,7 +41,7 @@ char change_shift(char c) {
     static const char* non_shift_syms = "`1234567890-=[]\\;',./";
     static const char* shifted_syms = "~!@#$%^&*()_+{}|:\"<>?";
     static size_t _len_syms = strlen(non_shift_syms);
-    for(int i=0; i<_len_syms; i++) {
+    for(size_t i=0; i<_len_syms; i++) {
         if (non_shift_syms[i] == c) return shifted_syms[i];
         else if (shifted_syms[i] == c) return non_shift_syms[i];
     }
@@ -71,7 +71,7 @@ void get_typos(const string& pw, vector<string>& ret) {
             tolower(pw),
     };
     set<string> typo_set(typos.begin(), typos.end());
-    int i=0;
+    size_t i=0;
     for(auto it = typo_set.begin(); it != typo_set.end(); it++) {
         if (it->compare(pw) == 0) continue;
         ret[i++] = *it;

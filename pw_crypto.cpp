@@ -51,21 +51,21 @@ void PrintKeyAndIV(SecByteBlock& ekey,
     encoder.MessageEnd(); cout << endl;
 }
 
-PkCrypto::PkCrypto(string pk, string sk) {
-    if (!sk.empty()) {
-        StringSource ss(sk, true);
-        d.AccessPrivateKey().Load(ss);
-        e = myECIES::Encryptor(d);
-        _can_decrypt = true;
-    } else if (!pk.empty()) {
-        StringSource ss(pk, true);
-        e.AccessPublicKey().Load(ss);
-        _can_decrypt = false;
-    } else {
-        d = myECIES::Decryptor(PRNG, CURVE);
-        e = myECIES::Encryptor(d);
-        _can_decrypt = true;
-    }
+void PkCrypto::set_pk(const string& pk) {
+    StringSource ss(pk, true);
+    e.AccessPublicKey().Load(ss);
+    _can_decrypt = false;
+}
+void PkCrypto::set_sk(const string& sk) {
+    StringSource ss(sk, true);
+    d.AccessPrivateKey().Load(ss);
+    e = myECIES::Encryptor(d);
+    _can_decrypt = true;
+}
+void PkCrypto::initialize() {
+    d = myECIES::Decryptor(PRNG, CURVE);
+    e = myECIES::Encryptor(d);
+    _can_decrypt = true;
 }
 
 string PkCrypto::serialize_pk() {
@@ -74,8 +74,8 @@ string PkCrypto::serialize_pk() {
     StringSink ss(s);
     e.AccessKey().AccessGroupParameters().SetPointCompression(true);
     e.AccessKey().AccessGroupParameters().SetEncodeAsOID(true);
-    // e.AccessKey().BEREncode(ss);
-    e.AccessKey().Save(ss);
+    e.AccessKey().BEREncode(ss);
+    // e.AccessKey().Save(ss);
     return s;
 }
 

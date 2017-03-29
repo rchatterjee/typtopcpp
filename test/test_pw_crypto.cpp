@@ -36,9 +36,9 @@ TEST_CASE("finv(f(m)) == m", "[pw_crypto]") {
                 "Hey here I am",
                 "aaaaaaa",
                 "",
-                {_t1, _t1+6}
+                ""
         };
-
+        msgs[3] = string((char*)_t1, 6);
         for(int i=0; i<3; i++) {
             string ctx, rdata;
             pwencrypt(pw, msgs[i], ctx);
@@ -47,9 +47,9 @@ TEST_CASE("finv(f(m)) == m", "[pw_crypto]") {
         }
 
     }
-
+    PkCrypto pkobj;
+    pkobj.initialize();
     SECTION("pk encrypt-decrypt") {
-        PkCrypto pkobj;
         byte _t1[] = {0x23, 0x56, 0x00, 0xf4, 0x46, 0xff};
         string msgs[] = {
                 "Hey here I am",
@@ -58,10 +58,22 @@ TEST_CASE("finv(f(m)) == m", "[pw_crypto]") {
                 ""
         };
         for(int i=0; i<3; i++) {
+            cout << msgs[i] << endl;
             string ctx, rdata;
             pkobj.pk_encrypt(msgs[i], ctx);
             pkobj.pk_decrypt(ctx, rdata);
             REQUIRE( rdata == msgs[i] );
         }
+    }
+    SECTION("pk load and dump key") {
+        string msg = "Hello There";
+        PkCrypto pkobj1;
+        pkobj1.set_pk(pkobj.serialize_pk());
+        PkCrypto pkobj2;
+        pkobj2.set_sk(pkobj.serialize_sk());
+        string ctx, rdata;
+        pkobj1.pk_encrypt(msg, ctx);
+        pkobj2.pk_decrypt(ctx, rdata);
+        REQUIRE( rdata == msg );
     }
 }

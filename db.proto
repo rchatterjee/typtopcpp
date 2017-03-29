@@ -1,0 +1,46 @@
+package typtop;
+
+message Log {
+    required bool in_cache = 1;
+    required bool istop5fixable = 2;
+    required int32 edit_dist = 3;
+    required float rel_entropy = 5;
+    required int32 tid = 6;
+    required int32 ts = 4;
+    required string localtime = 7;
+}
+
+message ConfigHeader {
+    optional bool allowed_typo_login = 1 [default = true];
+    optional int32 period_for_sending_log = 2 [default = 21600]; // 6 hours
+    optional bool allow_upload = 3 [default = true];
+    required string install_id = 4;
+    required bytes public_key = 5;
+    required bytes global_salt = 6;
+}
+
+enum SystemStatus {
+    ALL_GOOD = 0;
+    PW_CHANGED = 1;
+    UNINITIALIZED = 3;
+};
+
+message EncHeaderData{
+    required string pw = 1;
+    repeated int32 freq = 2;
+}
+message Header {
+    optional int32 indexj = 1 [default = 0];
+    optional int32 last_log_sent_time = 2 [default = 0];
+    optional int32 login_count = 3 [default = 0];
+    optional SystemStatus sys_state = 4 [default = UNINITIALIZED];
+    required EncHeaderData enc_header = 5;
+}
+
+message typtopDB {
+    required ConfigHeader CH = 1; // Config Header
+    required Header H = 2;  // Header
+    repeated bytes W = 3; // Waitlist
+    repeated bytes T = 4; // TypoCache
+    repeated Log L = 5;  // Log
+}

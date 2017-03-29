@@ -113,7 +113,10 @@ private:
     myECIES::Encryptor e;
     bool _can_decrypt = false;
 public:
-    PkCrypto(string pk="", string sk="");
+    // PkCrypto(string pk="", string sk="", bool initialize=false);
+    void set_pk(const string& pk);
+    void set_sk(const string& sk);
+    void initialize();
     string serialize_pk();
     string serialize_sk();
     inline bool can_decrypt() const { return _can_decrypt; }
@@ -155,7 +158,11 @@ inline string b64encode(const SecByteBlock& raw_bytes) {
 string hmac256(const SecByteBlock& key, const string& msg);
 
 // id size is only 8
-inline string compute_id(const SecByteBlock& key, const string& msg) { return hmac256(key, msg).substr(0, 8); }
+inline uint32_t compute_id(const SecByteBlock& key, const string& msg) {
+    // cheap way to convert byte array to int, susceptible to machine endianness, but fine for me
+    return *(uint32_t*)hmac256(key, msg).substr(0, 4).data();
+}
+
 inline string b64encode(const string& in){ string out; b64encode((const byte*)in.data(), in.size(), out); return out; }
 inline string b64decode(const string& in) { string out; b64decode(in, out); return out; }
 

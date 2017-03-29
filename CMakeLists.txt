@@ -32,6 +32,10 @@ configure_file (
         "${PROJECT_BINARY_DIR}/typtopconfig.h"
 )
 
+find_package(Protobuf REQUIRED)
+include_directories(${PROTOBUF_INCLUDE_DIRS})
+PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS db.proto)
+
 include_directories("${PROJECT_BINARY_DIR}")
 
 # Set up cryptopp
@@ -44,9 +48,9 @@ add_library(pw_crypto STATIC pw_crypto.cpp)
 target_include_directories (pw_crypto PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(pw_crypto cryptopp-static)
 
-set(SOURCE_FILES main.cpp pw_crypto.cpp pw_crypto.h)
-add_executable(typtop_c main.cpp)
-target_link_libraries(typtop_c pw_crypto)
+set(SOURCE_FILES main.cpp pw_crypto.cpp pw_crypto.h typtop.cpp typtop.h)
+add_executable(typtop_c main.cpp typtop.cpp typtop.h ${PROTO_SRCS} ${PROTO_HDRS} typo_util.hpp)
+target_link_libraries(typtop_c pw_crypto ${PROTOBUF_LIBRARIES})
 
 
 include_directories(test)

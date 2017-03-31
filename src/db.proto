@@ -5,7 +5,7 @@ message Log {
     required bool  istop5fixable = 2;
     required int32 edit_dist = 3;
     required float rel_entropy = 5;
-    required int32 tid = 6;
+    required uint32 tid = 6;
     required int64 ts = 4;
     required string localtime = 7;
 }
@@ -27,7 +27,7 @@ enum SystemStatus {
 };
 
 message EncHeaderData{
-    required string pw = 1;
+    required bytes pw = 1;
     repeated int32 freq = 2;
     repeated int64 last_used = 3;   // expire a typo if it is too old
 }
@@ -36,7 +36,7 @@ message Header {
     optional int32 last_log_sent_time = 2 [default = 0];
     optional int32 login_count = 3 [default = 0];
     optional SystemStatus sys_state = 4 [default = UNINITIALIZED];
-    required string enc_header = 5;
+    required bytes enc_header = 5;
 }
 message typtopDB {
     required ConfigHeader CH = 1; // Config Header
@@ -49,6 +49,6 @@ message typtopDB {
 
 // Waitlist contains encrypted version of pw and time
 message WaitlistEntry {
-    required string pw = 1;
+    required bytes pw = 1;
     required int64 ts = 2;
 }

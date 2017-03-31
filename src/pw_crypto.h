@@ -14,6 +14,8 @@ using std::ios;
 
 #include <iomanip>
 #include <string>
+#include <cassert>
+
 using std::string;
 
 #include "cryptopp/ecp.h"
@@ -114,6 +116,7 @@ private:
     myECIES::Decryptor d;
     myECIES::Encryptor e;
     bool _can_decrypt = false;
+    bool _can_encrypt = false;
 public:
     // PkCrypto(string pk="", string sk="", bool initialize=false);
     void set_pk(const string& pk);
@@ -122,12 +125,17 @@ public:
     string serialize_pk();
     string serialize_sk();
     inline bool can_decrypt() const { return _can_decrypt; }
+    inline bool can_encrypt() const { return _can_encrypt; }
 
-    inline void pk_encrypt(const string &msg, string &ctx) {
+    inline void pk_encrypt(const string &msg, string &ctx) const {
+        ctx.clear();
+        if(!_can_encrypt) throw("Cannot encrypt");
         StringSource(msg, true, new CryptoPP::PK_EncryptorFilter(PRNG, e, new StringSink(ctx)));
     }
 
-    inline void pk_decrypt(const string& ctx, string& msg) {
+    inline void pk_decrypt(const string& ctx, string& msg) const {
+        if(!_can_decrypt) throw("Cannot decrypt");
+        msg.clear();
         StringSource(ctx, true, new CryptoPP::PK_DecryptorFilter(PRNG, d, new StringSink(msg)));
     }
 };
@@ -140,7 +148,6 @@ void PrintKeyAndIV(SecByteBlock& ekey,
 inline void b64encode(const byte* raw_bytes, ulong len, string& str) {
     StringSource ss( raw_bytes, len, true, new Base64URLEncoder(new StringSink(str), true));
     // StringSource ss( raw_bytes, len, true, new HexEncoder(new StringSink(str)));
-    cout << str.size() << endl;
 }
 inline void b64decode(const string& str, string& byte_str){
     StringSource ss(str, true, new Base64URLDecoder(new StringSink(byte_str)));
@@ -163,11 +170,10 @@ inline uint32_t compute_id(const SecByteBlock& key, const string& msg) {
 inline string b64encode(const string& in){ string out; b64encode((const byte*)in.data(), in.size(), out); return out; }
 inline string b64decode(const string& in) { string out; b64decode(in, out); return out; }
 
-SecByteBlock get_rand_bytes(const uint32_t len);
-
-string bytes_to_str(const SecByteBlock& b) {
+/*
+ string bytes_to_str(const SecByteBlock& b) {
     return string((char*)b.data(), b.size());
-}
+}*/
 
 inline std::ostream& operator<< (std::ostream& os, SecByteBlock const& value){
     string s;

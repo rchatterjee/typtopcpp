@@ -48,12 +48,15 @@ add_library(pw_crypto STATIC src/pw_crypto.cpp)
 target_include_directories (pw_crypto PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(pw_crypto cryptopp-static)
 
-set(SOURCE_FILES src/main.cpp src/pw_crypto.cpp src/pw_crypto.h src/typtop.cpp src/typtop.h)
-add_executable(typtop_c src/main.cpp src/typtop.cpp src/typtop.h ${PROTO_SRCS} ${PROTO_HDRS} src/typo_util.hpp)
-target_link_libraries(typtop_c pw_crypto ${PROTOBUF_LIBRARIES})
-
+set(TYPTOP_SRCS src/typtop.cpp src/typtop.h ${PROTO_SRCS} ${PROTO_HDRS})
+add_library(typtop STATIC ${TYPTOP_SRCS})
+target_include_directories(typtop PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(typtop ${PROTOBUF_LIBRARIES})
 
 include_directories(test)
-set(TEST_SOURCES "${PROJECT_SOURCE_DIR}/test/test-main.cpp" "${PROJECT_SOURCE_DIR}/test/test_pw_crypto.cpp")
-add_executable(tests ${TEST_SOURCES})
-target_link_libraries(tests pw_crypto)
+set(TEST_SRCS "${PROJECT_SOURCE_DIR}/test/test-main.cpp" "${PROJECT_SOURCE_DIR}/test/test_pw_crypto.cpp" test/test_typtop.cpp)
+add_executable(tests ${TEST_SRCS})
+target_link_libraries(tests pw_crypto typtop)
+
+add_executable(typtop_c src/main.cpp  ${TYPTOP_SRCS})
+target_link_libraries(typtop_c pw_crypto ${PROTOBUF_LIBRARIES})

@@ -31,44 +31,28 @@ string hmac256(const SecByteBlock& key, const string& msg) {
     return res;
 }
 
-void PrintKeyAndIV(SecByteBlock& ekey,
-                   SecByteBlock& iv,
-                   SecByteBlock& akey)
-{
-    // Print them
-    HexEncoder encoder(new FileSink(cout));
-
-    cout << "AES key: ";
-    encoder.Put(ekey.data(), ekey.size());
-    encoder.MessageEnd(); cout << endl;
-
-    cout << "AES IV: ";
-    encoder.Put(iv.data(), iv.size());
-    encoder.MessageEnd(); cout << endl;
-
-    cout << "HMAC key: ";
-    encoder.Put(akey.data(), akey.size());
-    encoder.MessageEnd(); cout << endl;
-}
-
 void PkCrypto::set_pk(const string& pk) {
     StringSource ss(pk, true);
     e.AccessPublicKey().Load(ss);
+    _can_encrypt = true;
     _can_decrypt = false;
 }
 void PkCrypto::set_sk(const string& sk) {
     StringSource ss(sk, true);
     d.AccessPrivateKey().Load(ss);
     e = myECIES::Encryptor(d);
+    _can_encrypt = true;
     _can_decrypt = true;
 }
 void PkCrypto::initialize() {
     d = myECIES::Decryptor(PRNG, CURVE);
     e = myECIES::Encryptor(d);
+    _can_encrypt = true;
     _can_decrypt = true;
 }
 
 string PkCrypto::serialize_pk() {
+    assert(_can_encrypt);
     string s;
     StringSink ss(s);
     e.AccessKey().AccessGroupParameters().SetPointCompression(true);
@@ -79,18 +63,13 @@ string PkCrypto::serialize_pk() {
 }
 
 string PkCrypto::serialize_sk() {
+    assert(_can_decrypt);
     string s;
     StringSink ss(s);
     d.AccessKey().AccessGroupParameters().SetPointCompression(true);
     d.AccessKey().AccessGroupParameters().SetEncodeAsOID(true);
     d.AccessKey().BEREncode(ss);
     return s;
-}
-
-SecByteBlock get_rand_bytes(const uint32_t len) {
-    SecByteBlock salt(len);
-    PRNG.GenerateBlock(salt, len);
-    return salt;
 }
 
 void _slow_hash(const string &pw, const SecByteBlock& salt, SecByteBlock &key) {
@@ -109,7 +88,8 @@ void _slow_hash(const string &pw, const SecByteBlock& salt, SecByteBlock &key) {
  */
 bool harden_pw(const string pw, SecByteBlock& salt, SecByteBlock& key) {
     if (salt.empty()) {
-        salt = get_rand_bytes(KEYSIZE_BYTES);
+        salt.resize(KEYSIZE_BYTES);
+        PRNG.GenerateBlock(salt, KEYSIZE_BYTES);
     }
     if (key.empty()) {
         _slow_hash(pw, salt, key);

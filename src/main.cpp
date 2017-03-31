@@ -4,19 +4,8 @@
 #include "typtop.h"
 
 int main(int argc, char *argv[]) {
-    std::cout << "Hello, World!" << std::endl;
-    (void) argc;
-    (void) argv;
-
-    string password = "Super secret password";
-    if (argc >= 2 && argv[1] != NULL)
-        password = string(argv[1]);
-
-    string message = "Now is the time for all good men to come to the aide of their country";
-    if (argc >= 3 && argv[2] != NULL)
-        message = string(argv[2]);
-
 //    try {
+    /*
     string m = "Hello world";
     SecByteBlock digest1, digest2, salt;
     harden_pw(m, salt, digest1);
@@ -40,11 +29,14 @@ int main(int argc, char *argv[]) {
     cout << ctx << endl;
     pkobj.pk_decrypt(ctx, rdata);
     assert(rdata == m);
-
+    */
     /**************************************************************/
     string fname = "./tmp_db";
-    TypTop tp(fname, "hello_pass");
-
+    string pws[] = {"hellobrother", "hellobrother1"};
+    remove(fname.c_str());
+    TypTop tp(fname, pws[0]);
+    cout << "Trying 0: " << tp.check(pws[0], true) << endl;
+    // cout << "Trying 1: " << tp.check(pws[1], false) << endl;
 
 
 //    }

@@ -15,32 +15,32 @@ using namespace std;
 
 #define EDIST_CUTOFF 1
 
-int swapcase(int chr) {
+inline int swapcase(int chr) {
     return islower(chr) ? toupper(chr) : tolower(chr);
 }
 
-string swapcase(const string& str) {
+inline string swapcase(const string& str) {
     string ret(str.size(), 0);
     std::transform(str.begin(), str.end(), ret.begin(),
                    static_cast<int(*)(int)>(swapcase));
     return ret;
 }
 
-string toupper(const string& str) {
+inline string toupper(const string& str) {
     string ret(str.size(), 0);
     std::transform(str.begin(), str.end(), ret.begin(),
                    static_cast<int(*)(int)>(::toupper));
     return ret;
 }
 
-string tolower(const string& str) {
+inline string tolower(const string& str) {
     string ret(str.size(), 0);
     transform(str.begin(), str.end(), ret.begin(),
               static_cast<int(*)(int)>(::tolower));
     return ret;
 }
 
-char change_shift(char c) {
+inline char change_shift(char c) {
     static const char* non_shift_syms = "`1234567890-=[]\\;',./";
     static const char* shifted_syms = "~!@#$%^&*()_+{}|:\"<>?";
     static size_t _len_syms = strlen(non_shift_syms);
@@ -50,7 +50,8 @@ char change_shift(char c) {
     }
     return c;
 }
-bool top5fixable(const string& real_pw, const string& pw) {
+
+inline bool top5fixable(const string& real_pw, const string& pw) {
     return (swapcase(pw) == real_pw ||  // caps-lock key error
             (char)swapcase(pw[0]) + pw.substr(1) == real_pw ||  //shift key error
             pw.substr(0, pw.size()-1) == real_pw ||
@@ -59,7 +60,7 @@ bool top5fixable(const string& real_pw, const string& pw) {
     );
 }
 
-void get_typos(const string& pw, vector<string>& ret) {
+inline void get_typos(const string& pw, vector<string>& ret) {
     if (pw.size()<2) {
         return;
     }
@@ -84,11 +85,11 @@ void get_typos(const string& pw, vector<string>& ret) {
 }
 
 /**
- * Sort based on indexices.
+ * Sort based on indices.
  * From http://stackoverflow.com/a/12399290/1792013
  */
 template <typename T>
-vector<size_t> sort_indexes(const vector<T> &v) {
+inline vector<size_t> sort_indexes(const vector<T> &v) {
 
     // initialize original index locations
     vector<size_t> idx(v.size());
@@ -101,11 +102,11 @@ vector<size_t> sort_indexes(const vector<T> &v) {
     return idx;
 }
 
-int64_t now() {
+inline int64_t now() {
     return time(NULL);
 }
 
-string localtime() {
+inline string localtime() {
     time_t rawtime;
     time (&rawtime);
     return asctime(localtime (&rawtime));
@@ -113,7 +114,7 @@ string localtime() {
 
 #define MIN3(a, b, c) ((a) < (b) ? ((a) < (c) ? (a) : (c)) : ((b) < (c) ? (b) : (c)))
 
-int _vanilla_edit_distance(const string& s1, const string& s2) {
+inline int _vanilla_edit_distance(const string& s1, const string& s2) {
     unsigned int x, y;
     size_t s1len = s1.size(), s2len=s2.size();
     unsigned int matrix[s2len+1][s1len+1];
@@ -137,7 +138,7 @@ int _vanilla_edit_distance(const string& s1, const string& s2) {
     return(matrix[s2len][s1len]);
 }
 
-int edit_distance(const string& s1, const string&s2){
+inline int edit_distance(const string& s1, const string&s2){
     // TODO use word2keypress distance
     int edist = _vanilla_edit_distance(s1, s2);
     if(edist>1){ // check for swaped cases
@@ -146,7 +147,7 @@ int edit_distance(const string& s1, const string&s2){
     return edist;
 }
 
-string get_homedir(void) {
+inline string get_homedir(void) {
 #ifdef DEBUG
     return "./";
 #endif
@@ -158,13 +159,27 @@ string get_homedir(void) {
 #endif
     return strdup(homedir);
 }
-#endif //TYPTOP_C_TYPO_UTIL_HPP
+
+/**
+ * Compares the f_o (old f) and f_n (new f) to
+ * decide whether or not the old should be evicted
+ * Right now the probability of eviction is f_n/(f_n+f_o)
+ * --> It prefers to keep (returns false more often)
+ */
+inline bool win(int f_o, int f_n) {
+    if (f_n <= 0 || f_o >= INT_MAX) return false;
+    if (f_o <= 0 || f_n >= INT_MAX) return true;
+    if (f_o > INT_MAX-f_n) return (f_n>=f_o); // never change real passwords
+    int d = f_o + f_n;
+    if (d<=0) throw;
+    return ((int)PRNG.GenerateWord32(0, (uint32_t)d) < f_n);
+}
 
 /**
  * @return install id. Currently the install_id is just a file in the home
  * directory of the active user.
  */
-string get_install_id() {
+inline string get_install_id() {
     string homdir(get_homedir());
     string UNIQ_ID_FILENAME = homdir + "/.typtop.uniq.id";
     std::fstream f(UNIQ_ID_FILENAME, ios::in);
@@ -196,8 +211,9 @@ string get_install_id() {
  * @param pw: real password
  * @param typo: Whether the typo can be allowed to get into the cache
  */
-bool meets_typo_policy(const string& pw, const string& typo) {
+inline bool meets_typo_policy(const string& pw, const string& typo) {
     // TODO: Add entropy requirements
     return typo.size() > 6 && edit_distance(pw, typo) <= EDIST_CUTOFF;
 }
 
+#endif //TYPTOP_C_TYPO_UTIL_HPP

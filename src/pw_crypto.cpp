@@ -121,36 +121,47 @@ bool harden_pw(const string pw, SecByteBlock& salt, SecByteBlock& key) {
     }
 }
 
-void pwencrypt(const string &pw, const string &msg, string& ctx) {
+bool pwencrypt(const string &pw, const string &msg, string& ctx) {
     SecByteBlock salt;
     SecByteBlock key;
-    harden_pw(pw, salt, key);
+    bool ret = false;
+    try {
+        harden_pw(pw, salt, key);
 
-    // debug_print(key.data(), key.size(), "pwencrypt.Key");
-    // debug_print(salt.data(), salt.size(), "pwencrypt.Salt");
+        // debug_print(key.data(), key.size(), "pwencrypt.Key");
+        // debug_print(salt.data(), salt.size(), "pwencrypt.Salt");
 
-    string base_ctx;
-    _encrypt(key, msg, "", base_ctx);
-    // TODO:  <hash_algo>.<iteration_cnt>.<salt>.<ctx>
-    StringSink ss(ctx);
-    // ss.Put((const byte*)"SHA256", 6, true);
-    ss.Put(salt, salt.size(), true);
-    ss.Put((const byte*)base_ctx.data(), base_ctx.size(), true);
+        string base_ctx;
+        _encrypt(key, msg, "", base_ctx);
+        // TODO:  <hash_algo>.<iteration_cnt>.<salt>.<ctx>
+        StringSink ss(ctx);
+        // ss.Put((const byte*)"SHA256", 6, true);
+        ss.Put(salt, salt.size(), true);
+        ss.Put((const byte*)base_ctx.data(), base_ctx.size(), true);
+    } catch (CryptoPP::Exception& ex) {
+        cerr << ex.what() << endl;
+    }
     key.CleanNew(0); // delete the key
+    return ret;
 }
 
-void pwdecrypt(const string &pw, const string &ctx, string &msg) {
-    SecByteBlock salt((byte*)ctx.substr(0, KEYSIZE_BYTES).data(), KEYSIZE_BYTES);
-    string base_ctx = ctx.substr(KEYSIZE_BYTES);
+bool pwdecrypt(const string &pw, const string &ctx, string &msg) {
+    bool ret = false;
     SecByteBlock key;
-    harden_pw(pw, salt, key);
-
-    // debug_print(key.data(), key.size(), "pwdecrypt.Key");
-    // debug_print(salt.data(), salt.size(), "pwdecrypt.Salt");
-
-    _decrypt(key, base_ctx, "", msg);
+    try {
+        SecByteBlock salt((byte*)ctx.substr(0, KEYSIZE_BYTES).data(), KEYSIZE_BYTES);
+        string base_ctx = ctx.substr(KEYSIZE_BYTES);
+        harden_pw(pw, salt, key);
+        // debug_print(key.data(), key.size(), "pwdecrypt.Key");
+        // debug_print(salt.data(), salt.size(), "pwdecrypt.Salt");
+        _decrypt(key, base_ctx, "", msg);
+        ret = true;
+    } catch (CryptoPP::Exception& ex) {
+        cerr << ex.what() << endl;
+    }
     // TODO:  <hash_algo>.<iteration_cnt>.<salt>.<ctx>
     key.CleanNew(0); // delete the key
+    return ret;
 }
 
 /**

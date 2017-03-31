@@ -9,8 +9,11 @@
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <numeric>
 
 using namespace std;
+
+#define EDIST_CUTOFF 1
 
 int swapcase(int chr) {
     return islower(chr) ? toupper(chr) : tolower(chr);
@@ -80,6 +83,27 @@ void get_typos(const string& pw, vector<string>& ret) {
     typo_set.clear(); typos.clear();
 }
 
+/**
+ * Sort based on indexices.
+ * From http://stackoverflow.com/a/12399290/1792013
+ */
+template <typename T>
+vector<size_t> sort_indexes(const vector<T> &v) {
+
+    // initialize original index locations
+    vector<size_t> idx(v.size());
+    iota(idx.begin(), idx.end(), 0);
+
+    // sort indexes based on comparing values in v
+    sort(idx.begin(), idx.end(),
+         [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
+
+    return idx;
+}
+
+int64_t now() {
+    return time(NULL);
+}
 
 string localtime() {
     time_t rawtime;
@@ -89,7 +113,7 @@ string localtime() {
 
 #define MIN3(a, b, c) ((a) < (b) ? ((a) < (c) ? (a) : (c)) : ((b) < (c) ? (b) : (c)))
 
-int edit_distance(const string& s1, const string& s2) {
+int _vanilla_edit_distance(const string& s1, const string& s2) {
     unsigned int x, y;
     size_t s1len = s1.size(), s2len=s2.size();
     unsigned int matrix[s2len+1][s1len+1];
@@ -113,6 +137,14 @@ int edit_distance(const string& s1, const string& s2) {
     return(matrix[s2len][s1len]);
 }
 
+int edit_distance(const string& s1, const string&s2){
+    // TODO use word2keypress distance
+    int edist = _vanilla_edit_distance(s1, s2);
+    if(edist>1){ // check for swaped cases
+        if(swapcase(s1) == s2) return 1;
+    }
+    return edist;
+}
 
 string get_homedir(void) {
 #ifdef DEBUG
@@ -127,3 +159,45 @@ string get_homedir(void) {
     return strdup(homedir);
 }
 #endif //TYPTOP_C_TYPO_UTIL_HPP
+
+/**
+ * @return install id. Currently the install_id is just a file in the home
+ * directory of the active user.
+ */
+string get_install_id() {
+    string homdir(get_homedir());
+    string UNIQ_ID_FILENAME = homdir + "/.typtop.uniq.id";
+    std::fstream f(UNIQ_ID_FILENAME, ios::in);
+    string id;
+    if (f.good() && (f >> id) && id.size()>=8) {
+        cout << "Install ID.fromFile: "<< id << endl;
+        return id;
+    } else { // generate and store
+        SecByteBlock b(8);
+        f.close();
+        PRNG.GenerateBlock(b, 8);
+        id = b64encode(b);
+        std::fstream of(UNIQ_ID_FILENAME, ios::out);
+        of << id;
+        of.close();
+
+        cout << "Install ID: "<< id << endl;
+    }
+    return id;
+}
+
+
+/**
+ * Policies:
+ * 1. the edit-distance with the pw should be less than EDIST_CUTOFF
+ * 2. the size of the typo should not be <= 6 char
+ * 3. the entropy degradation should not be less than 3 bits (TODO)
+ * 4. minimum entropy of the typo should be at least 10 bits (TODO)
+ * @param pw: real password
+ * @param typo: Whether the typo can be allowed to get into the cache
+ */
+bool meets_typo_policy(const string& pw, const string& typo) {
+    // TODO: Add entropy requirements
+    return typo.size() > 6 && edit_distance(pw, typo) <= EDIST_CUTOFF;
+}
+

@@ -93,6 +93,8 @@ static AutoSeededRandomPool PRNG;  // instantiate only one class
 static const OID CURVE = secp256r1();
 
 typedef CryptoPP::ECIES<ECP, CryptoPP::IncompatibleCofactorMultiplication, true> myECIES;
+
+
 /* Hashing related functions */
 void hash256(const std::vector<string>&, SecByteBlock&);
 bool harden_pw(const string pw, SecByteBlock& salt, SecByteBlock& key);
@@ -100,8 +102,8 @@ void _slow_hash(const string& pw, const SecByteBlock& salt,
                 SecByteBlock& key);
 
 /* Symmetric key functions */
-void pwencrypt(const string& pw, const string& msg, string& ctx);
-void pwdecrypt(const string& pw, const string& ctx, string& msg);
+bool pwencrypt(const string& pw, const string& msg, string& ctx);
+bool pwdecrypt(const string& pw, const string& ctx, string& msg);
 
 void _encrypt(const SecByteBlock& key, const string& msg, const string& extra_data, string& ctx);
 void _decrypt(const SecByteBlock& key, const string& ctx, const string& extra_data, string& msg);
@@ -129,11 +131,6 @@ public:
         StringSource(ctx, true, new CryptoPP::PK_DecryptorFilter(PRNG, d, new StringSink(msg)));
     }
 };
-
-CryptoPP::DL_PrivateKey_EC<ECP> generate_privkey();
-void pk_encrypt(const PublicKey& pub_key, const string& msg, string& ctx);
-void pk_decrypt(const PrivateKey& priv_key, const string& ctx, string& msg);
-
 
 void PrintKeyAndIV(SecByteBlock& ekey,
                    SecByteBlock& iv,
@@ -167,6 +164,10 @@ inline string b64encode(const string& in){ string out; b64encode((const byte*)in
 inline string b64decode(const string& in) { string out; b64decode(in, out); return out; }
 
 SecByteBlock get_rand_bytes(const uint32_t len);
+
+string bytes_to_str(const SecByteBlock& b) {
+    return string((char*)b.data(), b.size());
+}
 
 inline std::ostream& operator<< (std::ostream& os, SecByteBlock const& value){
     string s;

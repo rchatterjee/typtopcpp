@@ -1,4 +1,6 @@
 # TypTop-CPP #
+[![Build Status](https://travis-ci.org/rchatterjee/typtopcpp.svg?branch=master)](https://travis-ci.org/rchatterjee/typtopcpp)  
+
 An effort to port [typtop](https://github.com/rchatterjee/pam-typopw) to C++.
 
 ## Dependencies

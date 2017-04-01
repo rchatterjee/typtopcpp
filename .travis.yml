@@ -1,0 +1,20 @@
+language: cpp
+
+compiler:
+   - clang
+   - g++
+
+os:
+   - linux
+   - osx
+before_install:
+  - echo $LANG
+  - echo $LC_ALL
+  - if [ $TRAVIS_OS_NAME == linux ]; then apt-get install protobuf cmake g++; fi
+  - if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install protobuf clang cmake; fi
+
+before_script:
+  - mkdir build && cd build && cmake --build /home/rahul/projects/typtopcpp/cmake-build-debug --target tests -- -j 4
+
+script:
+  - make tests

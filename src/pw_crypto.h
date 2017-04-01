@@ -118,28 +118,20 @@ private:
     bool _can_decrypt = false;
     bool _can_encrypt = false;
 public:
-    // PkCrypto(string pk="", string sk="", bool initialize=false);
+    // PkCrypto();
     void set_pk(const string& pk);
-    void set_sk(const string& sk);
+    void set_sk(const string& sk, bool gen_pk=false);
     void initialize();
-    string serialize_pk();
-    string serialize_sk();
+    const string serialize_pk();
+    const string serialize_sk();
     inline bool can_decrypt() const { return _can_decrypt; }
     inline bool can_encrypt() const { return _can_encrypt; }
 
-    inline void pk_encrypt(const string &msg, string &ctx) const {
-        ctx.clear();
-        if(!_can_encrypt) throw("Cannot encrypt");
-        auto e = myECIES::Encryptor(_pk);
-        StringSource(msg, true, new CryptoPP::PK_EncryptorFilter(PRNG, e, new StringSink(ctx)));
-    }
+    void pk_encrypt(const string &msg, string &ctx) const;
+    void pk_decrypt(const string& ctx, string& msg) const;
 
-    inline void pk_decrypt(const string& ctx, string& msg) const {
-        if(!_can_decrypt) throw("Cannot decrypt");
-        msg.clear();
-        auto d = myECIES::Decryptor(_sk);
-        StringSource(ctx, true, new CryptoPP::PK_DecryptorFilter(PRNG, d, new StringSink(msg)));
-    }
+protected:
+    void set_params();
 };
 
 void PrintKeyAndIV(SecByteBlock& ekey,

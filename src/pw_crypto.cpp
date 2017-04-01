@@ -31,26 +31,32 @@ string hmac256(const SecByteBlock& key, const string& msg) {
     return res;
 }
 
-void PkCrypto::set_pk(const string& pk) {
-    StringSource ss(pk, true);
-    _pk.Load(ss);
-    if(!_pk.Validate(PRNG, 3)) {
-        _can_decrypt = _can_encrypt = false;
-        throw( "The passed key string is not valid!! Cannot proceed." );
-    }
-    _can_encrypt = true;
-    _can_decrypt = false;
+void PkCrypto::set_params() {
+    _sk.AccessGroupParameters().SetPointCompression(true);
+    _sk.AccessGroupParameters().SetEncodeAsOID(true);
+    _pk.AccessGroupParameters().SetPointCompression(true);
+    _pk.AccessGroupParameters().SetEncodeAsOID(true);
 }
-void PkCrypto::set_sk(const string& sk) {
-    StringSource ss(sk, true);
-    _sk.Load(ss);
-    if(!_sk.Validate(PRNG, 3)) {
-        _can_decrypt = _can_encrypt = false;
-        throw( "The passed key string is not valid!! Cannot proceed." );
-    }
-    _sk.MakePublicKey(_pk);
+
+void PkCrypto::set_pk(const string& pk) {
+    StringSource ss((const byte*)pk.data(), pk.size(), true);
+    // _pk.BERDecode(ss);
+    _pk.Load(ss);
+    _pk.ThrowIfInvalid(PRNG, 3);
     _can_encrypt = true;
+    set_params();
+}
+void PkCrypto::set_sk(const string& sk, bool gen_pk) {
+    StringSource ss((const byte*)sk.data(), sk.size(), true);
+    // _sk.BERDecode(ss);
+    _sk.Load(ss);
+    _sk.ThrowIfInvalid(PRNG, 3);
+    if(gen_pk) {
+        _sk.MakePublicKey(_pk);
+        _can_encrypt = true;
+    }
     _can_decrypt = true;
+    set_params();
 }
 void PkCrypto::initialize() {
     _sk.Initialize(PRNG, CURVE);
@@ -59,26 +65,42 @@ void PkCrypto::initialize() {
     _can_decrypt = true;
 }
 
-string PkCrypto::serialize_pk() {
+const string PkCrypto::serialize_pk() {
     assert(_can_encrypt);
     string s;
     StringSink ss(s);
-    _pk.AccessGroupParameters().SetPointCompression(true);
-    _pk.AccessGroupParameters().SetEncodeAsOID(true);
+    set_params();
+    //_pk.DEREncode(StringSink(s).Ref());
     _pk.Save(ss);
-    // e.AccessKey().Save(ss);
     return s;
 }
 
-string PkCrypto::serialize_sk() {
+const string PkCrypto::serialize_sk() {
     assert(_can_decrypt);
     string s;
+    set_params();
     StringSink ss(s);
-    _sk.AccessGroupParameters().SetPointCompression(true);
-    _sk.AccessGroupParameters().SetEncodeAsOID(true);
+    // _sk.BEREncode(ss);
     _sk.Save(ss);
     return s;
 }
+
+void PkCrypto::pk_encrypt(const string &msg, string &ctx) const {
+    ctx.clear();
+    if(!_can_encrypt) throw("Cannot encrypt");
+    auto e = myECIES::Encryptor(_pk);
+    StringSource((const byte*)msg.data(), msg.size(), true,
+                 new CryptoPP::PK_EncryptorFilter(PRNG, e, new StringSink(ctx)));
+}
+
+void PkCrypto::pk_decrypt(const string& ctx, string& msg) const {
+    if(!_can_decrypt) throw("Cannot decrypt");
+    msg.clear();
+    auto d = myECIES::Decryptor(_sk);
+    StringSource ss((const byte*)ctx.data(), ctx.size(), true,
+                    new CryptoPP::PK_DecryptorFilter(PRNG, d, new StringSink(msg)));
+}
+
 
 void _slow_hash(const string &pw, const SecByteBlock& salt, SecByteBlock &key) {
     PKCS5_PBKDF2_HMAC<SHA512> pbkdf;
@@ -110,15 +132,11 @@ bool harden_pw(const string pw, SecByteBlock& salt, SecByteBlock& key) {
 }
 
 bool pwencrypt(const string &pw, const string &msg, string& ctx) {
-    SecByteBlock salt;
-    SecByteBlock key;
     bool ret = false;
     try {
+        ctx.clear();
+        SecByteBlock salt, key;
         harden_pw(pw, salt, key);
-
-        // debug_print(key.data(), key.size(), "pwencrypt.Key");
-        // debug_print(salt.data(), salt.size(), "pwencrypt.Salt");
-
         string base_ctx;
         _encrypt(key, msg, "", base_ctx);
         // TODO:  <hash_algo>.<iteration_cnt>.<salt>.<ctx>
@@ -127,9 +145,9 @@ bool pwencrypt(const string &pw, const string &msg, string& ctx) {
         ss.Put(salt, salt.size(), true);
         ss.Put((const byte*)base_ctx.data(), base_ctx.size(), true);
     } catch (CryptoPP::Exception& ex) {
-        cerr << ex.what() << endl;
+        // cerr << ex.what() << endl;
+        ret = false;
     }
-    key.CleanNew(0); // delete the key
     return ret;
 }
 
@@ -137,18 +155,17 @@ bool pwdecrypt(const string &pw, const string &ctx, string &msg) {
     bool ret = false;
     SecByteBlock key;
     try {
+        msg.clear();
         SecByteBlock salt((byte*)ctx.substr(0, KEYSIZE_BYTES).data(), KEYSIZE_BYTES);
         string base_ctx = ctx.substr(KEYSIZE_BYTES);
         harden_pw(pw, salt, key);
-        // debug_print(key.data(), key.size(), "pwdecrypt.Key");
-        // debug_print(salt.data(), salt.size(), "pwdecrypt.Salt");
         _decrypt(key, base_ctx, "", msg);
         ret = true;
     } catch (CryptoPP::Exception& ex) {
-        cerr << ex.what() << endl;
+        // cerr << ex.what() << endl;
+        ret = false;
     }
     // TODO:  <hash_algo>.<iteration_cnt>.<salt>.<ctx>
-    key.CleanNew(0); // delete the key
     return ret;
 }
 
@@ -163,6 +180,7 @@ bool pwdecrypt(const string &pw, const string &ctx, string &msg) {
  */
 void _encrypt(const SecByteBlock &key, const string &msg, const string &extra_data, string& ctx) {
     GCM< AES, CryptoPP::GCM_2K_Tables>::Encryption encryptor;
+    ctx.clear();
     assert( key.size() == AES::BLOCKSIZE );
     SecByteBlock iv(AES::BLOCKSIZE);
     PRNG.GenerateBlock(iv, AES::BLOCKSIZE);
@@ -198,7 +216,7 @@ void _decrypt(const SecByteBlock &key, const string &ctx, const string &extra_da
     decryptor.SetKeyWithIV(key, key.size(), (const byte*)iv.data(), iv.size());
 
     AuthenticatedDecryptionFilter df(
-            decryptor, NULL,
+            decryptor, new StringSink(msg),
             AuthenticatedDecryptionFilter::MAC_AT_BEGIN | AuthenticatedDecryptionFilter::THROW_EXCEPTION,
             MAC_SIZE_BYTES
     );
@@ -214,14 +232,13 @@ void _decrypt(const SecByteBlock &key, const string &ctx, const string &extra_da
 
     // If the object does not throw, here's the only
     //  opportunity to check the data's integrity
-    assert( true == df.GetLastResult() );
+    assert( df.GetLastResult() );
 
     // Remove data from channel
-    df.SetRetrievalChannel( DEFAULT_CHANNEL );
-    size_t n = (size_t)df.MaxRetrievable();
-    msg.resize( n );
-
-    if( n > 0 ) { df.Get( (byte*)msg.data(), n ); }
+    // df.SetRetrievalChannel( DEFAULT_CHANNEL );
+    // size_t n = (size_t)df.MaxRetrievable();
+    // msg.clear(); msg.resize( n );
+    // if( n > 0 ) { df.Get( (byte*)msg.data(), msg.size() ); }
 }
 
 

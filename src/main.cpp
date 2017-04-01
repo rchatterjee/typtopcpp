@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     remove(fname.c_str());
     TypTop tp(fname, pws[0]);
     cout << "Trying 0: " << tp.check(pws[0], true) << endl;
-    // cout << "Trying 1: " << tp.check(pws[1], false) << endl;
+    cout << "Trying 1: " << tp.check(pws[1], false) << endl;
 
 
 //    }

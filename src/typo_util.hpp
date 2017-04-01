@@ -131,7 +131,7 @@ inline int _vanilla_edit_distance(const string& s1, const string& s2) {
                     matrix[x - 1][y - 1] + (s1[y - 1] == s2[x - 1] ? 0 : 1)
             );
             if (x>=2 && y>=2) {
-                int transpose_cost = (s1[y-2] == s2[x-1] && s1[y-1] == s2[x-2]) ? 0 : 2;
+                int transpose_cost = (s1[y-2] == s2[x-1] && s1[y-1] == s2[x-2]) ? 1 : 2;
                 matrix[x][y] = std::min(matrix[x][y], matrix[x-2][y-2] + transpose_cost);
             }
         }

@@ -123,7 +123,7 @@ TEST_CASE("typtop") {
                             CHECK(new_ench.last_used(j) == ench.last_used(i));
                             CHECK(T[i] == db.t(j));
                             at_least_permuted |= (i != j);
-                            cerr << i << " <<-->> " << j << endl;
+                            // cerr << i << " <<-->> " << j << endl;
                             break;
                         }
                     }
@@ -141,7 +141,7 @@ TEST_CASE("typtop") {
                 for(int j=1; j<T_size; j++) {
                     size_t i=0;
                     for(i=0; i<typos.size(); i++){
-                        cerr << "<<-- checking >> " << typos[i] << endl;
+                        // cerr << "<<-- checking >> " << typos[i] << endl;
                         if (pwdecrypt(typos[i], db.t(j), sk_str))
                             break;
                     }

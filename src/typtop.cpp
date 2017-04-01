@@ -3,6 +3,7 @@
 //
 
 #include <assert.h>
+#include <random>
 #include "typtop.h"
 
 using CryptoPP::FileSource;
@@ -74,7 +75,7 @@ void TypTop::initialize(const string &_db_fname, const string &real_pw) {
     ch->set_global_salt((const char *) global_salt.data(), global_salt.size());
 
     string sk_str = pkobj.serialize_sk();
-    cerr << __FUNCTION__ << " :: " << b64encode(sk_str) << endl;
+    // cerr << __FUNCTION__ << " :: " << b64encode(sk_str) << endl;
 
     // --- Set the encryption header
     ench.set_pw(real_pw);
@@ -90,10 +91,10 @@ void TypTop::initialize(const string &_db_fname, const string &real_pw) {
         } else {
             insert_into_log(T_cache[i], true, -1); // sets L
         }
-        cerr << "Inserting -->" << T_cache[i] << endl;
         pwencrypt(T_cache[i], sk_str, sk_ctx);
         _insert_into_typo_cache(i, sk_ctx, (i == 0 ? INT_MAX : T_size - i));
 #ifdef DEBUG
+        // cerr << "Inserting -->" << T_cache[i] << endl;
         if(i>0) {
             assert(db.t(i) == sk_ctx);
             assert(pwdecrypt(T_cache[i], db.t(i), _t));
@@ -180,7 +181,7 @@ bool TypTop::check(const string &pw, bool were_right) {
             add_to_waitlist(pw, now());
         }
     } else { // match_found is true
-        cerr << __FUNCTION__ << " :: " << b64encode(sk_str) << endl;
+        // cerr << __FUNCTION__ << " :: " << b64encode(sk_str) << endl;
         pkobj.set_sk(sk_str);
         // TODO: Verify whether or not this is the correct sk
         try {
@@ -238,15 +239,15 @@ void TypTop::add_to_typo_cache(const string &pw, const int freq,
  * every time the cache is altered.
  */
 void TypTop::permute_typo_cache(const string &sk_str) {
-    return; // TODO: Fix this function;
-    vector<int> idx(T_size - 1);
-    iota(idx.begin(), idx.end(), 0);
-    random_shuffle(idx.begin(), idx.end());
-    auto random_perm = [idx](int i) { return idx[i]; };
+    std::random_device rd;
+    uint32_t permutation_seed = rd();
+    std::mt19937 g(permutation_seed);
+    shuffle(db.mutable_t()->begin() + 1, db.mutable_t()->end(), g);
+    g.seed(permutation_seed); // reseed the permutaion
+    shuffle(ench.mutable_freq()->begin() + 1, ench.mutable_freq()->end(), g);
+    g.seed(permutation_seed);
+    shuffle(ench.mutable_last_used()->begin() + 1, ench.mutable_last_used()->end(), g);
 
-    random_shuffle(db.mutable_t()->begin() + 1, db.mutable_t()->end(), random_perm);
-    random_shuffle(ench.mutable_freq()->begin() + 1, ench.mutable_freq()->end(), random_perm);
-    random_shuffle(ench.mutable_last_used()->begin() + 1, ench.mutable_last_used()->end(), random_perm);
     int64_t t_now = now();
     string sk_ctx;
     for (int i = 1; i < T_size; i++) { // don't remove real password

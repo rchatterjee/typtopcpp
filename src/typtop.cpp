@@ -155,7 +155,7 @@ bool TypTop::check(const string &pw, bool were_right) {
             break;
         }
     }
-    if (i ==0 && !were_right) { // old password entered
+    if (i == 0 && !were_right) { // old password entered
         // TODO: Deal with it
         db.mutable_h()->set_sys_state(SystemStatus::PW_CHANGED);
     }
@@ -176,20 +176,13 @@ bool TypTop::check(const string &pw, bool were_right) {
             ench.set_freq(i, ench.freq(i)+1);
             ench.set_last_used(i, now());
         }
-        process_waitlist(sk_str);
-        permute_typo_cache(sk_str);
+         process_waitlist(sk_str);
+         permute_typo_cache(sk_str);
 
-        cerr << ench.DebugString() << endl;
-        assert(ench.IsInitialized());
         string ench_ctx, _t_ench_str;
 
         pkobj.pk_encrypt(ench.SerializeAsString(), ench_ctx);
-        pkobj.pk_decrypt(ench_ctx, _t_ench_str);
-
         db.mutable_h()->set_enc_header(ench_ctx);
-        cerr<<ench_ctx.length() << " " << ench_ctx.size() << endl
-            << b64encode(ench_ctx) << endl;
-        assert(_t_ench_str == ench.SerializeAsString());
         ench.Clear();
         were_right = true;
     }

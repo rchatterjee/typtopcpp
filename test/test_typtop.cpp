@@ -135,6 +135,30 @@ TEST_CASE("Typtop library functions") {
                 CHECK(ench.pw() == pws[0]);
                 CHECK(tp.check(pws[0], true));
             }
+
+            SECTION("Check redo") {
+                ench.Clear();
+                string enc_header_str;
+                /* Standard book-keeping */
+                CHECK(pwdecrypt(pws[0], db.t(0), sk_str));
+                cerr << b64encode(sk_str) << endl;
+                mut_pkobj.set_sk(sk_str);
+                mut_pkobj.pk_decrypt(db.h().enc_header(), enc_header_str);
+                ench.ParseFromString(enc_header_str);
+                CHECK(ench.pw() == pws[0]);
+
+                cerr << ench.DebugString() << endl;
+                CHECK(ench.IsInitialized());
+                string ench_ctx, _t_ench_str;
+                pkobj.pk_encrypt(ench.SerializeAsString(), ench_ctx);
+                pkobj.pk_encrypt(ench.SerializeAsString(), ench_ctx);
+                pkobj.pk_decrypt(ench_ctx, _t_ench_str);
+                // db.mutable_h()->set_enc_header(ench_ctx);
+                cerr<<ench_ctx.length() << " " << ench_ctx.size() << endl
+                    << b64encode(ench_ctx) << endl;
+                CHECK(_t_ench_str == ench.SerializeAsString());
+                ench.Clear();
+            }
         }
         /*
         SECTION("add_to_waitlist") {

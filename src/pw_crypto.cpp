@@ -33,20 +33,28 @@ string hmac256(const SecByteBlock& key, const string& msg) {
 
 void PkCrypto::set_pk(const string& pk) {
     StringSource ss(pk, true);
-    e.AccessPublicKey().Load(ss);
+    _pk.Load(ss);
+    if(!_pk.Validate(PRNG, 3)) {
+        _can_decrypt = _can_encrypt = false;
+        throw( "The passed key string is not valid!! Cannot proceed." );
+    }
     _can_encrypt = true;
     _can_decrypt = false;
 }
 void PkCrypto::set_sk(const string& sk) {
     StringSource ss(sk, true);
-    d.AccessPrivateKey().Load(ss);
-    e = myECIES::Encryptor(d);
+    _sk.Load(ss);
+    if(!_sk.Validate(PRNG, 3)) {
+        _can_decrypt = _can_encrypt = false;
+        throw( "The passed key string is not valid!! Cannot proceed." );
+    }
+    _sk.MakePublicKey(_pk);
     _can_encrypt = true;
     _can_decrypt = true;
 }
 void PkCrypto::initialize() {
-    d = myECIES::Decryptor(PRNG, CURVE);
-    e = myECIES::Encryptor(d);
+    _sk.Initialize(PRNG, CURVE);
+    _sk.MakePublicKey(_pk);
     _can_encrypt = true;
     _can_decrypt = true;
 }
@@ -55,9 +63,9 @@ string PkCrypto::serialize_pk() {
     assert(_can_encrypt);
     string s;
     StringSink ss(s);
-    e.AccessKey().AccessGroupParameters().SetPointCompression(true);
-    e.AccessKey().AccessGroupParameters().SetEncodeAsOID(true);
-    e.AccessKey().BEREncode(ss);
+    _pk.AccessGroupParameters().SetPointCompression(true);
+    _pk.AccessGroupParameters().SetEncodeAsOID(true);
+    _pk.Save(ss);
     // e.AccessKey().Save(ss);
     return s;
 }
@@ -66,9 +74,9 @@ string PkCrypto::serialize_sk() {
     assert(_can_decrypt);
     string s;
     StringSink ss(s);
-    d.AccessKey().AccessGroupParameters().SetPointCompression(true);
-    d.AccessKey().AccessGroupParameters().SetEncodeAsOID(true);
-    d.AccessKey().BEREncode(ss);
+    _sk.AccessGroupParameters().SetPointCompression(true);
+    _sk.AccessGroupParameters().SetEncodeAsOID(true);
+    _sk.Save(ss);
     return s;
 }
 

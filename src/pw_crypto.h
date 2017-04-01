@@ -88,7 +88,7 @@ using CryptoPP::Base64URLDecoder;
 
 typedef unsigned long ulong;
 
-static const uint8_t KEYSIZE_BYTES = AES::BLOCKSIZE;  // key size 16 bytes
+static const uint8_t KEYSIZE_BYTES = AES::DEFAULT_KEYLENGTH;  // key size 16 bytes
 static const uint32_t PBKDF_ITERATION_CNT = 1000;
 static const uint32_t MAC_SIZE_BYTES = 16; // size of tag
 static AutoSeededRandomPool PRNG;  // instantiate only one class
@@ -113,8 +113,8 @@ void _decrypt(const SecByteBlock& key, const string& ctx, const string& extra_da
 /* Public Key Functions */
 class PkCrypto {
 private:
-    myECIES::Decryptor d;
-    myECIES::Encryptor e;
+    myECIES::PublicKey _pk;
+    myECIES::PrivateKey _sk;
     bool _can_decrypt = false;
     bool _can_encrypt = false;
 public:
@@ -130,12 +130,14 @@ public:
     inline void pk_encrypt(const string &msg, string &ctx) const {
         ctx.clear();
         if(!_can_encrypt) throw("Cannot encrypt");
+        auto e = myECIES::Encryptor(_pk);
         StringSource(msg, true, new CryptoPP::PK_EncryptorFilter(PRNG, e, new StringSink(ctx)));
     }
 
     inline void pk_decrypt(const string& ctx, string& msg) const {
         if(!_can_decrypt) throw("Cannot decrypt");
         msg.clear();
+        auto d = myECIES::Decryptor(_sk);
         StringSource(ctx, true, new CryptoPP::PK_DecryptorFilter(PRNG, d, new StringSink(msg)));
     }
 };

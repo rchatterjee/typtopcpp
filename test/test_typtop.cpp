@@ -84,7 +84,7 @@ TEST_CASE("typtop") {
     SECTION("Test TypTop DB") {
         remove(_db_fname.c_str()); // fresh initialization
         TypTopTest tp;
-        const typtopDB &db = tp.get_db();
+        const typoDB &db = tp.get_db();
         const PkCrypto &pkobj = tp.get_pkobj();
         REQUIRE(db.w_size() == W_size);
         REQUIRE(db.t_size() == T_size);
@@ -200,7 +200,7 @@ TEST_CASE("typtop") {
         TypTopTest tp1;
         tp1.save();
         TypTopTest tp2;
-        const typtopDB db1 = tp1.get_db(), db2 = tp2.get_db();
+        const typoDB db1 = tp1.get_db(), db2 = tp2.get_db();
         // test CH
         REQUIRE(db1.ch().DebugString() == db2.ch().DebugString());
         // test H
@@ -227,7 +227,7 @@ TEST_CASE("typtop") {
     SECTION("Test TypTop Public functions") {
         remove(_db_fname.c_str());
         TypTopTest tp;
-        const typtopDB &db = tp.get_db();
+        const typoDB &db = tp.get_db();
         REQUIRE(db.ch().install_id() == install_id);
 
         SECTION("check") {

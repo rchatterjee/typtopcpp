@@ -38,7 +38,7 @@ message Header {
     optional SystemStatus sys_state = 4 [default = UNINITIALIZED];
     required bytes enc_header = 5;
 }
-message typtopDB {
+message typoDB {
     required ConfigHeader CH = 1; // Config Header
     required Header H = 2;  // Header
     repeated bytes W = 3; // Waitlist

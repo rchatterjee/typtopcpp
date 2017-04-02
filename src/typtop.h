@@ -19,7 +19,7 @@ const int T_size = 5 + 1; // 1 for the real password
 
 class TypTop {
 private:
-    typtopDB db;
+    typoDB db;
     EncHeaderData ench;
     string db_fname;
     PkCrypto pkobj;
@@ -43,7 +43,7 @@ protected:
     void permute_typo_cache(const string& sk_str);
 
     // For testing
-    inline const typtopDB& get_db(){ return db; }
+    inline const typoDB& get_db(){ return db; }
     inline const PkCrypto& get_pkobj(){return pkobj;}
     inline const EncHeaderData& get_ench(){return ench;}
 };

@@ -2,7 +2,7 @@
 // Created by rahul on 3/28/17.
 //
 
-#include "src/pw_crypto.h"
+#include "pw_crypto.h"
 #include "catch.hpp"
 #include "db.pb.h"
 

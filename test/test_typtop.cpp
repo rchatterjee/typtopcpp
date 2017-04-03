@@ -2,7 +2,7 @@
 // Created by rahul on 3/30/17.
 //
 
-#include "src/typtop.h"
+#include "typtop.h"
 #include "catch.hpp"
 
 #define DEBUG 1

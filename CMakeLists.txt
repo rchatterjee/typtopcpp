@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 2.8)
 
 ## So it generates one executable and one shared library
 ## 1> pam_typtop.so : a pam module that to engage typtop via PAM
@@ -28,83 +28,30 @@ find_package(Protobuf REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS src/db.proto)
 
-include_directories("${PROJECT_BINARY_DIR}")
+# include_directories("${PROJECT_BINARY_DIR}")
+add_subdirectory(3rdparty)
+add_subdirectory(test)
+add_subdirectory(src)
 
 # Set up cryptopp
 # include(CMakeLists-External.txt)
-# find_package(cryptopp)
-# include_directories("${PROJECT_SOURCE_DIR}/cryptopp")
-#add_subdirectory (cryptopp)
+# find_package(CryptoPP REQUIRED)
+# include_directories("${CryptoPP_INCLUDE_DIRS}")
+# add_subdirectory (cryptopp)
 # add_library(cryptopp STATIC cryptopp)
 
 
-add_library(pw_crypto STATIC src/pw_crypto.cpp)
-target_include_directories (pw_crypto PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(pw_crypto cryptopp-static)
+# required modules for our task
+include(CheckIncludeFile)
+include(CheckIncludeFileCXX)
+include(CheckIncludeFiles)
+include(ExternalProject)
 
-set(TYPTOP_SRCS src/typtop.cpp src/typtop.h ${PROTO_SRCS} ${PROTO_HDRS})
-add_library(typtopdb STATIC ${TYPTOP_SRCS})
-target_include_directories(typtopdb PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(typtopdb ${PROTOBUF_LIBRARIES})
 
-include_directories(test)
-set(TEST_SRCS "${PROJECT_SOURCE_DIR}/test/test-main.cpp" "${PROJECT_SOURCE_DIR}/test/test_pw_crypto.cpp" test/test_typtop.cpp)
-add_executable(tests ${TEST_SRCS})
-target_link_libraries(tests pw_crypto typtopdb)
+# TO BE CREATED
+# include(3rdparty/CMakeLists.txt)
+include(3rdparty/cryptopp.cmake)
 
-add_executable(typtop_c src/main.cpp  ${TYPTOP_SRCS})
-target_link_libraries(typtop_c pw_crypto ${PROTOBUF_LIBRARIES})
-
-IF(UNIX)
-    IF(APPLE)
-        set(PAM_LIB pam_opendirectory_typtop)
-        set(PAM_LIB_SRCS pam_modules/pam_opendirectory_typtop.c)
-        # set(EXTRA_PAM_LIB "-framework CoreFoundation -framework OpenDirectory")
-        find_library(OpenDirectory OpenDirectory)
-        find_library(CoreFoundation CoreFoundation)
-        find_path(EXTRA_INCLUDE_PATH NAMES OpenDirectory/OpenDirectory.h)
-        set(EXTRA_LIBS ${OpenDirectory} ${CoreFoundation})
-        SET(EXTRA_OPTIONS "-flat_namespace")
-        SET(GUI "Cocoa")
-    ELSE(APPLE)  # Some unix platform, create pam_typtop
-        set(PAM_LIB pam_typtop)
-        set(PAM_LIB_SRCS pam_modules/pam_typtop.c)
-        SET(EXTRA_OPTIONS "-fPIC")
-        SET(GUI "X11")
-    ENDIF(APPLE)
-ELSE(UNIX)
-    IF(WIN32)
-        SET(GUI "Win32")
-    ELSE(WIN32)
-        SET(GUI "Unknown")
-    ENDIF(WIN32)
-ENDIF(UNIX)
-MESSAGE("GUI system is ${GUI}")
-# Search for PAM, required to build the pam_modules
-find_path(PAM_INCLUDE_DIR NAMES security/pam_appl.h pam/pam_appl.h)
-find_library(PAM_LIBRARY pam)
-
-if(NOT PAM_INCLUDE_DIR)
-    MESSAGE("PAM not found. Please install libpamdev or equivalent")
-else(NOT PAM_INCLUDE_DIR)
-    add_library(${PAM_LIB} SHARED ${PAM_LIB_SRCS} ${PAM_INCLUDE_DIR})
-    target_link_libraries(${PAM_LIB} ${PAM_LIBRARY} ${EXTRA_LIBS})
-    set_target_properties(${PAM_LIB} PROPERTIES LINK_FLAGS ${EXTRA_OPTIONS})
-endif(NOT PAM_INCLUDE_DIR)
-
-add_executable(typtop src/typtop-main.cpp)
-target_link_libraries(typtop tytopdb)
-
-### --- INSTALL --- ###
-# Install three things,
-#   1> pam_typtop.so -> /usr/local/lib/security,
-#   2> typtop -> /sbin/
-#   3> typtop.conf -> /etc/pam.d
-#   4> POST_INSTALL_SCRIPT := to update the pam_config files,
-INSTALL(TARGETS typtop ${PAM_LIB}
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib/security
-        PERMISSIONS )
-
+# testing
+include(CTest)
 ENABLE_TESTING()
-add_test(test pw_crypto typtopdb)

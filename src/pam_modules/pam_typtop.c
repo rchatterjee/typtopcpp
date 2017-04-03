@@ -1,0 +1,174 @@
+#define _XOPEN_SOURCE 700
+
+
+#include <syslog.h>
+#include <stdlib.h>
+#include <string.h>
+// #include <run_proc.h>
+
+#ifndef __APPLE__
+#  include <security/_pam_macros.h>
+#  include <security/pam_ext.h>
+#  include <security/pam_modutil.h>
+#else
+#  include <security/pam_appl.h>
+#endif
+#include <security/pam_modules.h>
+
+const int TYPTOP_COLLECT = 1;
+const int TYPTOP_FIN = 2;
+
+#ifdef __APPLE__
+/* pam_syslog is missing in apple, this is a function taken from
+   https://git.reviewboard.kde.org/r/125056/diff/3#4
+*/
+void pam_vsyslog(const pam_handle_t *ph, int priority, const char *fmt, va_list args)
+{
+  char *msg = NULL;
+  const char *service = NULL;
+  int retval;
+  retval = pam_get_item(ph, PAM_SERVICE, (const void **) &service);
+  if (retval != PAM_SUCCESS)
+    service = NULL;
+
+  if (vasprintf(&msg, fmt, args) < 0) {
+    syslog(LOG_CRIT | LOG_AUTHPRIV, "cannot allocate memory in vasprintf: %m");
+    return;
+  }
+  syslog(priority | LOG_AUTHPRIV, "%s%s%s: %s",
+         (service == NULL) ? "" : "(",
+         (service == NULL) ? "" : service,
+         (service == NULL) ? "" : ")", msg);
+  free(msg);
+}
+
+void pam_syslog(const pam_handle_t *ph, int priority, const char *fmt, ...)
+{
+  va_list args;
+  va_start(args, fmt);
+  pam_vsyslog(ph, priority, fmt, args);
+  va_end(args);
+}
+#endif
+
+// supported management groups
+#define PAM_SM_AUTH
+#define PAM_SM_PASSWORD
+
+/* static int */
+/* call_typtop(pam_handle_t *pamh, const char* user, const char* passwd, int chkwd_ret) { */
+/*     char cmd[1000]; */
+/*     sprintf(cmd, "/usr/local/bin/typtop --check %d '%s'", */
+/*             chkwd_ret==0?0:1, user, passwd); */
+/*     int retval = PAM_AUTH_ERR; */
+/*     if ((strlen(user) + strlen(passwd))>150) */
+/*         retval = PAM_AUTH_ERR; */
+/*     // printf("cmd=%s\n", cmd); */
+/*     FILE *fp = popen(cmd, "r"); */
+/*     if (fp == NULL || fscanf(fp, "%d", &retval)<=0) { */
+/*         printf("Typtop could not be opened. Sorry! retval=%d\n", retval); */
+/*     } */
+/*     pclose(fp); */
+/*     return retval; */
+/* } */
+
+
+
+/*  Runs TypToP, fetching the entered password using `pam_get_authtok`
+    If
+*/
+__attribute__((visibility("default")))
+PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv) {
+    int ret_pam_unix = PAM_SUCCESS;  // default ret_pam_unix is pam_failure
+    int retval = PAM_AUTH_ERR;
+    const char *name;
+    const char *passwd;
+    int i;
+    for(i = 1; i < argc; ++i) {
+        if (!strcmp(argv[i], "incorrect_pass")) {
+            ret_pam_unix = PAM_AUTH_ERR;
+        }
+    }
+
+    if (ret_pam_unix == PAM_SUCCESS) {
+        pam_syslog(pamh, LOG_NOTICE, "user entered the correct pw!");
+    } else {
+        pam_syslog(pamh, LOG_NOTICE, "incorrect password entered");
+    }
+
+    if (pam_get_user(pamh, &name, NULL) != PAM_SUCCESS) {
+        pam_syslog(pamh, LOG_ERR, "couldn't get username from PAM stack");
+        return PAM_USER_UNKNOWN;
+    }
+
+    retval = pam_get_authtok(pamh, PAM_AUTHTOK, &passwd, "this shouldn't be displayed... try entering a password");
+    if (retval != PAM_SUCCESS || passwd == NULL) {
+        pam_syslog(pamh, LOG_WARNING, "couldn't find cached password or password is blank");
+        return PAM_IGNORE;
+    } else {
+        retval = 0; //check_with_typtop(name, passwd, ret_pam_unix==0?0:1);
+        if (retval == 0) {
+            if (ret_pam_unix != PAM_SUCCESS) {
+                pam_syslog(pamh, LOG_NOTICE, "typtop allowed typo-ed password");
+            }
+            pam_syslog(pamh, LOG_NOTICE, "returning PAM_SUCCESS.");
+            retval = PAM_SUCCESS;
+            return retval;
+        } else {
+            pam_syslog(pamh, LOG_NOTICE, "typtop either failed or check did not pass. retval=%d", retval);
+            return ret_pam_unix;
+        }
+    }
+    return ret_pam_unix; // Should never reach here.
+}
+
+
+__attribute__((visibility("default")))
+PAM_EXTERN int pam_sm_setcred (pam_handle_t *pamh, int flags,
+        int argc, const char **argv)
+{
+    int retval = PAM_SUCCESS;
+    pam_syslog(pamh, LOG_NOTICE, "called pam_sm_setcred. flag=%d", flags);
+    return retval;
+}
+
+__attribute__((visibility("default")))
+PAM_EXTERN int pam_sm_chkauthtok(pam_handle_t *pamh, int flags, int argc, char **argv) {
+    static const char old_password_prompt[] = "(Should Never reach here. Try entering your old Password):";
+    static const char new_password_prompt[] = "(Should Never reach here. Try entering your new Password):";
+
+    int retval = PAM_SUCCESS;
+    const char *user;
+    const char *new_password = NULL;
+    const char *old_password = NULL;
+
+    if (flags & PAM_PRELIM_CHECK)
+        return PAM_SUCCESS;
+
+    if ((retval = pam_get_user(pamh, &user, NULL)) != PAM_SUCCESS) {
+        pam_syslog(pamh, LOG_WARNING, "Could not get username from pam_stack");
+        return retval;
+    }
+
+    if (PAM_SUCCESS != (retval = pam_get_item(pamh, PAM_OLDAUTHTOK, (void *)&old_password))) {
+            pam_syslog(pamh, LOG_WARNING, "Could not get username from pam_stack");
+            return PAM_USER_UNKNOWN;
+    }
+    if (NULL == old_password &&
+        PAM_SUCCESS != (retval = pam_get_authtok(pamh, PAM_OLDAUTHTOK, &old_password, old_password_prompt)))
+        return retval;
+    if (PAM_SUCCESS != (retval = pam_get_item(pamh, PAM_AUTHTOK, (void *)&new_password)))
+        return retval;
+    if (NULL == new_password &&
+        PAM_SUCCESS != (retval = pam_get_authtok(pamh, PAM_AUTHTOK, &new_password, new_password_prompt)))
+        return retval;
+
+    // update password in typtop
+    // typtop = TypTop(useru);
+    // retval = typtop.update_pw(old_pw, new_pw);
+    return retval;
+}
+
+#ifdef PAM_MODULE_ENTRY
+PAM_MODULE_ENTRY("pam_typtop");
+#endif

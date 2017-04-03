@@ -29,7 +29,7 @@ include_directories(${PROTOBUF_INCLUDE_DIRS})
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS src/db.proto)
 
 # include_directories("${PROJECT_BINARY_DIR}")
-add_subdirectory(3rdparty)
+# add_subdirectory(3rdparty)
 add_subdirectory(test)
 add_subdirectory(src)
 
@@ -43,14 +43,15 @@ add_subdirectory(src)
 
 # required modules for our task
 include(CheckIncludeFile)
-include(CheckIncludeFileCXX)
 include(CheckIncludeFiles)
-include(ExternalProject)
 
 
 # TO BE CREATED
-# include(3rdparty/CMakeLists.txt)
-include(3rdparty/cryptopp.cmake)
+include(3rdparty/CMakeLists.txt)
+# include(3rdparty/cryptopp.cmake)
+
+message(STATUS "LIBS: ${LIBS}")
+
 
 # testing
 include(CTest)

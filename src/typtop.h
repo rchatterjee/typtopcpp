@@ -32,7 +32,7 @@ public:
     bool check(const string& pw, bool were_right=false);
     const string& this_install_id() const { return db.ch().install_id();}
     void save() const;
-
+    int is_present(const string& pw, string& sk_str) const;
 protected:
     void fill_waitlist_w_garbage();
     void initialize(const string& _db_fname, const string& pw);

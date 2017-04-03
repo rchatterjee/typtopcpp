@@ -14,18 +14,19 @@ ExternalProject_Add(
 
         # SOURCE_DIR ${CMAKE_SOURCE_DIR}/3rdparty/cryptopp-5.6.5
 
-        INSTALL_DIR ${CRYPTOPP_PREFIX}
+        INSTALL_DIR ${CMAKE_BINARY_DIR}/${CRYPTOPP_PREFIX}
         CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -j${NCPU}
         # BUILD_IN_SOURCE 1
         LOG_DOWNLOAD 1
         LOG_BUILD 1
-        STEP_TARGETS ${CRYPTOPP_PREFIX}_info
+        # STEP_TARGETS ${CRYPTOPP_PREFIX}_info
 )
 
 
 # get the unpacked source directory path
-ExternalProject_Get_Property(${CRYPTOPP_PREFIX} SOURCE_DIR)
-message(STATUS "Source directory of ${CRYPTOPP_PREFIX} ${SOURCE_DIR}")
+ExternalProject_Get_Property(${CRYPTOPP_PREFIX} SOURCE_DIR INSTALL_DIR)
+message(STATUS "Source directory of ${CRYPTOPP_PREFIX} ${SOURCE_DIR}, ${INSTALL_DIR}")
+
 # build another dependency
 #ExternalProject_Add_Step(${CRYPTOPP_PREFIX} ${CRYPTOPP_PREFIX}_info
 #  COMMAND cmake ${CMAKE_ARGS}
@@ -34,39 +35,25 @@ message(STATUS "Source directory of ${CRYPTOPP_PREFIX} ${SOURCE_DIR}")
 #  LOG 1
 #)
 
-add_dependencies(typtop ${CRYPTOPP_PREFIX})
-
-# Set separate directories for building in Debug or Release mode
-set(CRYPTOPP_DEBUG_DIR ${SOURCE_DIR}/build/${CRYPTOPP_PREFIX}_debug)
-set(CRYPTOPP_RELEASE_DIR ${SOURCE_DIR}/build/${CRYPTOPP_PREFIX}_release)
-message(STATUS "CRYPTOPP Debug directory ${CRYPTOPP_DEBUG_DIR}")
-message(STATUS "CRYPTOPP Release directory ${CRYPTOPP_RELEASE_DIR}")
 
 # set the include directory variable and include it
-set(CRYPTOPP_INCLUDE_DIRS ${SOURCE_DIR}/include)
+set(CRYPTOPP_INCLUDE_DIRS ${INSTALL_DIR}/include)
 include_directories(${CRYPTOPP_INCLUDE_DIRS})
-
-# link the correct CRYPTOPP directory when the project is in Debug or Release mode
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-  # in Debug mode
-  link_directories(${CRYPTOPP_RELEASE_DIR})
-  set(CRYPTOPP_LIBS cryptopp_debug)
-  set(CRYPTOPP_LIBRARY_DIRS ${CRYPTOPP_DEBUG_DIR})
-else (CMAKE_BUILD_TYPE STREQUAL "Debug")
-  # in Release mode
-  link_directories(${CRYPTOPP_RELEASE_DIR})
-  set(CRYPTOPP_LIBS cryptopp-static)
-  set(CRYPTOPP_LIBRARY_DIRS ${CRYPTOPP_RELEASE_DIR})
-endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
-
-
+set(CRYPTOPP_LIBRARY_DIRS ${INSTALL_DIR}/lib)
+set(CRYPTOPP_LIBS cryptopp)
 
 # verify that the CRYPTOPP header files can be included
 set(CMAKE_REQUIRED_INCLUDES_SAVE ${CMAKE_REQUIRED_INCLUDES})
 set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} ${CRYPTOPP_INCLUDE_DIRS})
+message(STATUS "CMAKE_REQUIRED_INCLUDES: ${CMAKE_REQUIRED_INCLUDES}")
+
 check_include_file_cxx("cryptopp/cryptlib.h" HAVE_CRYPTOPP)
 set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES_SAVE})
  if (NOT HAVE_CRYPTOPP)
    message(STATUS "Did not build CRYPTOPP correctly as cannot find cryptopp.h. Will build it.")
    set(HAVE_CRYPTOPP 1)
 endif (NOT HAVE_CRYPTOPP)
+
+add_dependencies(tests ${CRYPTOPP_PREFIX})
+add_dependencies(pw_crypto ${CRYPTOPP_PREFIX})
+

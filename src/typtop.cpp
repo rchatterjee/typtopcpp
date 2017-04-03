@@ -144,6 +144,17 @@ void TypTop::insert_into_log(const string &pw, bool in_cache, int64_t ts) {
     l->set_localtime(localtime());
 }
 
+int TypTop::is_present(const string& pw, string& sk_str) const {
+    int i = 0;
+    for (i = 0; i < T_size; i++) {
+        sk_str.clear();
+        if (pwdecrypt(pw, db.t(i), sk_str)) { // match found
+            break;
+        }
+    }
+    return i;
+}
+
 /**
  * Checks the password in the TypTop cache.
  * 1. Check the pw against db.t()
@@ -162,13 +173,8 @@ bool TypTop::check(const string &pw, bool were_right) {
     db.mutable_h()->set_login_count(db.h().login_count() + 1);
 
     // check the password
-    int i = 0;
-    for (i = 0; i < T_size; i++) {
-        sk_str.clear();
-        if (pwdecrypt(pw, db.t(i), sk_str)) { // match found
-            break;
-        }
-    }
+    int i = is_present(pw, sk_str);
+
     if (i == 0 && !were_right) { // old password entered
         // TODO: Deal with it
         db.mutable_h()->set_sys_state(SystemStatus::PW_CHANGED);

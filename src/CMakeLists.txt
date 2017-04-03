@@ -1,13 +1,16 @@
 find_library(CRYPTOPP cryptopp ${CMAKE_BINARY_DIR})
-if (HAVE_CRYPTOPP)
+
+if (CRYPTOPP_INCLUDE_DIRS)
+    message(STATUS "ADDING: ${CRYPTOPP_INCLUDE_DIRS} ${CRYPTOPP_LIBRARY_DIRS}")
     include_directories(${CRYPTOPP_INCLUDE_DIRS})
-else(HAVE_CRYPTOPP)
+    link_directories(${CRYPTOPP_LIBRARY_DIRS})
+else ()
     message(SEND_ERROR "Cryptopp not found: ${CRYPTOPP_INCLUDE_DIRS} is empty or incorrect")
 endif ()
 
 add_library(pw_crypto STATIC pw_crypto.cpp pw_crypto.h)
-target_include_directories (pw_crypto PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(pw_crypto cryptopp-static)
+target_include_directories (pw_crypto PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CRYPTOPP_INCLUDE_DIRS})
+target_link_libraries(pw_crypto ${CRYPTOPP_LIBRARY_DIRS}/libcryptopp.a)
 
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS db.proto)
 set(TYPTOP_SRCS typtop.cpp typtop.h ${PROTO_SRCS} ${PROTO_HDRS})

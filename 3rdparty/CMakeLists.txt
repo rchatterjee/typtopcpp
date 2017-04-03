@@ -8,7 +8,7 @@ include(CheckIncludeFileCXX)
 ##############################################################################
 # Crypto++
 ##############################################################################
-# include(cryptopp.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cryptopp.cmake)
 
 #ExternalProject_Add(cryptopp_proj
 #        URL https://github.com/weidai11/cryptopp/archive/CRYPTOPP_5_6_5.tar.gz

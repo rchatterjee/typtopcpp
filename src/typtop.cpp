@@ -11,15 +11,18 @@ using CryptoPP::FileSource;
 // Password length for random entries
 #define DEFAULT_PW_LENGTH 16
 
-TypTop::TypTop(const string &_db_fname, const string &real_pw) : db_fname(_db_fname) {
+TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
 #ifdef DEBUG
     std::srand(254);
 #else
-    std::srand( (unsinged)std::time(0) );
+    std::srand( (unsigned)std::time(0) );
 #endif
+    // setup_logger();
     if (!db.ParseFromIstream(new std::fstream(db_fname, ios::in | ios::binary))) {
-        assert(!real_pw.empty());
-        initialize(db_fname, real_pw);
+        cerr << __BASE_FILE__ << "." << __func__ << " :: "
+             << "TypTop db is not initialized. Waiting for a successful login." << endl;
+        // assert(!real_pw.empty());
+        // initialize(db_fname, real_pw);
     } else {
         cerr << "----> Reading from file." << endl;
         pkobj.set_pk(db.ch().public_key());
@@ -63,7 +66,7 @@ void TypTop::fill_waitlist_w_garbage() {
     }
 }
 
-void TypTop::initialize(const string &_db_fname, const string &real_pw) {
+void TypTop::initialize(const string &real_pw) {
     ConfigHeader *ch = db.mutable_ch();
     this->real_pw = real_pw;
     // - Set config header
@@ -144,7 +147,7 @@ void TypTop::insert_into_log(const string &pw, bool in_cache, int64_t ts) {
     l->set_localtime(localtime());
 }
 
-int TypTop::is_present(const string& pw, string& sk_str) const {
+int TypTop::is_typo_present(const string &pw, string &sk_str) const {
     int i = 0;
     for (i = 0; i < T_size; i++) {
         sk_str.clear();
@@ -153,6 +156,13 @@ int TypTop::is_present(const string& pw, string& sk_str) const {
         }
     }
     return i;
+}
+
+bool TypTop::is_correct(const string &pw) const {
+    string sk_str;
+    bool ret = pwdecrypt(pw, db.t(0), sk_str);
+    sk_str.clear();
+    return ret;
 }
 
 /**
@@ -167,13 +177,23 @@ int TypTop::is_present(const string& pw, string& sk_str) const {
  * @return Whether or not the entered password is allowable.
  */
 bool TypTop::check(const string &pw, bool were_right) {
+    if(!db.IsInitialized()) {
+        if (were_right) {
+            this->initialize(pw);
+            cerr << "Iniitialized the db." << endl;
+            return true;
+        } else {
+            cerr << "Db is not initialized" << endl;
+            return false;
+        }
+    }
     ench.Clear();
     string sk_str, enc_header_str;
     /* Standard book-keeping */
     db.mutable_h()->set_login_count(db.h().login_count() + 1);
 
     // check the password
-    int i = is_present(pw, sk_str);
+    int i = is_typo_present(pw, sk_str);
 
     if (i == 0 && !were_right) { // old password entered
         // TODO: Deal with it
@@ -182,7 +202,8 @@ bool TypTop::check(const string &pw, bool were_right) {
     if (i == T_size) { // not found in the typo cache
         if (were_right) { // probably password changed, don't do anything this time just set the sys-status
             // db.mutable_h()->set_sys_state(SystemStatus::PW_CHANGED);
-            this->initialize(this->db_fname, pw);
+            cerr << "Probably password has changed" << endl;
+            this->initialize(pw);
         } else {
             add_to_waitlist(pw, now());
         }

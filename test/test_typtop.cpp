@@ -22,14 +22,14 @@ const int32_t infinity = INT_MAX;
 
 class TypTopTest : public TypTop {
 public:
-    TypTopTest() : TypTop(_db_fname, pws[0]) {};
+    TypTopTest() : TypTop(pws[0]) {};
     using TypTop::add_to_waitlist;
     using TypTop::add_to_typo_cache;
     using TypTop::get_db;
     using TypTop::get_ench;
     using TypTop::get_pkobj;
     using TypTop::permute_typo_cache;
-    inline void initialize(const string& pw) { TypTop::initialize(_db_fname, pw);}
+    using TypTop::initialize;
 };
 
 TEST_CASE("typtop") {

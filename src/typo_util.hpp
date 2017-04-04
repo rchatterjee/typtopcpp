@@ -15,6 +15,7 @@ using namespace std;
 
 #define EDIST_CUTOFF 1
 
+
 inline int swapcase(int chr) {
     return islower(chr) ? toupper(chr) : tolower(chr);
 }
@@ -83,6 +84,8 @@ inline void get_typos(const string& pw, vector<string>& ret) {
     }
     typo_set.clear(); typos.clear();
 }
+
+
 
 /**
  * Sort based on indices.

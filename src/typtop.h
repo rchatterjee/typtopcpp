@@ -12,10 +12,17 @@
 #include "pw_crypto.h"
 #include "db.pb.h"
 #include "typo_util.hpp"
+#include "easylogging++.h"
+
 using namespace typtop;
 
 const int W_size = 20;
 const int T_size = 5 + 1; // 1 for the real password
+
+//void setup_logger() {
+//    el::Configurations conf("/path/to/my-conf.conf");
+//    el::Loggers::reconfigureAllLoggers(conf);
+//}
 
 class TypTop {
 private:
@@ -27,15 +34,17 @@ private:
     void _insert_into_typo_cache(const int index, const string &sk_ctx, const int freq);
 
 public:
-    TypTop(const string& _db_fname, const string& real_pw="");
+    TypTop(const string& _db_fname);
     ~TypTop();
     bool check(const string& pw, bool were_right=false);
     const string& this_install_id() const { return db.ch().install_id();}
     void save() const;
-    int is_present(const string& pw, string& sk_str) const;
+    int is_typo_present(const string& pw, string& sk_str) const;
+    bool is_correct(const string& pw) const;
+    inline bool is_initialized() const { return db.IsInitialized(); }
 protected:
     void fill_waitlist_w_garbage();
-    void initialize(const string& _db_fname, const string& pw);
+    void initialize(const string& pw);
     void insert_into_log(const string& pw, bool in_cache, int64_t ts);
     void add_to_waitlist(const string& pw, int64_t ts);
     void process_waitlist(const string& sk_str);

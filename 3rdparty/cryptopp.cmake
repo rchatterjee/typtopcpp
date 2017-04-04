@@ -37,15 +37,18 @@ message(STATUS "Source directory of ${CRYPTOPP_PREFIX} ${SOURCE_DIR}, ${INSTALL_
 
 
 # set the include directory variable and include it
-set(CRYPTOPP_INCLUDE_DIRS ${INSTALL_DIR}/include)
-include_directories(${CRYPTOPP_INCLUDE_DIRS})
-set(CRYPTOPP_LIBRARY_DIRS ${INSTALL_DIR}/lib)
-set(CRYPTOPP_LIBS cryptopp)
+set(CRYPTOPP_INCLUDE_DIRS ${INSTALL_DIR}/include CACHE INTERNL "Cryptopp include dirs")
+message(STATUS ">> ${LIBRARY_DIR}")
+set(CRYPTOPP_LIBRARY_DIRS ${INSTALL_DIR}/lib CACHE INTERNAL "Cryptopp libs")
+set(CRYPTOPP_LIBS cryptopp-static)
+# SET_PROPERTY(GLOBAL PROPERTY CRYPTOPP_INCLUDE_DIRS "${INSTALL_DIR}/include")
+# SET_PROPERTY(GLOBAL PROPERTY CRYPTOPP_LIBS "${INSTALL_DIR}/lib")
+
 
 # verify that the CRYPTOPP header files can be included
 set(CMAKE_REQUIRED_INCLUDES_SAVE ${CMAKE_REQUIRED_INCLUDES})
 set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} ${CRYPTOPP_INCLUDE_DIRS})
-message(STATUS "CMAKE_REQUIRED_INCLUDES: ${CMAKE_REQUIRED_INCLUDES}")
+# message(STATUS "CMAKE_REQUIRED_INCLUDES: ${CMAKE_REQUIRED_INCLUDES}")
 
 check_include_file_cxx("cryptopp/cryptlib.h" HAVE_CRYPTOPP)
 set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES_SAVE})
@@ -53,7 +56,3 @@ set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES_SAVE})
    message(STATUS "Did not build CRYPTOPP correctly as cannot find cryptopp.h. Will build it.")
    set(HAVE_CRYPTOPP 1)
 endif (NOT HAVE_CRYPTOPP)
-
-add_dependencies(tests ${CRYPTOPP_PREFIX})
-add_dependencies(pw_crypto ${CRYPTOPP_PREFIX})
-

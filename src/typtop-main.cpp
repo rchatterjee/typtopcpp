@@ -30,7 +30,8 @@ string curr_user() {
  *
  */
 string USAGE = "\nUsage: typtop [func] [options]"
-        "\nfunc can be any one of --status, --upload, --mytypos"
+        "\nfunc can be any one of --status, --upload, --mytypos, [and --check]"
+        "\n --check <username> <were_correct>"
         "\n --status <username>"
         "\n --upload [all]|<username>"
         "\n --mytypos <username>\n"
@@ -148,7 +149,8 @@ int main(int argc, char *argv[])  {
         return 1;
     }
 
-    cout << "argvs: " << argv[0] << argv[1] << argv[2] << argv[3] << endl;
+    cout << "argvs: " << argv[0] << " " << argv[1] << " " << argv[2]
+         << " " << argv[3] << endl;
     if (strncmp("--check", argv[1], 7) == 0) {
         assert(argc == 4);
         return check_password(argv, argc);

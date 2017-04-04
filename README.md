@@ -16,14 +16,15 @@ For compiling the project from source, you need following libraries.
   - Add log upload mechanism
   - Check timing using catch
   - Add version in typtop protobuf
-  - Check ways to use zxcvbn for C++
+  - (done) ~~Check ways to use zxcvbn for C++~~
   - Add upload functionality
 
 * **Pam Module**
   - direct integration with pam-modules.
   - Write pam_config file. Decide on how to write a 
     pam_modules that works for both MAC and Linux.
-  
+  - add to password change (`pam_sm_chkauthtok`) as well
+ 
 * **Testing**
   - ~~(added) Add .travis.yml~~
   - Fix .travis fail. 
@@ -34,4 +35,4 @@ For compiling the project from source, you need following libraries.
 
 * (done) ~~Insert logic of typo-db manipulation.~~
 * (done) ~~FIX the seg-faulting permute cache function.~~
-* **CHECK OUT `ExternalProject_Add`**
+* (done) ~~**CHECK OUT `ExternalProject_Add`**~~

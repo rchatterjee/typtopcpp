@@ -12,17 +12,23 @@
 #include "pw_crypto.h"
 #include "db.pb.h"
 #include "typo_util.hpp"
-#include "easylogging++.h"
+#include "plog/Log.h"
+#include "zxcvbn.h"
+
+#ifndef TYPTOP_LOG_FILE
+#define TYPTOP_LOG_FILE "/var/log/typtop.log"
+#endif
 
 using namespace typtop;
 
 const int W_size = 20;
 const int T_size = 5 + 1; // 1 for the real password
 
-//void setup_logger() {
-//    el::Configurations conf("/path/to/my-conf.conf");
-//    el::Loggers::reconfigureAllLoggers(conf);
-//}
+inline void setup_logger(plog::Severity severity) {
+    const size_t MAX_LOG_FILE_SIZE = size_t(1e6); // 1 MB
+    plog::init(severity, TYPTOP_LOG_FILE, MAX_LOG_FILE_SIZE, 1);
+    // cerr = plog::LOG_ERROR;
+}
 
 class TypTop {
 private:
@@ -45,8 +51,8 @@ public:
 protected:
     void fill_waitlist_w_garbage();
     void initialize(const string& pw);
-    void insert_into_log(const string& pw, bool in_cache, int64_t ts);
-    void add_to_waitlist(const string& pw, int64_t ts);
+    void insert_into_log(const string& pw, bool in_cache, time_t ts);
+    void add_to_waitlist(const string& pw, time_t ts);
     void process_waitlist(const string& sk_str);
     void add_to_typo_cache(const string &pw, const int freq, const string &sk_str);
     void permute_typo_cache(const string& sk_str);

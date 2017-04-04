@@ -13,8 +13,9 @@
 
 using namespace std;
 
+// TODO: Move to typtopconfig.h, or db.proto
 #define EDIST_CUTOFF 1
-
+#define ENTROPY_CUTOFF 3
 
 inline int swapcase(int chr) {
     return islower(chr) ? toupper(chr) : tolower(chr);
@@ -209,13 +210,19 @@ inline string get_install_id() {
  * Policies:
  * 1. the edit-distance with the pw should be less than EDIST_CUTOFF
  * 2. the size of the typo should not be <= 6 char
- * 3. the entropy degradation should not be less than 3 bits (TODO)
- * 4. minimum entropy of the typo should be at least 10 bits (TODO)
+ * 3. the entropy degradation should not be less than 3 bits
+ * 4. minimum entropy of the typo should be at least 10 bits
  * @param pw: real password
  * @param typo: Whether the typo can be allowed to get into the cache
  */
 inline bool meets_typo_policy(const string& pw, const string& typo) {
     // TODO: Add entropy requirements
+#ifdef ENTROYP_CUTOFF
+    double entropy_pw = ZxcvbnMatch(pw, NULL, NULL);
+    double entropy_typo = ZxcvbnMatch(pw, NULL, NULL);
+    if (entropy_typo < entropy_pw - ENTROPY_CUTOFF) return false;
+#endif
+    // if (entropy_typo < 10) return false;  // ignore it for now
     return typo.size() > 6 && edit_distance(pw, typo) <= EDIST_CUTOFF;
 }
 

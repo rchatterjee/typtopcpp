@@ -28,6 +28,10 @@ find_package(Protobuf REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS src/db.proto)
 
+set(CRYPTOPP_PREFIX cryptopp565) # cryptopp
+set(PLOG_PREFIX plog110) # Plog
+set(ZXCVBN_PREFIX zxcvbn21) # Zxcvbn
+
 # include_directories("${PROJECT_BINARY_DIR}")
 # add_subdirectory(3rdparty)
 add_subdirectory(test)
@@ -41,6 +45,8 @@ add_subdirectory(src)
 # add_library(cryptopp STATIC cryptopp)
 
 
+
+
 # required modules for our task
 include(CheckIncludeFile)
 include(CheckIncludeFiles)
@@ -50,7 +56,12 @@ include(CheckIncludeFiles)
 include(3rdparty/CMakeLists.txt)
 # include(3rdparty/cryptopp.cmake)
 
-message(STATUS "LIBS: ${LIBS}")
+add_dependencies(tests ${CRYPTOPP_PREFIX})
+add_dependencies(pw_crypto ${CRYPTOPP_PREFIX})
+add_dependencies(tests ${PLOG_PREFIX})
+add_dependencies(pw_crypto ${PLOG_PREFIX})
+add_dependencies(tests ${ZXCVBN_PREFIX})
+add_dependencies(pw_crypto ${ZXCVBN_PREFIX})
 
 
 # testing

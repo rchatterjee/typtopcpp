@@ -14,26 +14,33 @@ using CryptoPP::FileSource;
 TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
 #ifdef DEBUG
     std::srand(254);
+    setup_logger(plog::debug);
 #else
     std::srand( (unsigned)std::time(0) );
+    setup_logger(plog::info);
 #endif
-    // setup_logger();
     if (!db.ParseFromIstream(new std::fstream(db_fname, ios::in | ios::binary))) {
-        cerr << __BASE_FILE__ << "." << __func__ << " :: "
-             << "TypTop db is not initialized. Waiting for a successful login." << endl;
+        LOG_WARNING << "TypTop db is not initialized. Waiting for a successful login." << endl;
         // assert(!real_pw.empty());
         // initialize(db_fname, real_pw);
     } else {
-        cerr << "----> Reading from file." << endl;
+        LOG_INFO << "----> Reading from file.";
         pkobj.set_pk(db.ch().public_key());
     }
 }
 
 void TypTop::save() const {
+    if (!db.IsInitialized()) return; // no need to do anything
     string db_bak = db_fname + ".bak";
     std::fstream of(db_bak, ios::out | ios::binary);
-    db.SerializeToOstream(&of);
-    rename(db_bak.c_str(), db_fname.c_str());
+    if(of.is_open())
+        db.SerializeToOstream(&of);
+    else
+        LOG_ERROR << "Could not open backup file for writing " << db_bak;
+    if(rename(db_bak.c_str(), db_fname.c_str()) != 0) {
+        LOG_ERROR << "Could not replace original db file " << db_fname;
+    }
+    LOG_DEBUG << "db is saved";
 }
 
 TypTop::~TypTop() {
@@ -41,7 +48,7 @@ TypTop::~TypTop() {
 }
 
 
-void TypTop::add_to_waitlist(const string &typo, int64_t ts) {
+void TypTop::add_to_waitlist(const string &typo, time_t ts) {
     if (db.w_size() < W_size) {
         for (int i = 0; i < W_size; i++)
             db.add_w();
@@ -49,7 +56,7 @@ void TypTop::add_to_waitlist(const string &typo, int64_t ts) {
     string ctx;
     WaitlistEntry wlent;
     wlent.set_pw(typo);
-    wlent.set_ts(ts);
+    wlent.set_ts((int64_t)ts);
 
     pkobj.pk_encrypt(wlent.SerializeAsString(), ctx);
     int32_t curr_index = db.h().indexj();
@@ -95,6 +102,7 @@ void TypTop::initialize(const string &real_pw) {
             insert_into_log(T_cache[i], true, -1); // sets L
         }
         pwencrypt(T_cache[i], sk_str, sk_ctx);
+        LOG_DEBUG << "Inserting " << T_cache[i] << " at " << i;
         _insert_into_typo_cache(i, sk_ctx, (i == 0 ? INT_MAX : T_size - i));
 #ifdef DEBUG
         // cerr << "Inserting -->" << T_cache[i] << endl;
@@ -134,7 +142,7 @@ void TypTop::initialize(const string &real_pw) {
 #endif
 }
 
-void TypTop::insert_into_log(const string &pw, bool in_cache, int64_t ts) {
+void TypTop::insert_into_log(const string &pw, bool in_cache, time_t ts) {
     assert(!real_pw.empty());
     Log *l = db.add_l();
     l->set_in_cache(in_cache);
@@ -143,7 +151,7 @@ void TypTop::insert_into_log(const string &pw, bool in_cache, int64_t ts) {
     l->set_rel_entropy(-99);  // TODO: Find a way to estimate this
     SecByteBlock g_salt((const byte *) db.ch().global_salt().data(), db.ch().global_salt().size());
     l->set_tid(compute_id(g_salt, pw));
-    l->set_ts(time(NULL));
+    l->set_ts((int64_t)ts);
     l->set_localtime(localtime());
 }
 
@@ -249,7 +257,6 @@ void TypTop::_insert_into_typo_cache(const int index, const string &sk_ctx,
         ench.add_last_used(-1);
         db.add_t();
     }
-
     db.set_t(index, sk_ctx);
     int64_t now_t = now();
     ench.set_freq(index, freq);
@@ -282,6 +289,7 @@ void TypTop::permute_typo_cache(const string &sk_str) {
             string fake_pw(DEFAULT_PW_LENGTH, 0);
             PRNG.GenerateBlock((byte *) fake_pw.data(), fake_pw.size());
             pwencrypt(fake_pw, sk_str, sk_ctx);
+            LOG_DEBUG << "Inserting " << fake_pw << " at " << i;
             _insert_into_typo_cache(i, sk_ctx, -1);
         }
     }
@@ -319,6 +327,7 @@ void TypTop::process_waitlist(const string &sk_str) {
             // try to insert at i-th location
             if (win(ench.freq((int) i), freq)) {
                 pwencrypt(pw, sk_str, sk_ctx);
+                LOG_DEBUG << "Inserting " << pw << " at " << i;
                 _insert_into_typo_cache((int) i, sk_ctx, max(freq, freq_vec[i] + 1));
 #ifdef DEBUG
             string _t;
@@ -331,3 +340,4 @@ void TypTop::process_waitlist(const string &sk_str) {
     }
     fill_waitlist_w_garbage();
 }
+

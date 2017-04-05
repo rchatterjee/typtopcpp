@@ -18,21 +18,21 @@ using std::ios;
 
 using std::string;
 
-#include "cryptopp/ecp.h"
+#include "ecp.h"
 using CryptoPP::ECP;
 
-#include "cryptopp/eccrypto.h"
+#include "eccrypto.h"
 using CryptoPP::ECDH;
 
-#include "cryptopp/osrng.h"
+#include "osrng.h"
 using CryptoPP::AutoSeededRandomPool;
 
-#include "cryptopp/asn.h"
-#include "cryptopp/oids.h"
+#include "asn.h"
+#include "oids.h"
 using CryptoPP::OID;
 using CryptoPP::ASN1::secp256r1;
 
-#include "cryptopp/cryptlib.h"
+#include "cryptlib.h"
 using CryptoPP::lword;
 using CryptoPP::word32;
 using CryptoPP::word64;
@@ -45,15 +45,15 @@ using CryptoPP::DL_PrivateKey_EC;
 using CryptoPP::DL_PublicKey_EC;
 
 
-#include "cryptopp/secblock.h"
+#include "secblock.h"
 using CryptoPP::SecByteBlock;
 using CryptoPP::SecBlock;
 
-#include "cryptopp/hex.h"
+#include "hex.h"
 using CryptoPP::HexEncoder;
 using CryptoPP::HexDecoder;
 
-#include "cryptopp/filters.h"
+#include "filters.h"
 using CryptoPP::Redirector;
 using CryptoPP::StringSink;
 using CryptoPP::StringSource;
@@ -63,26 +63,26 @@ using CryptoPP::HashFilter;
 using CryptoPP::AuthenticatedEncryptionFilter;
 using CryptoPP::AuthenticatedDecryptionFilter;
 
-#include "cryptopp/files.h"
+#include "files.h"
 using CryptoPP::FileSink;
 
-#include "cryptopp/sha.h"
+#include "sha.h"
 using CryptoPP::SHA256;
 using CryptoPP::SHA512;
 
-#include "cryptopp/aes.h"
+#include "aes.h"
 using CryptoPP::AES;
 
-#include "cryptopp/modes.h"
+#include "modes.h"
 using CryptoPP::CBC_Mode;
 
-#include "cryptopp/pwdbased.h"
+#include "pwdbased.h"
 using CryptoPP::PKCS5_PBKDF2_HMAC;
 
-#include "cryptopp/hmac.h"
+#include "hmac.h"
 using CryptoPP::HMAC;
 
-#include "cryptopp/base64.h"
+#include "base64.h"
 using CryptoPP::Base64URLEncoder;
 using CryptoPP::Base64URLDecoder;
 

@@ -4,7 +4,7 @@
 
 
 #include <cassert>
-#include "cryptopp/gcm.h"
+#include "gcm.h"
 using CryptoPP::GCM;
 
 #include "pw_crypto.h"

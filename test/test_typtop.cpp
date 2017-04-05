@@ -16,13 +16,13 @@ const vector<string> pws = {
         "hlelo_pass", // 4, ed=1
         "Hello_Pass",  // 5, ed=2
 };
-const string install_id = get_install_id();
+string install_id; // get_install_id();
 const int32_t infinity = INT_MAX;
 #define times(n, code_block) {for(int _ti=0; _ti<n; _ti++) code_block;}
 
 class TypTopTest : public TypTop {
 public:
-    TypTopTest() : TypTop(pws[0]) {};
+    TypTopTest() : TypTop(_db_fname) {};
     using TypTop::add_to_waitlist;
     using TypTop::add_to_typo_cache;
     using TypTop::get_db;
@@ -30,10 +30,12 @@ public:
     using TypTop::get_pkobj;
     using TypTop::permute_typo_cache;
     using TypTop::initialize;
+    using TypTop::reinitialize;
 };
 
 TEST_CASE("typtop") {
 
+    install_id = get_install_id();
     SECTION("typtop_util functions") {
         SECTION("edit_distance") {
             byte b[] = {0x32, 0xf4, 0x32, 0x65, 0xff};
@@ -85,10 +87,12 @@ TEST_CASE("typtop") {
         remove(_db_fname.c_str()); // fresh initialization
         TypTopTest tp;
         const typoDB &db = tp.get_db();
+        REQUIRE(db.h().sys_state() == SystemStatus::UNINITIALIZED);
+        tp.check(pws[0], SECOND_TIME);
+        REQUIRE(db.h().sys_state() == SystemStatus::ALL_GOOD);
         const PkCrypto &pkobj = tp.get_pkobj();
         REQUIRE(db.w_size() == W_size);
         REQUIRE(db.t_size() == T_size);
-        REQUIRE(db.h().sys_state() == SystemStatus::ALL_GOOD);
 
         SECTION("Install id") {
             CHECK(tp.this_install_id() == install_id);
@@ -152,11 +156,11 @@ TEST_CASE("typtop") {
             SECTION("Check(pw)") {
                 CHECK(db.h().sys_state() == SystemStatus::ALL_GOOD);
                 mut_pkobj.pk_decrypt(db.h().enc_header(), ench_str);
-                CHECK(tp.check(pws[0], false));
+                CHECK(tp.check(pws[0], FIRST_TIME));
                 ench.Clear();
                 ench.ParseFromString(ench_str);
                 CHECK(ench.pw() == pws[0]);
-                CHECK(tp.check(pws[0], true));
+                CHECK(tp.check(pws[0], FIRST_TIME));
             }
 
             SECTION("step-by-step 'check' function") {
@@ -176,6 +180,12 @@ TEST_CASE("typtop") {
                 // db.mutable_h()->set_enc_header(ench_ctx);
                 CHECK(_t_ench_str == ench.SerializeAsString());
                 ench.Clear();
+            }
+
+            SECTION("Reinitializing tests") {
+                string old_salt = db.ch().global_salt();
+                tp.reinitialize(pws[0]);
+                CHECK(old_salt == db.ch().global_salt());
             }
         }
 
@@ -228,34 +238,35 @@ TEST_CASE("typtop") {
         remove(_db_fname.c_str());
         TypTopTest tp;
         const typoDB &db = tp.get_db();
+        tp.check(pws[0], SECOND_TIME); // set the password
         REQUIRE(db.ch().install_id() == install_id);
 
         SECTION("check") {
-            REQUIRE(tp.check(pws[0], false));
-            REQUIRE(tp.check(pws[0], true));
-            CHECK(tp.check(pws[1], false));
-            CHECK(tp.check(pws[2], false));
-            CHECK(tp.check(pws[3], false));
-            CHECK_FALSE(tp.check(pws[4], false));
-            CHECK_FALSE(tp.check(pws[5], false));
+            REQUIRE(tp.check(pws[0], FIRST_TIME));
+            REQUIRE(tp.check(pws[0], FIRST_TIME));
+            CHECK(tp.check(pws[1], FIRST_TIME));
+            CHECK(tp.check(pws[2], FIRST_TIME));
+            CHECK(tp.check(pws[3], FIRST_TIME));
+            CHECK_FALSE(tp.check(pws[4], FIRST_TIME));
+            CHECK_FALSE(tp.check(pws[5], FIRST_TIME));
         }
 
         SECTION("try inserting a typo with real pw") {
-            REQUIRE(tp.check(pws[0], true));
-            times(5, CHECK_FALSE(tp.check(pws[4], false)));
-            times(5, CHECK_FALSE(tp.check(pws[5], false)));
-            REQUIRE(tp.check(pws[0], true));
-            CHECK(tp.check(pws[4], false));
-            CHECK_FALSE(tp.check(pws[5], false));
+            REQUIRE(tp.check(pws[0], FIRST_TIME));
+            times(5, CHECK_FALSE(tp.check(pws[4], FIRST_TIME)));
+            times(5, CHECK_FALSE(tp.check(pws[5], FIRST_TIME)));
+            REQUIRE(tp.check(pws[0], FIRST_TIME));
+            CHECK(tp.check(pws[4], FIRST_TIME));
+            CHECK_FALSE(tp.check(pws[5], FIRST_TIME));
         }
 
         SECTION("try inserting a typo with typo") {
-            REQUIRE(tp.check(pws[1], true));
-            times(5, CHECK_FALSE(tp.check(pws[4], false)));
-            times(5, CHECK_FALSE(tp.check(pws[5], false)));
-            REQUIRE(tp.check(pws[1], false));
-            CHECK(tp.check(pws[4], false));
-            CHECK_FALSE(tp.check(pws[5], false));
+            REQUIRE(tp.check(pws[1], FIRST_TIME));
+            times(5, CHECK_FALSE(tp.check(pws[4], FIRST_TIME)));
+            times(5, CHECK_FALSE(tp.check(pws[5], FIRST_TIME)));
+            REQUIRE(tp.check(pws[1], FIRST_TIME));
+            CHECK(tp.check(pws[4], FIRST_TIME));
+            CHECK_FALSE(tp.check(pws[5], FIRST_TIME));
         }
     }
 
@@ -270,6 +281,7 @@ TEST_CASE("typtop") {
     SECTION("Long term use of typtop.") {
 
     }
+
 
 }
 

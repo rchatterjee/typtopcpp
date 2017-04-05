@@ -17,7 +17,7 @@ string curr_user() {
 #define OS_SEP '\\'
 #define USERDB_LOC "/somewhere/I/don't/know/"
 #else
-#define USERDB_LOC "/usr/local/etc/typtop/"
+#define USERDB_LOC "/usr/local/etc/typtop.d/"
 #define OS_SEP '/'
 #endif
 
@@ -27,14 +27,15 @@ string curr_user() {
  * 2> --status <username>
  * 3> --upload [all]|<username>
  * 4> --mytypos <username>
- *
+ * 5> --log <username>
  */
 string USAGE = "\nUsage: typtop [func] [options]"
         "\nfunc can be any one of --status, --upload, --mytypos, [and --check]"
         "\n --check <username> <were_correct>"
         "\n --status <username>"
         "\n --upload [all]|<username>"
-        "\n --mytypos <username>\n"
+        "\n --mytypos <username>"
+        "\n --log <username>\n"
         "\nex:\n"
         "typtop --status $USER"
         "\n";
@@ -59,8 +60,7 @@ string user_db(const string& user) {
 
 #endif
 
-void SetStdinEcho(bool enable = true)
-{
+void SetStdinEcho(bool enable = true) {
 #ifdef WIN32
     HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
     DWORD mode;
@@ -90,6 +90,8 @@ int check_password(char* argv[], int argc) {
     // Annoy some non-serious attackers, unix_chkpwd does it, so I am also doing it
     // not sure how effective it is.
     // argv expected: <argument> <username> <pw> <return_from_last_pam>
+    // check username validity
+    // TODO : enable this
 //    if (argv[1] != "--check" || isatty(STDIN_FILENO) || argc != 4 ) {
 //        cerr << "inappropriate use of Unix helper binary [UID=%d]" << getuid() << endl;
 //        cerr << "This binary is not designed for running in this way\n"
@@ -97,27 +99,36 @@ int check_password(char* argv[], int argc) {
 //        sleep(10);	/* this should discourage/annoy the user */
 //        return PAM_ABORT;
 //    }
-
-    if (getuid() == 0) {
-        user=argv[2];
+    if (setuid(0) != 0){
+        cerr << "Not running as root: " << getuid() << endl;
+        return PAM_AUTH_ERR;
     }
-    else {
-        user = curr_user();
-        /* if the caller specifies the username, verify that user
-           matches it */
-        if (user == argv[2]) {
-            user = argv[2];
-            /* no match -> permanently change to the real user and proceed */
-            if (setuid(getuid()) != 0)
-                return PAM_AUTH_ERR;
-        }
-    }
+    assert(getuid() == 0); // if it's uid is not root, no point running further. TODO: make it for shadow
+    assert(argc == 4);  // --check <user> 0/1
+//
+//    if (getuid() == 0) {
+//        user=argv[2];
+//    }
+//    else {
+//        user = curr_user();
+//        /* if the caller specifies the username, verify that user
+//           matches it */
+//        if (user == argv[2]) {
+//            user = argv[2];
+//            /* no match -> permanently change to the real user and proceed */
+//            if (setuid(getuid()) != 0)
+//                return PAM_AUTH_ERR;
+//        }
+//    }
+    user = argv[2];
     TypTop tp(user_db(user));
     cin >> pass;
+    // cerr << "\nPassword Received: " << pass << endl;
     if(pass.length() > MAXPASS_LEN)
         return PAM_AUTH_ERR;
     int were_correct = atoi(argv[3]);
-    bool typtop_ret = tp.check(pass, bool(were_correct));
+    PAM_RETURN pret = (were_correct==2)?SECOND_TIME:FIRST_TIME;
+    bool typtop_ret = tp.check(pass, pret);
     pass.clear();
     if(typtop_ret)
         return PAM_SUCCESS;
@@ -149,8 +160,8 @@ int main(int argc, char *argv[])  {
         return 1;
     }
 
-    cout << "argvs: " << argv[0] << " " << argv[1] << " " << argv[2]
-         << " " << argv[3] << endl;
+//    cout << "argvs: " << argv[0] << " " << argv[1] << " " << argv[2]
+//         << " " << argv[3] << endl;
     if (strncmp("--check", argv[1], 7) == 0) {
         assert(argc == 4);
         return check_password(argv, argc);
@@ -158,11 +169,11 @@ int main(int argc, char *argv[])  {
     string user = argv[2];
     try {
         TypTop tp(user_db(user));
-        if (strncmp("--status", argv[1], 8)) {
+        if (strncmp("--status", argv[1], 8) == 0) {
             assert(argc == 3);
             cerr << "IsInitialized: " << tp.is_initialized() << endl;
             // TODO: Status funciotn
-        } else if (strncmp("--upload", argv[1], 8)) {
+        } else if (strncmp("--upload", argv[1], 8) == 0) {
             assert(argc == 3);
             // TODO: upload funciton
         } else if (strncmp("--mytypos", argv[1], 9) == 0) {
@@ -182,11 +193,13 @@ int main(int argc, char *argv[])  {
                     cerr << " --> " << typo << endl;
                 }
             }
+        } else if (strncmp("--log", argv[1], 5) == 0) {
+            tp.print_log();
         } else {
             cerr << USAGE << endl;
         }
     } catch (exception& ex) {
-        cerr << ex.what() << endl;
+        cerr << __FILE__ << __func__ << ex.what() << endl;
         return PAM_AUTH_ERR;
     }
     return 0;

@@ -1,0 +1,32 @@
+# typtop common-auth
+auth    sufficient   /usr/local/lib/security/libpam_typtop.so try_first_pass first_time
+  # --> typtop is not initialized or, password not in tytop db (=> new password or copletely wrong password).
+auth    requisite     pam_unix.so nullok_secure try_first_pass
+auth    sufficient   /usr/local/lib/security/libpam_typtop.so try_first_pass second_time   # Always returns true
+  # --> The correct password entered and typtop is not initialized, OR
+  # --> re-initialize typtop (keep the salt).
+auth    requisite                       pam_deny.so
+auth    required                        pam_permit.so
+
+
+
+# ## Original common-auth
+# auth    [success=1 default=ignore]      pam_unix.so nullok_secure
+# auth    requisite                       pam_deny.so
+# auth    required                        pam_permit.so
+
+
+
+
+# ## Typtop common-password
+# password	[success=1 default=ignore]	pam_unix.so obscure sha512
+# password	requisite			pam_deny.so
+# password	required			pam_permit.so
+
+
+# ## Original common-password
+# password	[success=1 default=ignore]	pam_unix.so obscure sha512
+# password	requisite			pam_deny.so
+# password	required			pam_permit.so
+
+

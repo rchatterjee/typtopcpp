@@ -13,10 +13,9 @@
 #include "db.pb.h"
 #include "typo_util.hpp"
 #include "plog/Log.h"
-#include "zxcvbn.h"
 
 #ifndef TYPTOP_LOG_FILE
-#define TYPTOP_LOG_FILE "/var/log/typtop.log"
+#define TYPTOP_LOG_FILE "/tmp/typtop.log"
 #endif
 
 using namespace typtop;
@@ -27,8 +26,12 @@ const int T_size = 5 + 1; // 1 for the real password
 inline void setup_logger(plog::Severity severity) {
     const size_t MAX_LOG_FILE_SIZE = size_t(1e6); // 1 MB
     plog::init(severity, TYPTOP_LOG_FILE, MAX_LOG_FILE_SIZE, 1);
-    // cerr = plog::LOG_ERROR;
 }
+
+enum PAM_RETURN {
+    FIRST_TIME = 1, // the pam_unix return is not known
+    SECOND_TIME = 2 // pam_unix is true for sure
+};
 
 class TypTop {
 private:
@@ -42,15 +45,18 @@ private:
 public:
     TypTop(const string& _db_fname);
     ~TypTop();
-    bool check(const string& pw, bool were_right=false);
+    bool check(const string& pw, PAM_RETURN pret);
     const string& this_install_id() const { return db.ch().install_id();}
     void save() const;
     int is_typo_present(const string& pw, string& sk_str) const;
     bool is_correct(const string& pw) const;
     inline bool is_initialized() const { return db.IsInitialized(); }
+    void print_log();
+
 protected:
     void fill_waitlist_w_garbage();
     void initialize(const string& pw);
+    void reinitialize(const string& pw);
     void insert_into_log(const string& pw, bool in_cache, time_t ts);
     void add_to_waitlist(const string& pw, time_t ts);
     void process_waitlist(const string& sk_str);

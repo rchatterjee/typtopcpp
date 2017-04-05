@@ -30,6 +30,7 @@ message EncHeaderData{
     required bytes pw = 1;
     repeated int32 freq = 2;
     repeated int64 last_used = 3;   // expire a typo if it is too old
+    required float pw_ent = 4;
 }
 message Header {
     optional int32 indexj = 1 [default = 0];

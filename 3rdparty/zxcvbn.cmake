@@ -36,7 +36,7 @@ message(STATUS ">>> ZXCVBN_INCLUDE_DIRS = ${ZXCVBN_INCLUDE_DIRS}  ${ZXCVBN_FILES
 
 add_custom_command(
         OUTPUT libzxcvbn.a
-        COMMAND make libzxcvbn.a USE_DICT_FILE=1 -C ${ZXCVBN_INCLUDE_DIRS}
+        COMMAND make libzxcvbn.a USE_DICT_FILE=1 -C ${ZXCVBN_INCLUDE_DIRS} -j4
 )
 add_custom_target(libzxcvbn ALL DEPENDS libzxcvbn.a)
 add_dependencies(${ZXCVBN_PREFIX} libzxcvbn)

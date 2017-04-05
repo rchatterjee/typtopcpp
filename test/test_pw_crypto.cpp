@@ -18,6 +18,7 @@ void get_random_ench(typtop::EncHeaderData& ench) {
     string pw(20, 0);
     PRNG.GenerateBlock((byte*)pw.data(), 20);  // might throw segfault
     ench.set_pw(pw);
+    ench.set_pw_ent((float)-93.346);
     for (int i = 0; i < 10; i++) {
         ench.add_freq(3);
         ench.add_last_used(13123);

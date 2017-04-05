@@ -4,6 +4,8 @@
 
 #include <assert.h>
 #include <random>
+#include <dirent.h>
+#include <libgen.h>
 #include "typtop.h"
 
 using CryptoPP::FileSource;
@@ -19,40 +21,60 @@ TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
     std::srand( (unsigned)std::time(0) );
     setup_logger(plog::info);
 #endif
+    LOG_INFO << " -- TypTop Begin -- ";
     if (!db.ParseFromIstream(new std::fstream(db_fname, ios::in | ios::binary))) {
-        LOG_WARNING << "TypTop db is not initialized. Waiting for a successful login." << endl;
+        LOG_WARNING << "TypTop db is not initialized: " << db.h().sys_state();
         // assert(!real_pw.empty());
         // initialize(db_fname, real_pw);
     } else {
-        LOG_INFO << "----> Reading from file.";
+        LOG_INFO << "TypTop initialized: " << db.h().sys_state();
         pkobj.set_pk(db.ch().public_key());
     }
 }
 
 void TypTop::save() const {
-    if (!db.IsInitialized()) return; // no need to do anything
+    if (!is_initialized()) return; // no need to do anything
+    // check if the directory exists
+#ifdef WIN32
+    throw("No idea what to do.")
+#else
+    const char* db_dirname = dirname(strdup(db_fname.c_str()));
+    DIR* dir;
+    if(!(dir = opendir(db_dirname))) {
+        cerr << "Trying to create directory " << db_dirname << ".\n";
+        if(mkdir(db_dirname, 0775) != 0) // (S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)))
+            cerr << strerror(errno) << " " << getuid() << endl;
+    } else {
+        LOG_DEBUG << "directory " << db_dirname << " exists.";
+    }
+    closedir(dir);
+#endif
     string db_bak = db_fname + ".bak";
     std::fstream of(db_bak, ios::out | ios::binary);
-    if(of.is_open())
+    if(of.good())
         db.SerializeToOstream(&of);
-    else
+    else {
         LOG_ERROR << "Could not open backup file for writing " << db_bak;
+        cerr << "Could not open backup file for writing\n" << strerror(errno) << endl;
+    }
+
     if(rename(db_bak.c_str(), db_fname.c_str()) != 0) {
         LOG_ERROR << "Could not replace original db file " << db_fname;
     }
-    LOG_DEBUG << "db is saved";
+    LOG_INFO << "db is saved";
 }
 
 TypTop::~TypTop() {
     save();
+    LOG_INFO << " -- TypTop END -- " << endl;
 }
 
 
 void TypTop::add_to_waitlist(const string &typo, time_t ts) {
-    if (db.w_size() < W_size) {
-        for (int i = 0; i < W_size; i++)
-            db.add_w();
-    }
+    LOG_DEBUG_IF(db.w_size() < W_size) << "Increasing Waitlist size from "
+                                       << db.w_size() << " to " << W_size;
+    for (int i = db.w_size(); i < W_size; i++)
+        db.add_w();
     string ctx;
     WaitlistEntry wlent;
     wlent.set_pw(typo);
@@ -73,22 +95,33 @@ void TypTop::fill_waitlist_w_garbage() {
     }
 }
 
+void TypTop::reinitialize(const string &pw) {
+    LOG_INFO << "Reinitializing the db.";
+    initialize(pw);
+}
+
 void TypTop::initialize(const string &real_pw) {
     ConfigHeader *ch = db.mutable_ch();
     this->real_pw = real_pw;
     // - Set config header
     ch->set_install_id(get_install_id());
     pkobj.initialize();
+    LOG_DEBUG << "Initializing the db ";
     ch->set_public_key(pkobj.serialize_pk());
-    SecByteBlock global_salt(AES::BLOCKSIZE);
-    PRNG.GenerateBlock(global_salt, global_salt.size());  // random element
-    ch->set_global_salt((const char *) global_salt.data(), global_salt.size());
+    if (ch->global_salt().empty()) { // only change the salt if it is empty
+        SecByteBlock global_salt((ulong)AES::BLOCKSIZE);
+        PRNG.GenerateBlock(global_salt, global_salt.size());  // random element
+        ch->set_global_salt((const char *) global_salt.data(), global_salt.size());
+    } else {
+        LOG_DEBUG << "Keeping the salt unchanged";
+    }
 
     string sk_str = pkobj.serialize_sk();
     // cerr << __FUNCTION__ << " :: " << b64encode(sk_str) << endl;
 
     // --- Set the encryption header
     ench.set_pw(real_pw);
+    ench.set_pw_ent(entropy(real_pw));
     std::vector<string> T_cache(T_size - 1);
     get_typos(real_pw, T_cache);
     T_cache.insert(T_cache.begin(), real_pw);  // the real password is always at the 0-th location
@@ -129,7 +162,7 @@ void TypTop::initialize(const string &real_pw) {
 
     fill_waitlist_w_garbage();   // sets W
     db.mutable_h()->set_sys_state(SystemStatus::ALL_GOOD);
-    assert(db.IsInitialized());
+    assert(is_initialized());
 #ifdef DEBUG
     cerr << "db initialized" << endl;
     if (db.t_size() != ench.freq_size() ||
@@ -144,11 +177,12 @@ void TypTop::initialize(const string &real_pw) {
 
 void TypTop::insert_into_log(const string &pw, bool in_cache, time_t ts) {
     assert(!real_pw.empty());
+    float _this_pw_ent = entropy(pw);
     Log *l = db.add_l();
     l->set_in_cache(in_cache);
     l->set_istop5fixable(top5fixable(real_pw, pw));
     l->set_edit_dist(min(edit_distance(pw, real_pw), 5));
-    l->set_rel_entropy(-99);  // TODO: Find a way to estimate this
+    l->set_rel_entropy(_this_pw_ent - ench.pw_ent());  // TODO: Find a way to estimate this
     SecByteBlock g_salt((const byte *) db.ch().global_salt().data(), db.ch().global_salt().size());
     l->set_tid(compute_id(g_salt, pw));
     l->set_ts((int64_t)ts);
@@ -175,6 +209,8 @@ bool TypTop::is_correct(const string &pw) const {
 
 /**
  * Checks the password in the TypTop cache.
+ * 01. if pret == FIRST_TIME, then only reply if IsInitialized
+ * 0b. if pret == SECOND_TIME, then only Initialize and return true.
  * 1. Check the pw against db.t()
  * 2. If match found, process waitlist.
  * 2a.
@@ -184,17 +220,26 @@ bool TypTop::is_correct(const string &pw) const {
  * @param were_right: The return from previous authentication mechanism, such as pam_unix.
  * @return Whether or not the entered password is allowable.
  */
-bool TypTop::check(const string &pw, bool were_right) {
-    if(!db.IsInitialized()) {
-        if (were_right) {
-            this->initialize(pw);
-            cerr << "Iniitialized the db." << endl;
+bool TypTop::check(const string &pw, PAM_RETURN pret) {
+    LOG_INFO << "Checking with typtop for FIRST/SECOND: " << pret;
+    if(!is_initialized()) {
+        if (pret == SECOND_TIME) {
+            this -> initialize(pw);
+            LOG_DEBUG << "DB is initialized.";
             return true;
         } else {
-            cerr << "Db is not initialized" << endl;
+            LOG_DEBUG << "DB is not initialized.";
             return false;
         }
     }
+    if (pret == SECOND_TIME) {
+        // Should have handled this pw submission in first time
+        // Probably cause: password changed, so have to reinitialize the db.
+        // TODO: How to detect old typo?
+        this->reinitialize(pw);
+        return true;
+    }
+
     ench.Clear();
     string sk_str, enc_header_str;
     /* Standard book-keeping */
@@ -203,18 +248,10 @@ bool TypTop::check(const string &pw, bool were_right) {
     // check the password
     int i = is_typo_present(pw, sk_str);
 
-    if (i == 0 && !were_right) { // old password entered
-        // TODO: Deal with it
-        db.mutable_h()->set_sys_state(SystemStatus::PW_CHANGED);
-    }
-    if (i == T_size) { // not found in the typo cache
-        if (were_right) { // probably password changed, don't do anything this time just set the sys-status
-            // db.mutable_h()->set_sys_state(SystemStatus::PW_CHANGED);
-            cerr << "Probably password has changed" << endl;
-            this->initialize(pw);
-        } else {
-            add_to_waitlist(pw, now());
-        }
+    if (i == T_size) { // not found in the typo cache, so add to waitlist
+        add_to_waitlist(pw, now());
+        LOG_INFO << "Failed to find match in typocache: " << i;
+        return false;
     } else { // match_found is true
         // cerr << __FUNCTION__ << " :: " << b64encode(sk_str) << endl;
         pkobj.set_sk(sk_str);
@@ -237,21 +274,26 @@ bool TypTop::check(const string &pw, bool were_right) {
             assert(_t_ench_str == ench.SerializeAsString());
             db.mutable_h()->set_enc_header(ench_ctx);
             ench.Clear();
-            were_right = true;
+            if(i == 0)
+                LOG_INFO << "Accepting the real password!" << endl;
+            else
+                LOG_INFO << "Accepting a typo!" << endl;
+            return true;
         } catch (exception &ex) {
-            cerr << "Exception: " << ex.what() << endl;
+            LOG_FATAL << "Exception: " << ex.what() << endl;
+            LOG_ERROR << b64encode(enc_header_str) << endl;
             PkCrypto pkobj1; pkobj1.set_sk(sk_str);
             pkobj1.pk_decrypt(db.h().enc_header(), enc_header_str);
-            cerr << b64encode(enc_header_str) << endl;
-            throw ex.what();
             return false;
         }
     }
-    return were_right;
+    return false;
 }
 
 void TypTop::_insert_into_typo_cache(const int index, const string &sk_ctx,
                                      const int freq) {
+    LOG_DEBUG_IF(ench.freq_size()<T_size)<< "Increasing the Typocache size from "
+                                         << db.t_size() << " to " << T_size;
     for (int i = ench.freq_size(); i < T_size; i++) { // assume all the three arrays (freq, last_used, T) are in sync
         ench.add_freq(-1);
         ench.add_last_used(-1);
@@ -261,11 +303,6 @@ void TypTop::_insert_into_typo_cache(const int index, const string &sk_ctx,
     int64_t now_t = now();
     ench.set_freq(index, freq);
     ench.set_last_used(index, now_t);
-}
-
-void TypTop::add_to_typo_cache(const string &pw, const int freq,
-                               const string &sk_str) {
-    throw ("Not implemented!!");
 }
 
 /**
@@ -302,6 +339,7 @@ void TypTop::permute_typo_cache(const string &sk_str) {
  * @param ench
  */
 void TypTop::process_waitlist(const string &sk_str) {
+    LOG_DEBUG << "Processing waitlist" ;
     assert (!this->real_pw.empty());
     map<string, int> wl_typo;
     WaitlistEntry wlent;
@@ -323,6 +361,7 @@ void TypTop::process_waitlist(const string &sk_str) {
         string pw = e.first;
         int freq = e.second;
         string sk_ctx;
+        LOG_DEBUG << "Got typo: " << pw;
         for (auto i: freq_vec_sorted_idx) {
             // try to insert at i-th location
             if (win(ench.freq((int) i), freq)) {
@@ -339,5 +378,14 @@ void TypTop::process_waitlist(const string &sk_str) {
         // add_to_typo_cache(e.first, e.second, sk_str, ench);
     }
     fill_waitlist_w_garbage();
+}
+
+void TypTop::print_log() {
+    if(is_initialized()) {
+        for(auto it: db.l())
+            cerr << it.DebugString() << endl;
+    } else {
+        cerr << "Db is not initialized. " << db.IsInitialized();
+    }
 }
 

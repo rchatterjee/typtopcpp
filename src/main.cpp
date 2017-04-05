@@ -35,10 +35,10 @@ int main(int argc, char *argv[]) {
     string fname = "./tmp_db";
     string pws[] = {"hellobrother", "hellobrother1"};
     remove(fname.c_str());
-    TypTop tp(fname);
-    cout << "Trying 0: " << tp.check(pws[0], true) << endl;
-    cout << "Trying 1: " << tp.check(pws[1], false) << endl;
-    cout << "Entropy: " << ZxcvbnMatch(pws[0].c_str(), NULL, NULL) << endl;
+//    TypTop tp(fname);
+//    cout << "Trying 0: " << tp.check(pws[0], true) << endl;
+//    cout << "Trying 1: " << tp.check(pws[1], false) << endl;
+    cout << "Entropy: " << entropy(pws[0]) << endl;
 //    }
 //    catch(CryptoPP::Exception& ex)
 //    {

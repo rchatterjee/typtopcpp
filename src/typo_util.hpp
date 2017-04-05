@@ -10,6 +10,8 @@
 #include <set>
 #include <algorithm>
 #include <numeric>
+#include "zxcvbn.h"
+#include "plog/Log.h"
 
 using namespace std;
 
@@ -189,22 +191,31 @@ inline string get_install_id() {
     std::fstream f(UNIQ_ID_FILENAME, ios::in);
     string id;
     if (f.good() && (f >> id) && id.size()>=8) {
-        cout << "Install ID.fromFile: "<< id << endl;
+        cerr << "Install ID.fromFile: "<< id << endl;
         return id;
     } else { // generate and store
-        SecByteBlock b(8);
         f.close();
-        PRNG.GenerateBlock(b, 8);
+        SecByteBlock b(8);
+        PRNG.GenerateBlock(b.data(), 8);
         id = b64encode(b);
         std::fstream of(UNIQ_ID_FILENAME, ios::out);
         of << id;
         of.close();
 
-        cout << "Install ID: "<< id << endl;
+        cerr << "Install ID.Regenerated: "<< id << endl;
     }
     return id;
 }
 
+inline float entropy(const string& pw) {
+    double ent = -99.0;
+    try {
+        ent = ZxcvbnMatch(pw.c_str(), NULL, NULL);
+    } catch (exception &ex){
+        LOG_ERROR << ex.what();
+    }
+    return ent;
+}
 
 /**
  * Policies:
@@ -218,8 +229,8 @@ inline string get_install_id() {
 inline bool meets_typo_policy(const string& pw, const string& typo) {
     // TODO: Add entropy requirements
 #ifdef ENTROYP_CUTOFF
-    double entropy_pw = ZxcvbnMatch(pw, NULL, NULL);
-    double entropy_typo = ZxcvbnMatch(pw, NULL, NULL);
+    double entropy_pw = entropy(pw);
+    double entropy_typo = entropy(pw);
     if (entropy_typo < entropy_pw - ENTROPY_CUTOFF) return false;
 #endif
     // if (entropy_typo < 10) return false;  // ignore it for now

@@ -24,7 +24,9 @@ For compiling the project from source, you need following libraries.
   - Write pam_config file. Decide on how to write a 
     pam_modules that works for both MAC and Linux.
   - add to password change (`pam_sm_chkauthtok`) as well
- 
+  - Checkout pam-auth-update and 
+  [Pam Config Framework](https://wiki.ubuntu.com/PAMConfigFrameworkSpec).
+   
 * **Testing**
   - ~~(added) Add .travis.yml~~
   - Fix .travis fail. 

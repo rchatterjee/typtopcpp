@@ -37,3 +37,4 @@ endif(NOT PAM_INCLUDE_DIR)
 
 install(TARGETS ${PAM_LIB}
         DESTINATION lib/security)
+install(FILES typtop-auth DESTINATION /etc/pam.d)

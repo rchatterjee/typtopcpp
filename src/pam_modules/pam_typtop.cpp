@@ -118,7 +118,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, cons
     int retval = pam_get_authtok(pamh, PAM_AUTHTOK, &passwd, "pASSWORD:");
     if (retval != PAM_SUCCESS || passwd == NULL) {
         pam_syslog(pamh, LOG_WARNING, "couldn't find cached password or password is blank");
-        return PAM_IGNORE;
+        return PAM_AUTH_ERR;
     } else {
         return call_typtop(pamh, name, passwd, ret_pam_unix);
 /*

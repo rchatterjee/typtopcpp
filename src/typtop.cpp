@@ -22,13 +22,19 @@ TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
     setup_logger(plog::info);
 #endif
     LOG_INFO << " -- TypTop Begin -- ";
-    if (!db.ParseFromIstream(new std::fstream(db_fname, ios::in | ios::binary))) {
+    fstream idbf(db_fname, ios::in | ios::binary);
+    if(!idbf.good()) {
         LOG_WARNING << "TypTop db is not initialized: " << db.h().sys_state();
-        // assert(!real_pw.empty());
-        // initialize(db_fname, real_pw);
-    } else {
-        LOG_INFO << "TypTop initialized: " << db.h().sys_state();
-        pkobj.set_pk(db.ch().public_key());
+        return;
+    }
+    try {
+        if(db.ParseFromIstream(&idbf)) {
+            LOG_INFO << "TypTop initialized: " << db.h().sys_state();
+            pkobj.set_pk(db.ch().public_key());
+        }
+    } catch (exception &ex) {
+        db.mutable_h()->set_sys_state(SystemStatus::UNINITIALIZED);
+        LOG_ERROR << "DB file is corrupted, will (re)initialize next time.";
     }
 }
 

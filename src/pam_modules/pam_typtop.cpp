@@ -1,53 +1,54 @@
 #define _XOPEN_SOURCE 700
 
 
-
-
 #ifndef __APPLE__
 #  include <security/_pam_macros.h>
 #  include <security/pam_ext.h>
 #  include <security/pam_modutil.h>
 #else
+
 #  include <security/pam_appl.h>
+
 #endif
 
 #include <syslog.h>
 #include <security/pam_modules.h>
 #include <string>
-
-const int TYPTOP_COLLECT = 1;
-const int TYPTOP_FIN = 2;
+#include <stdio.h>
+#include <cstdlib>
+#include <pwd.h>
 
 #ifdef __APPLE__
+
 /* pam_syslog is missing in apple, this is a function taken from
    https://git.reviewboard.kde.org/r/125056/diff/3#4
 */
-void pam_vsyslog(const pam_handle_t *ph, int priority, const char *fmt, va_list args)
-{
-  char *msg = NULL;
-  const char *service = NULL;
-  int retval;
-  retval = pam_get_item(ph, PAM_SERVICE, (const void **) &service);
-  if (retval != PAM_SUCCESS)
-    service = NULL;
-
-  if (vasprintf(&msg, fmt, args) < 0) {
-    syslog(LOG_CRIT | LOG_AUTHPRIV, "cannot allocate memory in vasprintf: %m");
+void pam_vsyslog(const pam_handle_t *ph, int priority, const char *fmt, va_list args) {
     return;
-  }
-  syslog(priority | LOG_AUTHPRIV, "%s%s%s: %s",
-         (service == NULL) ? "" : "(",
-         (service == NULL) ? "" : service,
-         (service == NULL) ? "" : ")", msg);
-  free(msg);
+    char *msg = NULL;
+    const char *service = NULL;
+    int retval;
+    retval = pam_get_item(ph, PAM_SERVICE, (const void **) &service);
+    if (retval != PAM_SUCCESS)
+        service = NULL;
+
+    if (vsprintf(msg, fmt, args) < 0) {
+        syslog(LOG_CRIT | LOG_AUTHPRIV, "cannot allocate memory in vasprintf: %m");
+        return;
+    }
+    syslog(priority | LOG_AUTHPRIV, "%s%s%s: %s",
+           (service == NULL) ? "" : "(",
+           (service == NULL) ? "" : service,
+           (service == NULL) ? "" : ")", msg);
+    free(msg);
 }
 
-void pam_syslog(const pam_handle_t *ph, int priority, const char *fmt, ...)
-{
-  va_list args;
-  va_start(args, fmt);
-  pam_vsyslog(ph, priority, fmt, args);
-  va_end(args);
+void pam_syslog(const pam_handle_t *ph, int priority, const char *fmt, ...) {
+    return;
+    va_list args;
+    va_start(args, fmt);
+    pam_vsyslog(ph, priority, fmt, args);
+    va_end(args);
 }
 #endif
 
@@ -61,11 +62,11 @@ using namespace std;
 #endif
 
 static int
-call_typtop(pam_handle_t *pamh, const char* user, const char* passwd, int chkwd_ret) {
+call_typtop(pam_handle_t *pamh, const char *user, const char *passwd, int chkwd_ret) {
     // chkwd_ret is set to PAM_SUCCESS or PAM_AUTH_ERR, and they are 0 and >0 respectively
     // typtop expects boolean for those values, and better to use 1 for PAM_SUCCESS and 0
     // for other failure modes.
-    if(!getpwnam(user))
+    if (!getpwnam(user))
         return PAM_AUTH_ERR;
 
     string cmd = "/usr/local/bin/typtop --check " + string(user);
@@ -75,16 +76,15 @@ call_typtop(pam_handle_t *pamh, const char* user, const char* passwd, int chkwd_
 
     // printf("cmd=%s\n", cmd);
     FILE *fp = popen(cmd.c_str(), "w");
-    if (fp==NULL) {
+    if (fp == NULL) {
         pam_syslog(pamh, LOG_ERR, "Typtop could not be opened. Sorry! retval=%d\n", retval);
         return PAM_AUTH_ERR;
     }
     fprintf(fp, "%s", passwd);
     int status = pclose(fp);
     int _exit_status = WEXITSTATUS(status);  // exit status 0 means success, 1 means failure.
-    return _exit_status==0?PAM_SUCCESS:PAM_AUTH_ERR;
+    return _exit_status == 0 ? PAM_SUCCESS : PAM_AUTH_ERR;
 }
-
 
 
 /*  Runs TypToP, fetching the entered password using `pam_get_authtok`
@@ -96,7 +96,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, cons
     const char *name;
     const char *passwd;
     int i;
-    for(i = 1; i < argc; ++i) {
+    for (i = 1; i < argc; ++i) {
         if (string(argv[i]) == "first_time") {
             ret_pam_unix = 1;
         } else if (string(argv[i]) == "second_time") {
@@ -137,9 +137,8 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, cons
 
 
 __attribute__((visibility("default")))
-PAM_EXTERN int pam_sm_setcred (pam_handle_t *pamh, int flags,
-        int argc, const char **argv)
-{
+PAM_EXTERN int pam_sm_setcred(pam_handle_t *pamh, int flags,
+                              int argc, const char **argv) {
     int retval = PAM_SUCCESS;
     pam_syslog(pamh, LOG_NOTICE, "called pam_sm_setcred. flag=%d", flags);
     return retval;
@@ -163,14 +162,14 @@ PAM_EXTERN int pam_sm_chkauthtok(pam_handle_t *pamh, int flags, int argc, char *
         return retval;
     }
 
-    if (PAM_SUCCESS != (retval = pam_get_item(pamh, PAM_OLDAUTHTOK, (const void **)&old_password))) {
-            pam_syslog(pamh, LOG_WARNING, "Could not get username from pam_stack");
-            return PAM_USER_UNKNOWN;
+    if (PAM_SUCCESS != (retval = pam_get_item(pamh, PAM_OLDAUTHTOK, (const void **) &old_password))) {
+        pam_syslog(pamh, LOG_WARNING, "Could not get username from pam_stack");
+        return PAM_USER_UNKNOWN;
     }
     if (NULL == old_password &&
         PAM_SUCCESS != (retval = pam_get_authtok(pamh, PAM_OLDAUTHTOK, &old_password, old_password_prompt)))
         return retval;
-    if (PAM_SUCCESS != (retval = pam_get_item(pamh, PAM_AUTHTOK, (const void **)&new_password)))
+    if (PAM_SUCCESS != (retval = pam_get_item(pamh, PAM_AUTHTOK, (const void **) &new_password)))
         return retval;
     if (NULL == new_password &&
         PAM_SUCCESS != (retval = pam_get_authtok(pamh, PAM_AUTHTOK, &new_password, new_password_prompt)))
@@ -183,5 +182,6 @@ PAM_EXTERN int pam_sm_chkauthtok(pam_handle_t *pamh, int flags, int argc, char *
 }
 
 #ifdef PAM_MODULE_ENTRY
+
 PAM_MODULE_ENTRY("pam_typtop");
 #endif

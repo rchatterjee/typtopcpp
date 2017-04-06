@@ -24,7 +24,9 @@ configure_file (
         "${PROJECT_BINARY_DIR}/typtopconfig.h"
 )
 
-
+if(APPLE)
+    SET(CMAKE_SHARED_LIBRARY_SUFFIX ".so")
+endif()
 
 # External libraries
 set(CRYPTOPP_PREFIX cryptopp565) # cryptopp

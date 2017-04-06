@@ -1,6 +1,45 @@
-# INCLUDE(InstallRequiredSystemLibraries)
 
-SET(CPACK_GENERATOR "DEB;RPM")
+#-------------------------------------------------------------------------------
+# This macro will set all the variables necessary to have a "good" OS X Application
+# bundle. The variables are as follows:
+#  PROJECT_NAME - which can be taken from the ${PROJECT_NAME} variable is needed
+#  DEBUG_EXTENSION - The extension used to denote a debug built Application. Typically
+#   this is '_debug'
+#  ICON_FILE_PATH - The complete path to the bundle icon file
+#  VERSION_STRING - The version string that you wish to use for the bundle. For OS X
+#   this string is usually XXXX.YY.ZZ in type. Look at the Apple docs for more info
+#-------------------------------------------------------------------------------
+macro(ConfigureMacOSXBundlePlist PROJECT_NAME DEBUG_EXTENSION ICON_FILE_PATH VERSION_STRING)
+    # message(STATUS "ConfigureMacOSXBundlePlist for ${PROJECT_NAME} ")
+    IF(CMAKE_BUILD_TYPE MATCHES "Release")
+        SET(DBG_EXTENSION "")
+    else()
+        set(DBG_EXTENSION ${DEBUG_EXTENSION})
+    endif()
+    get_filename_component(ICON_FILE_NAME "${ICON_FILE_PATH}" NAME)
+
+    #CFBundleGetInfoString
+    SET(MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME}${DBG_EXTENSION} Version ${VERSION_STRING} - a smart password checker for laptop login")
+    SET(MACOSX_BUNDLE_ICON_FILE ${ICON_FILE_NAME})
+    SET(MACOSX_BUNDLE_GUI_IDENTIFIER "${PROJECT_NAME}${DBG_EXTENSION}")
+    #CFBundleLongVersionString
+    SET(MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME}${DBG_EXTENSION} Version ${VERSION_STRING}")
+    SET(MACOSX_BUNDLE_BUNDLE_NAME ${PROJECT_NAME}${DBG_EXTENSION})
+    SET(MACOSX_BUNDLE_SHORT_VERSION_STRING ${VERSION_STRING})
+    SET(MACOSX_BUNDLE_BUNDLE_VERSION ${VERSION_STRING})
+    SET(MACOSX_BUNDLE_COPYRIGHT "Copyright 2017, Cornell Tech, All Rights Reserved.")
+
+    SET(${PROJECT_NAME}_PROJECT_SRCS ${${PROJECT_NAME}_PROJECT_SRCS} ${ICON_FILE_PATH})
+    SET_SOURCE_FILES_PROPERTIES(${ICON_FILE_PATH} PROPERTIES
+            MACOSX_PACKAGE_LOCATION Resources)
+
+endmacro()
+
+
+# INCLUDE(InstallRequiredSystemLibraries)
+SET(CPACK_GENERATOR "PkgBuild")
+SET(CPACK_BUNDLE_NAME ${PROJECT_NAME})
+
 SET(CPACK_SOURCE_GENERATOR "TGZ;ZIP")
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 0)
 SET(CPACK_PACKAGE_CONTACT "Rahul Chatterjee <rahul@cs.cornell.edu>")
@@ -41,11 +80,22 @@ IF(WIN32)
     SET(CPACK_NSIS_MODIFY_PATH ON)
 ELSEIF(UNIX)
     IF(APPLE)
+        set( CPACK_POSTFLIGHT_SCRIPT  "${CMAKE_SOURCE_DIR}/install/postinst")
+        set( CPACK_POSTUPGRADE_SCRIPT  "${CMAKE_SOURCE_DIR}/install/postinst")
+        set( CPACK_OSX_PACKAGE_VERSION, 11.0)
         SET(CPACK_STRIP_FILES "bin/typtop")
         SET(CPACK_SOURCE_STRIP_FILES "")
+        ConfigureMacOSXBundlePlist(${PROJECT_NAME} "-debug" icon_typtop.icns "${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
+        SET(CPACK_BUNDLE_STARTUP_COMMAND "${CMAKE_SOURCE_DIR}/install/postinst")
+        SET(CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/install/icon_typtop.icns)
+        # set_target_properties(typtop PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/CMake/Info.plist.in)
+        # configure_file(${CMAKE_SOURCE_DIR}/CMake/Info.plist.in ${CMAKE_SOURCE_DIR}/CMake/Info.plist)
+        SET(CPACK_BUNDLE_PLIST "${CMAKE_BINARY_DIR}/Info.plist")
     ELSE(APPLE)
         MESSAGE(STATUS "CPack for non-osx unix systems")
     ENDIF(APPLE)
 ENDIF(WIN32)
 
 SET(CPACK_PACKAGE_EXECUTABLES typtop "TypTop")
+
+

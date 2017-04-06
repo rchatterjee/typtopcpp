@@ -3,9 +3,10 @@
 //
 
 #include "typtop.h"
-#include <unistd.h>
+// #include <unistd.h>
 #include <security/pam_appl.h>
 #include <pwd.h>
+#include <zconf.h>
 
 
 string curr_user() {

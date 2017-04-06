@@ -1,3 +1,5 @@
+set(CMAKE_MACOSX_RPATH 1)
+
 IF(UNIX)
     IF(APPLE)
         set(PAM_LIB pam_opendirectory_typtop)

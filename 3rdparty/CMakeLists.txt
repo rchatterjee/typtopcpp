@@ -1,15 +1,7 @@
 include(ExternalProject)
 include(CheckIncludeFileCXX)
 
-# Builds external third party projects.
-# The parent script needs to define the "GLOBAL_OUTPUT_PATH" variable,
-# which will be used as output directory for all *.lib, *.dll, *.a, *.so, *.pdb files.
-
-##############################################################################
-# Crypto++
-##############################################################################
 include(${CMAKE_CURRENT_LIST_DIR}/cryptopp.cmake)
-# include(${CMAKE_CURRENT_LIST_DIR}/easylogging.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/plog.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/zxcvbn.cmake)
 

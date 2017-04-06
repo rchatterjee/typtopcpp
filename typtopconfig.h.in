@@ -1,3 +1,7 @@
 #cmakedefine DEBUG
 #cmakedefine DB_ROOT
 #cmakedefine LOG_DIR
+
+// the configured options and settings for Tutorial
+#define Tutorial_VERSION_MAJOR @typtop_VERSION_MAJOR@
+#define Tutorial_VERSION_MINOR @typtop_VERSION_MAJOR@

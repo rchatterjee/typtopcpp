@@ -34,3 +34,7 @@
 # CLion specific
 .idea/
 cmake-*
+
+
+# OSX
+.DS_Store

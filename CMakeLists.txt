@@ -24,18 +24,30 @@ configure_file (
         "${PROJECT_BINARY_DIR}/typtopconfig.h"
 )
 
-find_package(Protobuf REQUIRED)
-include_directories(${PROTOBUF_INCLUDE_DIRS})
-PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS src/db.proto)
 
+
+# External libraries
 set(CRYPTOPP_PREFIX cryptopp565) # cryptopp
 set(PLOG_PREFIX plog110) # Plog
 set(ZXCVBN_PREFIX zxcvbn21) # Zxcvbn
 
-# include_directories("${PROJECT_BINARY_DIR}")
-# add_subdirectory(3rdparty)
-add_subdirectory(test)
-add_subdirectory(src)
+include(3rdparty/DownloadProject.cmake)
+set(CRYPTOPP_URL https://github.com/weidai11/cryptopp/archive/CRYPTOPP_5_6_5.tar.gz)
+set(ZXCVBN_URL https://github.com/tsyrogit/zxcvbn-c/archive/v2.1.tar.gz)
+download_project(PROJ                ${CRYPTOPP_PREFIX}
+        URL      ${CRYPTOPP_URL}
+        ${UPDATE_DISCONNECTED_IF_AVAILABLE}
+        )
+# add_subdirectory(${${CRYPTOPP_PREFIX}_SOURCE_DIR} ${${CRYPTOPP_PREFIX}_BINARY_DIR})
+
+download_project(PROJ  ${ZXCVBN_PREFIX}
+        URL      ${ZXCVBN_URL}
+        # BUILD_COMMAND COMMAND make libzxcvbn.a USE_DICT_FILE=1 -C ${SOURCE_DIR}
+        )
+
+# add_dependencies(${ZXCVBN_PREFIX} libzxcvbn.a)
+
+# include(CMakeLists-External.txt)
 
 # Set up cryptopp
 # include(CMakeLists-External.txt)
@@ -48,20 +60,16 @@ add_subdirectory(src)
 
 
 # required modules for our task
-include(CheckIncludeFile)
-include(CheckIncludeFiles)
+# include(CheckIncludeFile)
 
+include(3rdparty/CMakeLists.txt)
+
+
+add_subdirectory(src)
+add_subdirectory(test)
 
 # TO BE CREATED
-include(3rdparty/CMakeLists.txt)
 # include(3rdparty/cryptopp.cmake)
-
-add_dependencies(tests ${CRYPTOPP_PREFIX})
-add_dependencies(pw_crypto ${CRYPTOPP_PREFIX})
-add_dependencies(tests ${PLOG_PREFIX})
-add_dependencies(pw_crypto ${PLOG_PREFIX})
-add_dependencies(tests ${ZXCVBN_PREFIX})
-add_dependencies(pw_crypto ${ZXCVBN_PREFIX})
 
 
 # testing

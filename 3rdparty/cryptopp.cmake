@@ -1,20 +1,11 @@
-
-set(CRYPTOPP_PREFIX cryptopp565)
-
-# Cryptopp url from where it should download
-set(CRYPTOPP_URL https://github.com/weidai11/cryptopp/archive/CRYPTOPP_5_6_5.tar.gz)
-
 set(NCPU 6)   # Number of CPUs to use
 
 ExternalProject_Add(
         ${CRYPTOPP_PREFIX}
-        PREFIX ${CRYPTOPP_PREFIX}
-        URL ${CRYPTOPP_URL}
+        PREFIX ${${CRYPTOPP_PREFIX}_SOURCE_DIR}
         TLS_VERIFY 1
-
-        # SOURCE_DIR ${CMAKE_SOURCE_DIR}/3rdparty/cryptopp-5.6.5
-
-        INSTALL_DIR ${CMAKE_BINARY_DIR}/${CRYPTOPP_PREFIX}
+        SOURCE_DIR ${${CRYPTOPP_PREFIX}_SOURCE_DIR}
+        INSTALL_DIR ${${CRYPTOPP_PREFIX}_BINARY_DIR}
         CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -j${NCPU}
         # BUILD_IN_SOURCE 1
         LOG_DOWNLOAD 1
@@ -22,6 +13,7 @@ ExternalProject_Add(
         # STEP_TARGETS ${CRYPTOPP_PREFIX}_info
 )
 
+# include(src/${CRYPTOPP_PREFIX}-stamp/down)
 
 ## get the unpacked source directory path
 #ExternalProject_Get_Property(${CRYPTOPP_PREFIX} SOURCE_DIR INSTALL_DIR)

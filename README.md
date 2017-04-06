@@ -35,6 +35,7 @@ For compiling the project from source, you need following libraries.
   - How to use `cpack` a cmake extension to generate 
     distributable binaries.
 
+* Cleanup cmake, it is a mess right now.
 * (done) ~~Insert logic of typo-db manipulation.~~
 * (done) ~~FIX the seg-faulting permute cache function.~~
 * (done) ~~**CHECK OUT `ExternalProject_Add`**~~

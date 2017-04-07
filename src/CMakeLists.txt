@@ -11,10 +11,12 @@ find_package(CURL REQUIRED)
 # CA Certs
 # SET(DEBUG 1)
 # TODO: Change this for release
-if(CMAKE_BUILD_TYPE EQUAL "Debug")
+if(CMAKE_BUILD_TYPE MATCHES "Debug")
+    message("--> It thinks DEBUG MODE")
     SET(CAFILE "${CMAKE_SOURCE_DIR}/src/typtop.d/typtopserver.crt")
     SET(OLD_CAFILE "${CMAKE_SOURCE_DIR}/src/typtop.d/old_typtopserver.crt")
 else()
+    message(SEND_ERROR "It thinks Release mode")
     SET(CAFILE "${CMAKE_INSTALL_PREFIX}/etc/typtop.d/typtopserver.crt")
     SET(OLD_CAFILE "${CMAKE_INSTALL_PREFIX}/etc/typtop.d/old_typtopserver.crt")
 endif()
@@ -26,7 +28,7 @@ configure_file (
         "${PROJECT_BINARY_DIR}/src/typtopconfig.h"
 )
 
-set(TYPTOP_SRCS typtop.cpp typtop.h ${PROTO_SRCS} ${PROTO_HDRS} ${PLOG_FILES})
+set(TYPTOP_SRCS typtop.cpp typtop.h ${PROTO_SRCS} ${PROTO_HDRS} ${PLOG_FILES} typtopconfig.h)
 
 add_library(pw_crypto STATIC pw_crypto.cpp pw_crypto.h)
 add_library(typtopdb STATIC ${TYPTOP_SRCS})
@@ -107,5 +109,5 @@ INSTALL(TARGETS typtop
         OWNER_WRITE GROUP_READ WORLD_READ
         OWNER_READ GROUP_READ
         )
-
 INSTALL(DIRECTORY typtop.d DESTINATION ${INSTALL_DATA_DIR})
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION ${INSTALL_DATA_DIR}/typtop.d/)

@@ -10,7 +10,7 @@ project(typtop)
 set (typtop_VERSION_MAJOR 1)
 set (typtop_VERSION_MINOR 0)
 
-if(CMAKE_BUILD_TYPE EQUAL "Debug")
+if(CMAKE_BUILD_TYPE MATCHES "Debug")
     add_definitions(-DDEBUG)
 endif()
 

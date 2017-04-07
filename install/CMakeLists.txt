@@ -90,10 +90,10 @@ ELSEIF(UNIX)
         SET(CPACK_BUNDLE_STARTUP_COMMAND "${CMAKE_SOURCE_DIR}/install/postinst")
         SET(CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/install/icon_typtop.icns)
         message(">>     ${CMAKE_MODULE_PATH}")
-        set_target_properties(typtop PROPERTIES
-                MACOSX_BUNDLE "on")
+        # set_target_properties(typtop PROPERTIES
+        #        MACOSX_BUNDLE "on")
         set(pam_module "pam_opendirectory.so")
-#        set(typtop_identifier "com.typtop.cornell.edu")
+        set(typtop_identifier "com.typtop.cornell.edu")
 #        configure_file(${CMAKE_SOURCE_DIR}/install/prerm_osx.in
 #                ${CMAKE_BINARY_DIR}/scripts/prerm)
         configure_file(${CMAKE_SOURCE_DIR}/install/postinstall_osx.in

@@ -105,7 +105,7 @@ int check_password(char* argv[], int argc) {
         cerr << "Not running as root: " << getuid() << endl;
         return PAM_AUTH_ERR;
     }
-    assert(getuid() == 0); // if it's uid is not root, no point running further. TODO: make it for shadow
+    assert(geteuid() == 0); // if it's uid is not root, no point running further. TODO: make it for shadow
     assert(argc == 4);  // --check <user> 0/1
 
 //

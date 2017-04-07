@@ -5,7 +5,7 @@ if [ "$EUID" -ne 0 ]; then
     exit
 fi
 
-sudo u+s /usr/local/bin/typtop
+sudo chmod 04755 /usr/local/bin/typtop
 pam_mod=@pam_module@
 
 if [ -d "/etc/pam.d/" ]; then

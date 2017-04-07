@@ -9,8 +9,13 @@ project(typtop)
 # The version number.
 set (typtop_VERSION_MAJOR 1)
 set (typtop_VERSION_MINOR 0)
-add_definitions(-DDEBUG)
 
+if(CMAKE_BUILD_TYPE EQUAL "Debug")
+    add_definitions(-DDEBUG)
+endif()
+
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s")
 
 SET(CMAKE_CXX_STANDARD 11)
 SET(CMAKE_C_COMPILER ${CC})

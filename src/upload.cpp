@@ -8,6 +8,7 @@
 #include <curl/curl.h>
 #include <string>
 #include "typtopconfig.h"
+#include "plog/Log.h"
 const string url = "https://ec2-54-209-30-18.compute-1.amazonaws.com/submit";
 
 // TODO add CA file
@@ -23,7 +24,7 @@ const string url = "https://ec2-54-209-30-18.compute-1.amazonaws.com/submit";
 
 int send_log_to_server(const string uid, const string log, int test=1) {
     CURL *curl;
-    CURLcode res;
+    CURLcode res = CURLE_SEND_ERROR;
 
     /* In windows, this will init the winsock stuff */
     curl_global_init(CURL_GLOBAL_ALL);
@@ -50,13 +51,13 @@ int send_log_to_server(const string uid, const string log, int test=1) {
         res = curl_easy_perform(curl);
         /* Check for errors */
         if(res != CURLE_OK){
-            cerr << "curl_easy_perform() failed: "<< curl_easy_strerror(res)
+            LOG_ERROR << "curl_easy_perform() failed: "<< curl_easy_strerror(res)
                  << "\nCAFILE: " << CAFILE << endl;
             // try old cert once
             curl_easy_setopt(curl, CURLOPT_CAINFO, OLD_CAFILE);
             res = curl_easy_perform(curl);
             if(res != CURLE_OK){
-                cerr << "curl_easy_perform() failed: "<< curl_easy_strerror(res)
+                LOG_ERROR << "curl_easy_perform() failed: "<< curl_easy_strerror(res)
                      << "\nCAFILE: " << OLD_CAFILE << endl;
             }
         }

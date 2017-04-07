@@ -16,7 +16,7 @@ before_install:
   - if [ $TRAVIS_OS_NAME == osx ]; then if [[ ! $(which cmake) ]]; then brew update && brew install protobuf cmake; fi; fi
 
 before_script:
-  - mkdir cmake-build-debug && cd cmake-build-debug && cmake --target tests ..
+  - mkdir cmake-build-debug && cd cmake-build-debug && cmake .. && make && cmake .. && make tests && cmake --target tests
 
 script:
   - ./cmake-build-debug/test/tests -d yes

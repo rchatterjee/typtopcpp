@@ -34,6 +34,11 @@ For compiling the project from source, you need following libraries.
 * **Installation and Configuration**
   - (Almost DONE) How to use `cpack` a cmake extension to generate
     distributable binaries.
+  - Build in release mode.
+  - Check Mac pkgbuild
+  - Test the installation in at least 3-4 linux and 2 OSX systems.
+  - (Super Important) **Add uninstall script for old TypTop. **  
+
 
 * Cleanup cmake, it is a mess right now.
 * (done) ~~Insert logic of typo-db manipulation.~~

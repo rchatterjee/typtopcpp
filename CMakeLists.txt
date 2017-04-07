@@ -17,12 +17,9 @@ SET(CMAKE_C_COMPILER ${CC})
 SET(CMAKE_CXX_COMPILER ${CC})
 set(CMAKE_CXX_FLAGS "-Wall -std=c++11")
 
-# configure a header file to pass some of the CMake settings
-# to the source code
-configure_file (
-        "${PROJECT_SOURCE_DIR}/typtopconfig.h.in"
-        "${PROJECT_BINARY_DIR}/typtopconfig.h"
-)
+SET(INSTALL_DATA_DIR etc)
+SET(INSTALL_BIN_DIR bin)
+SET(INSTALL_LIB_DIR lib/security)
 
 if(APPLE)
     SET(CMAKE_SHARED_LIBRARY_SUFFIX ".so")

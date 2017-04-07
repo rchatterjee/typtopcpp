@@ -5,3 +5,5 @@
 // the configured options and settings for Tutorial
 #define Tutorial_VERSION_MAJOR @typtop_VERSION_MAJOR@
 #define Tutorial_VERSION_MINOR @typtop_VERSION_MAJOR@
+#define CAFILE "@CAFILE@"
+#define OLD_CAFILE "@OLD_CAFILE@"

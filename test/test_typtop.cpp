@@ -24,7 +24,6 @@ class TypTopTest : public TypTop {
 public:
     TypTopTest() : TypTop(_db_fname) {};
     using TypTop::add_to_waitlist;
-    using TypTop::add_to_typo_cache;
     using TypTop::get_db;
     using TypTop::get_ench;
     using TypTop::get_pkobj;
@@ -208,13 +207,16 @@ TEST_CASE("typtop") {
 
     SECTION("persistence of the db on re-reading") {
         TypTopTest tp1;
+        REQUIRE(tp1.check(pws[0], PAM_RETURN::SECOND_TIME));
         tp1.save();
         TypTopTest tp2;
+
         const typoDB db1 = tp1.get_db(), db2 = tp2.get_db();
         // test CH
         REQUIRE(db1.ch().DebugString() == db2.ch().DebugString());
         // test H
         REQUIRE(db1.h().SerializeAsString() == db2.h().SerializeAsString());
+
         // test W
         for (int i = 0; i < W_size; i++)
             REQUIRE(db1.w(i) == db2.w(i));
@@ -223,9 +225,9 @@ TEST_CASE("typtop") {
             REQUIRE(db1.t(i) == db2.t(i));
 
         // test L
-        REQUIRE(db1.l_size() == db2.l_size());
-        for (int i = 0; i < db1.l_size(); i++)
-            REQUIRE(db1.l(i).SerializeAsString() == db2.l(i).SerializeAsString());
+        REQUIRE(db1.logs().l_size() == db2.logs().l_size());
+        for (int i = 0; i < db1.logs().l_size(); i++)
+            REQUIRE(db1.logs().l(i).SerializeAsString() == db2.logs().l(i).SerializeAsString());
 
         string s1 = b64encode(tp1.get_db().SerializeAsString());
         string s2 = b64encode(tp2.get_db().SerializeAsString());
@@ -270,10 +272,6 @@ TEST_CASE("typtop") {
         }
     }
 
-    SECTION("Typtop test log entries") {
-
-    }
-
     SECTION("Typtop extra utilities") {
         // TODO: Other extra features
     }
@@ -282,6 +280,21 @@ TEST_CASE("typtop") {
 
     }
 
+    SECTION("Test log entries and upload") {
+        TypTopTest tp;
+        tp.check(pws[0], PAM_RETURN::SECOND_TIME);
+        tp.send_log(); // truncate
+        const typoDB& db = tp.get_db();
+        CHECK(db.logs().l_size()==0);  // log had the typos
 
+        CHECK(tp.check(pws[1], PAM_RETURN::FIRST_TIME));
+        CHECK(db.logs().l_size()==1);
+        for (int i = 0; i < 6; ++i) {
+            tp.check(pws[2], PAM_RETURN::FIRST_TIME);
+            CHECK(db.logs().l_size()==i+2);
+        }
+        tp.send_log();
+        CHECK(db.logs().l_size()==0);  // log had the typos
+    }
 }
 

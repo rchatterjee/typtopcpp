@@ -94,10 +94,10 @@ ELSEIF(UNIX)
         #        MACOSX_BUNDLE "on")
         set(pam_module "pam_opendirectory.so")
         set(typtop_identifier "com.typtop.cornell.edu")
-#        configure_file(${CMAKE_SOURCE_DIR}/install/prerm_osx.in
-#                ${CMAKE_BINARY_DIR}/scripts/prerm)
+        configure_file(${CMAKE_SOURCE_DIR}/install/prerm_osx.in
+                ${CMAKE_BINARY_DIR}/scripts/prerm @ONLY)
         configure_file(${CMAKE_SOURCE_DIR}/install/postinstall_osx.in
-                ${CMAKE_BINARY_DIR}/scripts/postinstall)
+                ${CMAKE_BINARY_DIR}/scripts/postinstall @ONLY)
         # SET(CPACK_INSTALL_SCRIPT ${CMAKE_SOURCE_DIR}/install/osx_packaging.sh)
 #        set_target_properties(${PROJECT_NAME} PROPERTIES
 #                MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/CMake/Info.plist.in)

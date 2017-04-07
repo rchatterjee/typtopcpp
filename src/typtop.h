@@ -25,7 +25,11 @@ const int T_size = 5 + 1; // 1 for the real password
 
 inline void setup_logger(plog::Severity severity) {
     const size_t MAX_LOG_FILE_SIZE = size_t(1e6); // 1 MB
+#ifdef DEBUG
+    plog::init(severity, TYPTOP_LOG_FILE"_test", MAX_LOG_FILE_SIZE, 1);
+#else
     plog::init(severity, TYPTOP_LOG_FILE, MAX_LOG_FILE_SIZE, 1);
+#endif
 }
 
 enum PAM_RETURN {
@@ -52,6 +56,7 @@ public:
     bool is_correct(const string& pw) const;
     inline bool is_initialized() const { return db.IsInitialized(); }
     void print_log();
+    void send_log(bool truncate=true);
 
 protected:
     void fill_waitlist_w_garbage();
@@ -60,7 +65,6 @@ protected:
     void insert_into_log(const string& pw, bool in_cache, time_t ts);
     void add_to_waitlist(const string& pw, time_t ts);
     void process_waitlist(const string& sk_str);
-    void add_to_typo_cache(const string &pw, const int freq, const string &sk_str);
     void permute_typo_cache(const string& sk_str);
 
     // For testing

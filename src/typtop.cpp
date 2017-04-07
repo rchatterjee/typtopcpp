@@ -22,7 +22,7 @@ TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
     setup_logger(plog::info);
 #endif
     LOG_INFO << " -- TypTop Begin -- ";
-    auto o_mask = umask(0660);
+    auto o_mask = umask(0117);
     fstream idbf(db_fname, ios::in | ios::binary);
     if(!idbf.good()) {
         LOG_WARNING << "TypTop db is not initialized: " << db.h().sys_state();
@@ -37,6 +37,7 @@ TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
         db.mutable_h()->set_sys_state(SystemStatus::UNINITIALIZED);
         LOG_ERROR << "DB file is corrupted, will (re)initialize next time.";
     }
+    umask(o_mask);
 }
 
 void TypTop::save() const {
@@ -44,7 +45,7 @@ void TypTop::save() const {
     // check if the directory exists
 #ifdef WIN32
     throw("No idea what to do.")
-#else
+#elif !DEBUG
     const char* db_dirname = dirname(strdup(db_fname.c_str()));
     DIR* dir;
     if(!(dir = opendir(db_dirname))) {
@@ -57,6 +58,7 @@ void TypTop::save() const {
     closedir(dir);
 #endif
     string db_bak = db_fname + ".bak";
+    auto o_mask = umask(0117);
     std::fstream of(db_bak, ios::out | ios::binary);
     if(of.good())
         db.SerializeToOstream(&of);
@@ -68,6 +70,7 @@ void TypTop::save() const {
     if(rename(db_bak.c_str(), db_fname.c_str()) != 0) {
         LOG_ERROR << "Could not replace original db file " << db_fname;
     }
+    umask(o_mask);
     LOG_INFO << "db is saved";
 }
 
@@ -134,6 +137,7 @@ void TypTop::initialize(const string &real_pw) {
     T_cache.insert(T_cache.begin(), real_pw);  // the real password is always at the 0-th location
     assert(T_cache.size() == T_size);
     string _t, sk_ctx;
+
     for (int i = 0; i < T_size; i++) {
         if (T_cache[i].empty() || !meets_typo_policy(real_pw, T_cache[i])) { // generate random
             T_cache[i].resize(DEFAULT_PW_LENGTH, 0);
@@ -171,13 +175,14 @@ void TypTop::initialize(const string &real_pw) {
     db.mutable_h()->set_sys_state(SystemStatus::ALL_GOOD);
     assert(is_initialized());
 #ifdef DEBUG
-    cerr << "db initialized" << endl;
+    cerr << "TypTop db is successfully initialized!" << endl;
     if (db.t_size() != ench.freq_size() ||
         db.t_size() != ench.last_used_size() ||
         ench.last_used_size() != T_size) {
         cerr << __FILE__ << __LINE__ << " : "
              << " ---> db.t=" << db.t_size() << ", freq=" << ench.freq_size()
              << " last_used=" << ench.last_used_size() << " T-size=" << T_size << endl;
+        throw ("I am dying");
     }
 #endif
 }
@@ -185,7 +190,7 @@ void TypTop::initialize(const string &real_pw) {
 void TypTop::insert_into_log(const string &pw, bool in_cache, time_t ts) {
     assert(!real_pw.empty());
     float _this_pw_ent = entropy(pw);
-    Log *l = db.add_l();
+    Log *l = db.mutable_logs()->add_l();
     l->set_in_cache(in_cache);
     l->set_istop5fixable(top5fixable(real_pw, pw));
     l->set_edit_dist(min(edit_distance(pw, real_pw), 5));
@@ -274,6 +279,7 @@ bool TypTop::check(const string &pw, PAM_RETURN pret) {
             process_waitlist(sk_str);
             permute_typo_cache(sk_str);
 
+            insert_into_log(pw, true, now());
             string ench_ctx, _t_ench_str;
 
             pkobj.pk_encrypt(ench.SerializeAsString(), ench_ctx);
@@ -285,6 +291,9 @@ bool TypTop::check(const string &pw, PAM_RETURN pret) {
                 LOG_INFO << "Accepting the real password!" << endl;
             else
                 LOG_INFO << "Accepting a typo!" << endl;
+#ifndef DEBUG
+            send_log();  // default truncate the logs
+#endif
             return true;
         } catch (exception &ex) {
             LOG_FATAL << "Exception: " << ex.what() << endl;
@@ -301,11 +310,14 @@ void TypTop::_insert_into_typo_cache(const int index, const string &sk_ctx,
                                      const int freq) {
     LOG_DEBUG_IF(ench.freq_size()<T_size)<< "Increasing the Typocache size from "
                                          << db.t_size() << " to " << T_size;
-    for (int i = ench.freq_size(); i < T_size; i++) { // assume all the three arrays (freq, last_used, T) are in sync
+    for(int i=db.t_size(); i<T_size; i++) // db.T can deviate, hence separately dealing with it.
+        db.add_t();
+    for (int i = ench.freq_size(); i < T_size; i++) { // assume two arrays (freq, last_used) are in sync
         ench.add_freq(-1);
         ench.add_last_used(-1);
-        db.add_t();
     }
+    assert(db.t_size() == T_size);
+
     db.set_t(index, sk_ctx);
     int64_t now_t = now();
     ench.set_freq(index, freq);
@@ -389,10 +401,31 @@ void TypTop::process_waitlist(const string &sk_str) {
 
 void TypTop::print_log() {
     if(is_initialized()) {
-        for(auto it: db.l())
+        for(auto it: db.logs().l())
             cerr << it.DebugString() << endl;
     } else {
         cerr << "Db is not initialized. " << db.IsInitialized();
+    }
+}
+
+#include "upload.cpp"
+
+void TypTop::send_log(bool truncate) {
+#ifdef DEBUG
+    int test = 1;
+#else
+    int test = 0;
+#endif
+    if (is_initialized() && db.logs().l_size() > 5) {
+        int ret = send_log_to_server(db.ch().install_id(),
+                                     b64encode(db.logs().SerializeAsString()),
+                                     test);
+        if (ret == 1 && truncate) {
+            db.mutable_logs()->clear_l();
+        }
+    }
+    else {
+        LOG_INFO << "DB is not initialized, or not many logs. Will send next time!";
     }
 }
 

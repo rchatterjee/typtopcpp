@@ -6,7 +6,20 @@
 find_package(Protobuf REQUIRED)
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS db.proto)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
-# include(../install/CMakeLists.txt)
+
+find_package(CURL REQUIRED)
+# CA Certs
+# SET(DEBUG 1)
+# TODO: Change this for release
+SET(CAFILE "${CMAKE_SOURCE_DIR}/src/typtop.d/typtopserver.crt")
+SET(OLD_CAFILE "${CMAKE_SOURCE_DIR}/src/typtop.d/old_typtopserver.crt")
+
+# configure a header file to pass some of the CMake settings
+# to the source code
+configure_file (
+        "${PROJECT_SOURCE_DIR}/typtopconfig.h.in"
+        "${PROJECT_BINARY_DIR}/src/typtopconfig.h"
+)
 
 set(TYPTOP_SRCS typtop.cpp typtop.h ${PROTO_SRCS} ${PROTO_HDRS} ${PLOG_FILES})
 
@@ -15,7 +28,7 @@ add_library(typtopdb STATIC ${TYPTOP_SRCS})
 add_executable(typtop WIN32 typtop-main.cpp)
 add_executable(testmain main.cpp)
 
-add_dependencies(pw_crypto ${CRYPTOPP_PREFIX})
+# add_dependencies(pw_crypto ${CRYPTOPP_PREFIX})
 add_dependencies(pw_crypto ${PLOG_PREFIX})
 add_dependencies(typtopdb ${ZXCVBN_PREFIX})
 add_dependencies(typtop ${ZXCVBN_PREFIX})
@@ -68,7 +81,7 @@ target_include_directories(typtopdb PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_C
 #target_include_directories(typtopdb PUBLIC )
 
 message(STATUS "PROTO_SRCS: ${PROTO_SRCS} ${PROTO_HDRS} ${CMAKE_CURRENT_BINARY_DIR}")
-target_link_libraries(typtopdb ${PROTOBUF_LIBRARIES} pw_crypto ${extra_libs})
+target_link_libraries(typtopdb ${PROTOBUF_LIBRARIES} pw_crypto ${extra_libs} ${CURL_LIBRARIES})
 
 
 target_link_libraries(typtop pw_crypto typtopdb)
@@ -84,10 +97,10 @@ add_subdirectory(pam_modules)
 #   4> POST_INSTALL_SCRIPT := to update the pam_config files,
 
 INSTALL(TARGETS typtop
-        RUNTIME DESTINATION bin
+        RUNTIME DESTINATION ${INSTALL_BIN_DIR}
         PERMISSIONS SETUID WORLD_EXECUTE OWNER_EXECUTE GROUP_EXECUTE
         OWNER_WRITE GROUP_READ WORLD_READ
         OWNER_READ GROUP_READ
         )
 
-INSTALL(DIRECTORY typtop.d DESTINATION etc/)
+INSTALL(DIRECTORY typtop.d DESTINATION ${INSTALL_DATA_DIR})

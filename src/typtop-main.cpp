@@ -100,12 +100,14 @@ int check_password(char* argv[], int argc) {
 //        sleep(10);	/* this should discourage/annoy the user */
 //        return PAM_ABORT;
 //    }
-    if (setuid(0) != 0){
+
+    if (seteuid(0) != 0){
         cerr << "Not running as root: " << getuid() << endl;
         return PAM_AUTH_ERR;
     }
     assert(getuid() == 0); // if it's uid is not root, no point running further. TODO: make it for shadow
     assert(argc == 4);  // --check <user> 0/1
+
 //
 //    if (getuid() == 0) {
 //        user=argv[2];

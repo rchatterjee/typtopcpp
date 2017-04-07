@@ -35,13 +35,12 @@ macro(ConfigureMacOSXBundlePlist PROJECT_NAME DEBUG_EXTENSION ICON_FILE_PATH VER
 
 endmacro()
 
-
 # INCLUDE(InstallRequiredSystemLibraries)
-SET(CPACK_GENERATOR "PkgBuild")
+SET(CPACK_GENERATOR "DEB")
 SET(CPACK_BUNDLE_NAME ${PROJECT_NAME})
 
 SET(CPACK_SOURCE_GENERATOR "TGZ;ZIP")
-set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 0)
+set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 1)
 SET(CPACK_PACKAGE_CONTACT "Rahul Chatterjee <rahul@cs.cornell.edu>")
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "TypTop - A smart typo-tolerant password checking system.")
 SET(CPACK_PACKAGE_VENDOR "Rahul Chatterjee")
@@ -80,6 +79,8 @@ IF(WIN32)
     SET(CPACK_NSIS_MODIFY_PATH ON)
 ELSEIF(UNIX)
     IF(APPLE)
+        SET(CPACK_GENERATOR "TGZ")
+        SET(CPACK_BINARY_PACKAGEMAKER "pkgbuild")
         set( CPACK_POSTFLIGHT_SCRIPT  "${CMAKE_SOURCE_DIR}/install/postinst")
         set( CPACK_POSTUPGRADE_SCRIPT  "${CMAKE_SOURCE_DIR}/install/postinst")
         set( CPACK_OSX_PACKAGE_VERSION, 11.0)
@@ -88,8 +89,18 @@ ELSEIF(UNIX)
         ConfigureMacOSXBundlePlist(${PROJECT_NAME} "-debug" icon_typtop.icns "${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
         SET(CPACK_BUNDLE_STARTUP_COMMAND "${CMAKE_SOURCE_DIR}/install/postinst")
         SET(CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/install/icon_typtop.icns)
-        # set_target_properties(typtop PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/CMake/Info.plist.in)
-        # configure_file(${CMAKE_SOURCE_DIR}/CMake/Info.plist.in ${CMAKE_SOURCE_DIR}/CMake/Info.plist)
+        message(">>     ${CMAKE_MODULE_PATH}")
+        set_target_properties(typtop PROPERTIES
+                MACOSX_BUNDLE "on")
+        set(pam_module "pam_opendirectory.so")
+#        set(typtop_identifier "com.typtop.cornell.edu")
+#        configure_file(${CMAKE_SOURCE_DIR}/install/prerm_osx.in
+#                ${CMAKE_BINARY_DIR}/scripts/prerm)
+        configure_file(${CMAKE_SOURCE_DIR}/install/postinstall_osx.in
+                ${CMAKE_BINARY_DIR}/scripts/postinstall)
+        # SET(CPACK_INSTALL_SCRIPT ${CMAKE_SOURCE_DIR}/install/osx_packaging.sh)
+#        set_target_properties(${PROJECT_NAME} PROPERTIES
+#                MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/CMake/Info.plist.in)
         SET(CPACK_BUNDLE_PLIST "${CMAKE_BINARY_DIR}/Info.plist")
     ELSE(APPLE)
         MESSAGE(STATUS "CPack for non-osx unix systems")

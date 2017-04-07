@@ -6,12 +6,13 @@
 find_package(Protobuf REQUIRED)
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS db.proto)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
+# include(../install/CMakeLists.txt)
 
 set(TYPTOP_SRCS typtop.cpp typtop.h ${PROTO_SRCS} ${PROTO_HDRS} ${PLOG_FILES})
 
 add_library(pw_crypto STATIC pw_crypto.cpp pw_crypto.h)
 add_library(typtopdb STATIC ${TYPTOP_SRCS})
-add_executable(typtop typtop-main.cpp)
+add_executable(typtop WIN32 typtop-main.cpp)
 add_executable(testmain main.cpp)
 
 add_dependencies(pw_crypto ${CRYPTOPP_PREFIX})

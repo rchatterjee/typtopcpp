@@ -22,6 +22,7 @@ TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
     setup_logger(plog::info);
 #endif
     LOG_INFO << " -- TypTop Begin -- ";
+    auto o_mask = umask(0660);
     fstream idbf(db_fname, ios::in | ios::binary);
     if(!idbf.good()) {
         LOG_WARNING << "TypTop db is not initialized: " << db.h().sys_state();
@@ -49,7 +50,7 @@ void TypTop::save() const {
     if(!(dir = opendir(db_dirname))) {
         cerr << "Trying to create directory " << db_dirname << ".\n";
         if(mkdir(db_dirname, 0775) != 0) // (S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)))
-            cerr << strerror(errno) << " " << getuid() << endl;
+            LOG_ERROR << strerror(errno) << " " << getuid() << endl;
     } else {
         LOG_DEBUG << "directory " << db_dirname << " exists.";
     }

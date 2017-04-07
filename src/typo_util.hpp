@@ -191,7 +191,7 @@ inline string get_install_id() {
     std::fstream f(UNIQ_ID_FILENAME, ios::in);
     string id;
     if (f.good() && (f >> id) && id.size()>=8) {
-        LOG_INFO << "Install ID.fromFile: "<< id << endl;
+        LOG_INFO << "Install ID.fromFile: "<< id;
         return id;
     } else { // generate and store
         f.close();
@@ -202,7 +202,7 @@ inline string get_install_id() {
         of << id;
         of.close();
 
-        LOG_INFO << "Install ID.Regenerated: "<< id << endl;
+        LOG_INFO << "Install ID.Regenerated: "<< id ;
     }
     return id;
 }

@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
-db_root=/usr/local/etc/typtop.d
-rm -rf ${db_root}
+
+if [ "$EUID" -ne 0 ]; then
+    echo "Please run as root"
+    exit
+fi
+
+pkgutil --only-files --files @typtop_identifier@ | grep typtop | xargs rm -rf
+pkgutil --forget @typtop_identifier@
 
 if [ -d "/etc/pam.d/" ]; then
-    pushd /etc/pam.d/ >/dev/null
-    for f in *.orig; do
-        if [ -e $f ]; then
-            # echo "mv $f ${f%.*}"
-            mv $f ${f%.*}
+    for f in /etc/pam.d/*.orig; do
+        if [ -e "$f" ]; then
+            mv "$f" "${f%.*}"
         fi
     done
-    popd > /dev/null
-
-    # sed -i.bak 's/auth\tsubstack\ttyptop-auth/auth\trequired\tpam_unix.so/g'
     rm -f /etc/pam.d/typtop-auth
     echo "Reverting to original files"
 elif [ -e "/etc/pam.conf" ]; then

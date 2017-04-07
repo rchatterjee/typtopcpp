@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+if [ "$EUID" -ne 0 ]; then
+    echo "Please run as root"
+    exit
+fi
+
+sudo u+s /usr/local/bin/typtop
+pam_mod=@pam_module@
+
+if [ -d "/etc/pam.d/" ]; then
+    for f in /etc/pam.d/*.orig; do
+        if [ -e "$f" ]; then
+            echo "Already backed up PAM config files at /etc/pam.d/*.orig. Have you already installed?"
+            exit
+        fi
+    done
+    if [ -e "/etc/pam.d/*.orig" ]; then
+        exit
+    fi
+    pushd /etc/pam.d > /dev/null
+    for f in /etc/pam.d/*; do
+        if [[ "$f" == *"typtop-auth"* ]]; then continue; fi
+        if [[ $(grep -e "^auth.*${pam_mod}" $f) ]]; then
+            sed -i '.orig' "/^auth*.*${pam_mod}.*/ i\\
+auth   include  typtop-auth \\
+" $f
+        fi
+    done
+
+    popd > /dev/null
+    echo "Configuring PAM to use typtop with /etc/pam.d/ files"
+elif [ -e "/etc/pam.conf" ]; then
+            sed -i '.orig' "/^auth*.*${pam_mod}.*/i \
+auth   include     typtop-auth \
+" /etc/pam.conf
+
+    echo "Configuring /etc/pam.conf to use typtop"
+else
+    echo "Could not determine where to install pam config files, please do so manually"
+fi

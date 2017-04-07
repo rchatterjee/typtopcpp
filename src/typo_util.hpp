@@ -12,6 +12,7 @@
 #include <numeric>
 #include "zxcvbn.h"
 #include "plog/Log.h"
+#include "typtopconfig.h"
 
 using namespace std;
 

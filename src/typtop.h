@@ -13,6 +13,8 @@
 #include "db.pb.h"
 #include "typo_util.hpp"
 #include "plog/Log.h"
+#include "typtopconfig.h"
+
 
 #ifndef TYPTOP_LOG_FILE
 #define TYPTOP_LOG_FILE "/tmp/typtop.log"
@@ -56,7 +58,9 @@ public:
     bool is_correct(const string& pw) const;
     inline bool is_initialized() const { return db.IsInitialized(); }
     void print_log();
-    void send_log(bool truncate=true);
+    void send_log();
+
+    void status() const;
 
 protected:
     void fill_waitlist_w_garbage();

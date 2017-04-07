@@ -45,6 +45,7 @@ message Logs { // for sending the log to the server
 }
 
 message typoDB {
+    optional string version = 9 [default = "1"]; // the version of the db file.
     required ConfigHeader CH = 1; // Config Header
     required Header H = 2;  // Header
     repeated bytes W = 3; // Waitlist

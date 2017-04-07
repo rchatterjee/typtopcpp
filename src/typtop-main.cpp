@@ -108,21 +108,6 @@ int check_password(char* argv[], int argc) {
     assert(geteuid() == 0); // if it's uid is not root, no point running further. TODO: make it for shadow
     assert(argc == 4);  // --check <user> 0/1
 
-//
-//    if (getuid() == 0) {
-//        user=argv[2];
-//    }
-//    else {
-//        user = curr_user();
-//        /* if the caller specifies the username, verify that user
-//           matches it */
-//        if (user == argv[2]) {
-//            user = argv[2];
-//            /* no match -> permanently change to the real user and proceed */
-//            if (setuid(getuid()) != 0)
-//                return PAM_AUTH_ERR;
-//        }
-//    }
     user = argv[2];
     TypTop tp(user_db(user));
     cin >> pass;
@@ -152,6 +137,13 @@ vector<string> find_what_in(const TypTop& tp, string const &real_pw) {
     return present;
 }
 
+void ensure_root() {
+    if (seteuid(0) != 0){
+        cerr << "Not running as root. Your uid=" << geteuid() << endl;
+        cerr << "Aborting!!" << endl;
+        exit(-1);
+    }
+}
 
 int main(int argc, char *argv[])  {
     /*
@@ -170,15 +162,18 @@ int main(int argc, char *argv[])  {
         return check_password(argv, argc);
     }
     string user = argv[2];
+    ensure_root();
     try {
         TypTop tp(user_db(user));
         if (strncmp("--status", argv[1], 8) == 0) {
             assert(argc == 3);
             cerr << "IsInitialized: " << tp.is_initialized() << endl;
-            // TODO: Status funciotn
+            tp.status();
         } else if (strncmp("--upload", argv[1], 8) == 0) {
             assert(argc == 3);
-            // TODO: upload funciton
+            tp.send_log();  // send logs always truncates the db
+                cerr << "If this is the only line you are seeing then logs "
+                     << "are uploaded successfully. :)" << endl;
         } else if (strncmp("--mytypos", argv[1], 9) == 0) {
             assert(argc == 3);
             string pass;

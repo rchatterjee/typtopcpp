@@ -410,7 +410,7 @@ void TypTop::print_log() {
 
 #include "upload.cpp"
 
-void TypTop::send_log(bool truncate) {
+void TypTop::send_log() {
 #ifdef DEBUG
     int test = 1;
 #else
@@ -420,12 +420,22 @@ void TypTop::send_log(bool truncate) {
         int ret = send_log_to_server(db.ch().install_id(),
                                      b64encode(db.logs().SerializeAsString()),
                                      test);
-        if (ret == 1 && truncate) {
+        if (ret == 1) {
             db.mutable_logs()->clear_l();
         }
     }
     else {
         LOG_INFO << "DB is not initialized, or not many logs. Will send next time!";
     }
+}
+
+void TypTop::status() const {
+    cout << "\nTypTop: A smart password checker" << endl
+         << "  Version: " << typtop_VERSION_MAJOR << "." << typtop_VERSION_MINOR << endl
+         << "  Install-id: " << db.ch().install_id() << endl
+         << "  Number of logins: " << db.h().login_count() << endl
+         << "  Number of typos: " << "--TODO--" << endl
+         << "  Volunteer for the: " << "--TODO--" << endl
+         << "  Allow login with typos: " << "--TODO--" << endl << endl;
 }
 

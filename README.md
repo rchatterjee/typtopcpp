@@ -56,7 +56,7 @@ confused too.)
   - (Almost DONE) How to use `cpack` a cmake extension to generate
     distributable binaries.
   - Build in release mode.
-  - Check Mac pkgbuild, add readme or license on the front page, sign the package.
+  - (DONE but does not work) Check Mac pkgbuild, add readme or license on the front page, sign the package.
   - Test the installation in at least 3-4 linux and 2 OSX systems.
   - (Super Important) **Add uninstall script for old TypTop. **  
 

@@ -16,7 +16,7 @@ before_install:
   - if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew reinstall protobuf cmake; fi
 
 before_script:
-  - ./.build.sh
+  - bash .build.sh
 
 script:
   - ./build/test/tests -d yes

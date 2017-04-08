@@ -13,10 +13,10 @@ before_install:
   - echo $LANG
   - echo $LC_ALL
   - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get install protobuf-compiler cmake g++ clang; fi
-  - if [ $TRAVIS_OS_NAME == osx ]; then if [[ ! $(which cmake) ]]; then brew update && brew install protobuf cmake; fi; fi
+  - if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew reinstall protobuf cmake; fi
 
 before_script:
-  - mkdir cmake-build-debug && cd cmake-build-debug && cmake .. && make && cmake .. && make tests && cmake --target tests
+  - ./.build.sh
 
 script:
-  - ./cmake-build-debug/test/tests -d yes
+  - ./build/test/tests -d yes

@@ -98,6 +98,9 @@ ELSEIF(UNIX)
                 ${CMAKE_BINARY_DIR}/scripts/prerm @ONLY)
         configure_file(${CMAKE_SOURCE_DIR}/install/postinstall_osx.in
                 ${CMAKE_BINARY_DIR}/scripts/postinstall @ONLY)
+        configure_file(${CMAKE_SOURCE_DIR}/install/preinstall
+                ${CMAKE_BINARY_DIR}/scripts/preinstall COPYONLY)
+
         # SET(CPACK_INSTALL_SCRIPT ${CMAKE_SOURCE_DIR}/install/osx_packaging.sh)
 #        set_target_properties(${PROJECT_NAME} PROPERTIES
 #                MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/CMake/Info.plist.in)
@@ -113,11 +116,17 @@ ELSEIF(UNIX)
         MESSAGE(STATUS "CPack for non-osx unix systems")
         # Debian details
         configure_file(${CMAKE_SOURCE_DIR}/install/postinst
-                ${CMAKE_BINARY_DIR}/scripts/postinstall @ONLY)
+                ${CMAKE_BINARY_DIR}/scripts/postinst @ONLY)
         configure_file(${CMAKE_SOURCE_DIR}/install/prerm
                 ${CMAKE_BINARY_DIR}/scripts/prerm @ONLY)
+        configure_file(${CMAKE_SOURCE_DIR}/install/preinstall
+                ${CMAKE_BINARY_DIR}/scripts/preinst COPYONLY)
+
         set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
-                "${CMAKE_SOURCE_DIR}/install/postinst;${CMAKE_SOURCE_DIR}/install/prerm;")
+                "${CMAKE_BINARY_DIR}/scripts/postinst"
+                "${CMAKE_BINARY_DIR}/scripts/prerm"
+                "${CMAKE_BINARY_DIR}/scripts/preinst")
+            message("${CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA}")
         SET(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION TRUE)
     ENDIF(APPLE)
 ENDIF(WIN32)

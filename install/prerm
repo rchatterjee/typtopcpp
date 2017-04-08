@@ -12,6 +12,7 @@ if [ -d "/etc/pam.d/" ]; then
         fi
     done
     rm -f /etc/pam.d/typtop-auth
+    rm -rf /usr/local/etc/typtop.d/$USER
     echo "Reverting to original files"
 elif [ -e "/etc/pam.conf" ]; then
     mv /etc/pam.conf.orig /etc/pam.conf

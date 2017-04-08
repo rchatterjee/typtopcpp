@@ -94,20 +94,19 @@ int check_password(char* argv[], int argc) {
     // argv expected: <argument> <username> <pw> <return_from_last_pam>
     // check username validity
     // TODO : enable this
-//    if (argv[1] != "--check" || isatty(STDIN_FILENO) || argc != 4 ) {
-//        cerr << "inappropriate use of Unix helper binary [UID=%d]" << getuid() << endl;
-//        cerr << "This binary is not designed for running in this way\n"
-//             << "-- the system administrator has been informed\n";
-//        sleep(10);	/* this should discourage/annoy the user */
-//        return PAM_ABORT;
-//    }
+    if (argv[1] != string("--check") || isatty(STDIN_FILENO) || argc != 4 ) {
+        cerr << "inappropriate use of Unix helper binary [UID=%d]" << getuid() << endl;
+        cerr << "This binary is not designed for running in this way\n"
+             << "-- the system administrator has been informed\n";
+        sleep(10);	/* this should discourage/annoy the user */
+        return PAM_ABORT;
+    }
 
     if (seteuid(0) != 0){
         cerr << "Not running as root: " << getuid() << endl;
         return PAM_AUTH_ERR;
     }
     assert(geteuid() == 0); // if it's uid is not root, no point running further. TODO: make it for shadow
-    assert(argc == 4);  // --check <user> 0/1
 
     user = argv[2];
     TypTop tp(user_db(user));
@@ -190,14 +189,23 @@ int main(int argc, char *argv[])  {
             }
         } else if (strncmp("--log", argv[1], 5) == 0 && argc==3) {
             tp.print_log();
-        } else if (strncmp("--uninstall", argv[1], 11) == 0 && argc==2) {
+        } else if (strncmp("--uninstall", argv[1], 11) == 0 && (argc==2 || argc==3)) {
             string y;
-            cout << "Are you sure you want to uninstall Typtop. (y/N):";
-            cin >> y;
+            if(argc==3 && string(argv[2])=="-y")
+                y = "y";
+            else {
+                cout << "Are you sure you want to uninstall Typtop. (y/N):";
+                cin >> y;
+            }
             if (y == "y" || y == "Y") {
-                system("sudo bash /usr/local/bin/typtop.prerm");
-                cout << "The typtop has been disengaged from your authentication system. "
-                     << "The binary is still there and you can remove it manually." << endl;
+                int ret = system("sudo bash /usr/local/bin/typtop.prerm");
+                if (ret==0)
+                    cout << "The typtop has been disengaged from your authentication system.\n"
+                         << "The binary is still there and you can remove it manually." << endl;
+                else
+                    cerr << "Ther was some issue with unistalling typtop. Can you check by relogging.\n"
+                         << "If everything works, then you are good to go. Delete typtop executable, \n"
+                         << "and /usr/local/etc/typtop.d directory for your safety.";
                 // TODO: remove the files in manifest file
             }
         } else {

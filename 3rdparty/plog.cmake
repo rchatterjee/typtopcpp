@@ -5,11 +5,10 @@ set(PLOG_URL https://github.com/SergiusTheBest/plog/archive/1.1.0.tar.gz)
 
 ExternalProject_Add(
         ${PLOG_PREFIX}
-        PREFIX ${PLOG_PREFIX}
-        URL ${PLOG_URL}
-        TLS_VERIFY 1
+        PREFIX "${PLOG_PREFIX}"
+        URL "${PLOG_URL}"
 
-        INSTALL_DIR ${CMAKE_BINARY_DIR}/${PLOG_PREFIX}
+        INSTALL_DIR "${CMAKE_BINARY_DIR}/${PLOG_PREFIX}"
         CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
         CONFIGURE_COMMAND ""
         INSTALL_COMMAND ""

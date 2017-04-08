@@ -1,6 +1,6 @@
-set(TEST_SRCS test-main.cpp test_pw_crypto.cpp test_typtop.cpp)
+set(TEST_SRCS test-main.cpp test_pw_crypto.cpp test_typtop.cpp test_install.cpp)
 add_executable(tests ${TEST_SRCS})
-target_link_libraries(tests pw_crypto typtopdb)
+target_link_libraries(tests pw_crypto typtopdb pam pam_misc)
 add_test(test tests)
 add_dependencies(tests ${CRYPTOPP_PREFIX})
 add_dependencies(tests ${PLOG_PREFIX})

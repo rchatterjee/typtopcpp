@@ -86,3 +86,5 @@ ENABLE_TESTING()
 
 INCLUDE(install/CMakeLists.txt)
 INCLUDE(CPack)
+
+# message(SEND_ERROR "${CPACK_PACKAGE_FILE_NAME}  ---> ${CPACK_OUTPUT_FILE_NAME}")

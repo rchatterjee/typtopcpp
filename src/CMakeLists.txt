@@ -2,10 +2,13 @@
 # GET_PROPERTY(CRYPTOPP_INCLUDE_DIRS GLOBAL PROPERTY CRYPTOPP_INCLUDE_DIRS)
 # set(cryptopp_DIR ${CMAKE_BINARY_DIR}/cryptopp565/lib/cmake/cryptopp/)
 
-# Setup protoc
+# Setup protoc - there is no clean way to get the static library for protobuf, doing a hack
 find_package(Protobuf REQUIRED)
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS db.proto)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
+get_filename_component(PROTO_LIB_DIR ${PROTOBUF_LIBRARY} DIRECTORY)
+find_library(PROTOBUF_STATIC_LIB libprotobuf.a PROTO_LIB_DIR)
+
 
 find_package(CURL REQUIRED)
 # CA Certs
@@ -46,7 +49,7 @@ function (getListOfVarsStartingWith _prefix _varResult)
     string (REGEX MATCHALL "(^|;)${_prefix}[A-Za-z0-9_]*" _matchedVars "${_vars}")
     set (${_varResult} ${_matchedVars} PARENT_SCOPE)
 endfunction()
-getListOfVarsStartingWith("zxcvbn21_" matchedVars)
+getListOfVarsStartingWith("PROTOBUF_" matchedVars)
 foreach (_var IN LISTS matchedVars)
     message("${_var}=${${_var}}")
 endforeach()
@@ -86,13 +89,13 @@ target_include_directories(typtopdb PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_C
 #target_include_directories(typtopdb PUBLIC )
 #target_include_directories(typtopdb PUBLIC )
 
-message(STATUS "PROTO_SRCS: ${PROTO_SRCS} ${PROTO_HDRS} ${CMAKE_CURRENT_BINARY_DIR}")
-target_link_libraries(typtopdb ${PROTOBUF_LIBRARIES} pw_crypto ${extra_libs} ${CURL_LIBRARIES})
+message(STATUS "PROTO_SRCS: ${PROTO_SRCS} ${PROTO_HDRS} ${CMAKE_CURRENT_BINARY_DIR} ${PROTOBUF_LIBRARIES}")
+target_link_libraries(typtopdb ${PROTOBUF_STATIC_LIB} pw_crypto ${extra_libs} ${CURL_LIBRARIES})
 
 
 target_link_libraries(typtop pw_crypto typtopdb)
 
-target_link_libraries(testmain pw_crypto typtopdb )
+target_link_libraries(testmain pw_crypto typtopdb)
 
 add_subdirectory(pam_modules)
 ### --- INSTALL --- ###

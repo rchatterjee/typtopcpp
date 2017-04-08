@@ -7,7 +7,7 @@
 #  include <security/pam_modutil.h>
 #else
 
-#  include <security/pam_appl.h>
+#include <security/pam_appl.h>
 
 #endif
 

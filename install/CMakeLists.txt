@@ -112,6 +112,10 @@ ELSEIF(UNIX)
     ELSE(APPLE)
         MESSAGE(STATUS "CPack for non-osx unix systems")
         # Debian details
+        configure_file(${CMAKE_SOURCE_DIR}/install/postinst
+                ${CMAKE_BINARY_DIR}/scripts/postinstall @ONLY)
+        configure_file(${CMAKE_SOURCE_DIR}/install/prerm
+                ${CMAKE_BINARY_DIR}/scripts/prerm @ONLY)
         set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
                 "${CMAKE_SOURCE_DIR}/install/postinst;${CMAKE_SOURCE_DIR}/install/prerm;")
         SET(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION TRUE)
@@ -120,4 +124,7 @@ ENDIF(WIN32)
 
 SET(CPACK_PACKAGE_EXECUTABLES typtop "TypTop")
 
+INSTALL(FILES ${CMAKE_BINARY_DIR}/scripts/prerm DESTINATION ${INSTALL_BIN_DIR}/ RENAME typtop.prerm)
+INSTALL(FILES ${CMAKE_BINARY_DIR}/scripts/postinstall DESTINATION ${INSTALL_BIN_DIR}/ RENAME typtop.postinstall)
+INSTALL(FILES ${CMAKE_BINARY_DIR}/install_manifest.txt DESTINATION ${INSTALL_DATA_DIR}/typtop.d/)
 

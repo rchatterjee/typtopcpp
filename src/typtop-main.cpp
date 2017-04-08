@@ -37,6 +37,7 @@ string USAGE = "\nUsage: typtop [func] [options]"
         "\n --upload [all]|<username>"
         "\n --mytypos <username>"
         "\n --log <username>\n"
+        "\n --uninstall\n"
         "\nex:\n"
         "typtop --status $USER"
         "\n";
@@ -150,32 +151,28 @@ int main(int argc, char *argv[])  {
      * Determine what the current user's name is.
      * We must thus skip the check if the real uid is 0.
      */
-    if(argc < 3) {
+    if(argc<2) {
         cerr << USAGE << endl;
-        return 1;
+        return -1;
     }
-
 //    cout << "argvs: " << argv[0] << " " << argv[1] << " " << argv[2]
 //         << " " << argv[3] << endl;
     if (strncmp("--check", argv[1], 7) == 0) {
         assert(argc == 4);
         return check_password(argv, argc);
     }
-    string user = argv[2];
+    string user = argc>2?argv[2]:"";
     ensure_root();
     try {
         TypTop tp(user_db(user));
-        if (strncmp("--status", argv[1], 8) == 0) {
-            assert(argc == 3);
+        if (strncmp("--status", argv[1], 8) == 0 && argc==3) {
             cerr << "IsInitialized: " << tp.is_initialized() << endl;
             tp.status();
-        } else if (strncmp("--upload", argv[1], 8) == 0) {
-            assert(argc == 3);
+        } else if (strncmp("--upload", argv[1], 8) == 0 && argc==3) {
             tp.send_log();  // send logs always truncates the db
                 cerr << "If this is the only line you are seeing then logs "
                      << "are uploaded successfully. :)" << endl;
-        } else if (strncmp("--mytypos", argv[1], 9) == 0) {
-            assert(argc == 3);
+        } else if (strncmp("--mytypos", argv[1], 9) == 0 && argc==3) {
             string pass;
             cout << "Password:";
             SetStdinEcho(false);
@@ -191,8 +188,18 @@ int main(int argc, char *argv[])  {
                     cerr << " --> " << typo << endl;
                 }
             }
-        } else if (strncmp("--log", argv[1], 5) == 0) {
+        } else if (strncmp("--log", argv[1], 5) == 0 && argc==3) {
             tp.print_log();
+        } else if (strncmp("--uninstall", argv[1], 11) == 0 && argc==2) {
+            string y;
+            cout << "Are you sure you want to uninstall Typtop. (y/N):";
+            cin >> y;
+            if (y == "y" || y == "Y") {
+                system("sudo bash /usr/local/bin/typtop.prerm");
+                cout << "The typtop has been disengaged from your authentication system. "
+                     << "The binary is still there and you can remove it manually." << endl;
+                // TODO: remove the files in manifest file
+            }
         } else {
             cerr << USAGE << endl;
         }

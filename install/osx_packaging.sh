@@ -16,7 +16,7 @@ tar -zvxf ${package_file}
 
 pkgbuild --root ${package_name} --scripts ${SCRIPT_DIR} \
          --identifier com.typtop.cornell.edu \
-         --sign "83N6HL3XY2" \
+         --sign "Developer ID Installer" \
          ${package_name}.pkg
 
 # productbuild --distribution distribution.plist \

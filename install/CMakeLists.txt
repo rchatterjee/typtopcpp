@@ -49,11 +49,14 @@ SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
 SET(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
 SET(CPACK_RESOURCE_FILE_WELCOME "${CMAKE_CURRENT_LIST_DIR}/welcome.txt")
-# set(CPACK_SOURCE_IGNORE_FILES "/CVS/;/\\.svn/;/\\.git*/;\\.swp$;\\.#;/#;.*~;cscope.*")
+set(CPACK_SOURCE_IGNORE_FILES "/cmake-*/;/.svn/;/.git*/;.swp$;.#;/#;.*~;cscope.*")
 
-SET(CPACK_PACKAGE_VERSION_MAJOR "1")
-SET(CPACK_PACKAGE_VERSION_MINOR "0")
-SET(CPACK_PACKAGE_VERSION_PATCH "0")
+
+
+set(CPACK_PACKAGE_VERSION_MAJOR ${typtop_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${typtop_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${typtop_VERSION_PATCH})
+SET(CPACK_PACKAGE_VERSION "${typtop_VERSION_MAJOR}.${typtop_VERSION_MINOR}.${typtop_VERSION_PATCH}")
 
 SET(CPACK_SET_DESTDIR "on")
 SET(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local/")
@@ -61,22 +64,18 @@ SET(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local/")
 # SET(CPACK_OUTPUT_CONFIG_FILE ${PROJECT_SOURCE_DIR}/install/CPackConfig.cmake)
 SET(CPACK_OUTPUT_CONFIG_FILE CPackConfig.cmake)
 
-# Debian details
-set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
-        "${CMAKE_SOURCE_DIR}/install/postinst;${CMAKE_SOURCE_DIR}/install/prerm;")
-SET(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION TRUE)
-
+SET(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 
 IF(WIN32)
     # There is a bug in NSI that does not handle full unix paths properly. Make
     # sure there is at least one set of four (4) backlasshes.
-    SET(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")
-    SET(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\typtop.exe")
-    SET(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} My Famous Project")
-    SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.my-project-home-page.org")
-    SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.my-personal-home-page.com")
-    SET(CPACK_NSIS_CONTACT "me@my-personal-home-page.com")
-    SET(CPACK_NSIS_MODIFY_PATH ON)
+#    SET(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")
+#    SET(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\typtop.exe")
+#    SET(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} My Famous Project")
+#    SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.my-project-home-page.org")
+#    SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.my-personal-home-page.com")
+#    SET(CPACK_NSIS_CONTACT "me@my-personal-home-page.com")
+#    SET(CPACK_NSIS_MODIFY_PATH ON)
 ELSEIF(UNIX)
     IF(APPLE)
         SET(CPACK_GENERATOR "TGZ")
@@ -84,8 +83,8 @@ ELSEIF(UNIX)
         set( CPACK_POSTFLIGHT_SCRIPT  "${CMAKE_SOURCE_DIR}/install/postinst")
         set( CPACK_POSTUPGRADE_SCRIPT  "${CMAKE_SOURCE_DIR}/install/postinst")
         set( CPACK_OSX_PACKAGE_VERSION, 11.0)
-        SET(CPACK_STRIP_FILES "bin/typtop")
-        SET(CPACK_SOURCE_STRIP_FILES "")
+        SET(CPACK_STRIP_FILES "ON")
+        SET(CPACK_SOURCE_STRIP_FILES "ON")
         ConfigureMacOSXBundlePlist(${PROJECT_NAME} "-debug" icon_typtop.icns "${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
         SET(CPACK_BUNDLE_STARTUP_COMMAND "${CMAKE_SOURCE_DIR}/install/postinst")
         SET(CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/install/icon_typtop.icns)
@@ -94,6 +93,7 @@ ELSEIF(UNIX)
         #        MACOSX_BUNDLE "on")
         set(pam_module "pam_opendirectory.so")
         set(typtop_identifier "com.typtop.cornell.edu")
+
         configure_file(${CMAKE_SOURCE_DIR}/install/prerm_osx.in
                 ${CMAKE_BINARY_DIR}/scripts/prerm @ONLY)
         configure_file(${CMAKE_SOURCE_DIR}/install/postinstall_osx.in
@@ -102,8 +102,19 @@ ELSEIF(UNIX)
 #        set_target_properties(${PROJECT_NAME} PROPERTIES
 #                MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/CMake/Info.plist.in)
         SET(CPACK_BUNDLE_PLIST "${CMAKE_BINARY_DIR}/Info.plist")
+
+        add_custom_target(bundle DEPENDS typtop)
+        add_custom_command(TARGET bundle POST_BUILD
+                COMMAND bash ${CMAKE_SOURCE_DIR}/install/osx_packaging.sh ${CPACK_PACKAGE_FILE_NAME}.tar.gz scripts
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                DEPENDS ${PROJECT_NAME})
+
     ELSE(APPLE)
         MESSAGE(STATUS "CPack for non-osx unix systems")
+        # Debian details
+        set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
+                "${CMAKE_SOURCE_DIR}/install/postinst;${CMAKE_SOURCE_DIR}/install/prerm;")
+        SET(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION TRUE)
     ENDIF(APPLE)
 ENDIF(WIN32)
 

@@ -29,6 +29,7 @@ TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
     fstream idbf(db_fname, ios::in | ios::binary);
     if(!idbf.good()) {
         LOG_WARNING << "TypTop db is not initialized: " << db.h().sys_state();
+        db.mutable_ch()->set_install_id(get_install_id());
         return;
     }
     try {
@@ -36,10 +37,12 @@ TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
             LOG_INFO << "TypTop initialized: " << db.h().sys_state();
             pkobj.set_pk(db.ch().public_key());
         } else {
+            db.mutable_ch()->set_install_id(get_install_id());
             LOG_ERROR << "Could not parse the DB file.";
         }
     } catch (google::protobuf::FatalException ex) {
         db.mutable_h()->set_sys_state(SystemStatus::UNINITIALIZED);
+        db.mutable_ch()->set_install_id(get_install_id());
         LOG_ERROR << "DB file is corrupted, will (re)initialize next time.";
     }
     umask(o_mask);

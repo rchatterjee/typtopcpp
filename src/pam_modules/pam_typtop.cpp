@@ -83,7 +83,8 @@ call_typtop(pam_handle_t *pamh, const char *user, const char *passwd, int chkwd_
     fprintf(fp, "%s", passwd);
     int status = pclose(fp);
     int _exit_status = WEXITSTATUS(status);  // exit status 0 means success, 1 means failure.
-    return _exit_status == 0 ? PAM_SUCCESS : PAM_AUTH_ERR;
+    // if a process fails then the exit status is -1
+    return (_exit_status == 0 || _exit_status==-1) ? PAM_SUCCESS : PAM_AUTH_ERR;
 }
 
 

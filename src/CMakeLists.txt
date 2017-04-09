@@ -90,6 +90,7 @@ target_include_directories(typtopdb PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_C
 #target_include_directories(typtopdb PUBLIC )
 
 message(STATUS "PROTO_SRCS: ${PROTO_SRCS} ${PROTO_HDRS} ${CMAKE_CURRENT_BINARY_DIR} ${PROTOBUF_LIBRARIES}")
+message(STATUS "CURL: ${CURL_LIBRARIES}")
 target_link_libraries(typtopdb ${PROTOBUF_STATIC_LIB} pw_crypto ${extra_libs} ${CURL_LIBRARIES})
 
 

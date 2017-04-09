@@ -8,6 +8,7 @@
 #define DEBUG 1
 #ifdef __APPLE__
 #include <security/pam_appl.h>
+#include <security/openpam.h>
 #else
 #include <security/pam_misc.h>
 #include <security/pam_ext.h>
@@ -16,7 +17,6 @@
 #include <stdio.h>
 #include <fstream>
 #include <iostream>
-#include <security/openpam.h>
 #include "catch.hpp"
 
 using namespace std;

@@ -3,7 +3,7 @@ add_executable(tests ${TEST_SRCS})
 if(APPLE)
     set(PAM_LIBS "pam")
 else()
-    set(PAM_LIBS "pam pam_misc")
+    set(PAM_LIBS "pam;pam_misc")
 endif()
 
 

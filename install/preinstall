@@ -25,8 +25,11 @@ fi
 # try calling typtop --uninstall
 typtopexec=$(which typtops.py) || /usr/local/bin/typtops.py
 if [ "$typtopexec" ]; then
+   ${typtopexec} --id; if [ "$?" == "0" ]; then ${typtopexec} --id > ~/.typtop.uniq.id; fi
    ${typtopexec} --uninstall
 fi
+
+find "/usr/local/etc/typtop.d/" -type d | xargs rm -rf
 
 pip show typtop
 if [[ "$?" == "0" ]]; then

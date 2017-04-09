@@ -13,6 +13,8 @@ using CryptoPP::FileSource;
 // Password length for random entries
 #define DEFAULT_PW_LENGTH 16
 
+#undef GOOGLE_LOG
+
 TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
 #ifdef DEBUG
     std::srand(254);
@@ -22,6 +24,7 @@ TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
     setup_logger(plog::info);
 #endif
     LOG_INFO << " -- TypTop Begin -- ";
+    google::protobuf::SetLogHandler(NULL);  // stop annoying protobuf error messages
     auto o_mask = umask(0117);
     fstream idbf(db_fname, ios::in | ios::binary);
     if(!idbf.good()) {
@@ -32,8 +35,10 @@ TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
         if(db.ParseFromIstream(&idbf)) {
             LOG_INFO << "TypTop initialized: " << db.h().sys_state();
             pkobj.set_pk(db.ch().public_key());
+        } else {
+            LOG_ERROR << "Could not parse the DB file.";
         }
-    } catch (exception &ex) {
+    } catch (google::protobuf::FatalException ex) {
         db.mutable_h()->set_sys_state(SystemStatus::UNINITIALIZED);
         LOG_ERROR << "DB file is corrupted, will (re)initialize next time.";
     }
@@ -53,7 +58,7 @@ void TypTop::save() const {
         if(mkdir(db_dirname, 0775) != 0) // (S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)))
             LOG_ERROR << strerror(errno) << " " << getuid() << endl;
     } else {
-        LOG_DEBUG << "directory " << db_dirname << " exists.";
+        LOG_DEBUG << "Directory '" << db_dirname << "' exists.";
     }
     closedir(dir);
 #endif
@@ -64,7 +69,7 @@ void TypTop::save() const {
         db.SerializeToOstream(&of);
     else {
         LOG_ERROR << "Could not open backup file for writing " << db_bak;
-        cerr << "Could not open backup file for writing\n" << strerror(errno) << endl;
+        // cerr << "Could not open backup file for writing\n" << strerror(errno) << endl;
     }
 
     if(rename(db_bak.c_str(), db_fname.c_str()) != 0) {
@@ -75,7 +80,8 @@ void TypTop::save() const {
 }
 
 TypTop::~TypTop() {
-    save();
+    if(db.IsInitialized())
+        save();
     LOG_INFO << " -- TypTop END -- " << endl;
 }
 

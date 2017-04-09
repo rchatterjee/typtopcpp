@@ -88,14 +88,14 @@ void SetStdinEcho(bool enable = true) {
 }
 
 int check_password(char* argv[], int argc) {
-    string pass, user;
     // Annoy some non-serious attackers, unix_chkpwd does it, so I am also doing it
     // not sure how effective it is.
     // argv expected: <argument> <username> <pw> <return_from_last_pam>
     // check username validity
     // TODO : enable this
-    if (argv[1] != string("--check") || isatty(STDIN_FILENO) || argc != 4 ) {
-        cerr << "inappropriate use of Unix helper binary [UID=%d]" << getuid() << endl;
+    if (strncmp(argv[1], "--check", 7) != 0 || isatty(STDIN_FILENO) || argc != 4 ) {
+        cerr << "inappropriate use of Unix helper binary [UID=" << getuid() << "]\n"
+                "from tty=" << ttyname(STDIN_FILENO) << endl;
         cerr << "This binary is not designed for running in this way\n"
              << "-- the system administrator has been informed\n";
         sleep(10);	/* this should discourage/annoy the user */
@@ -108,16 +108,17 @@ int check_password(char* argv[], int argc) {
     }
     assert(geteuid() == 0); // if it's uid is not root, no point running further. TODO: make it for shadow
 
-    user = argv[2];
-    TypTop tp(user_db(user));
-    cin >> pass;
-    // cerr << "\nPassword Received: " << pass << endl;
-    if(pass.length() > MAXPASS_LEN)
-        return PAM_AUTH_ERR;
+    string user = argv[2];
     int were_correct = atoi(argv[3]);
+    string pw;
+    TypTop tp(user_db(user));
+    cin >> pw;
+    // cerr << "\nPassword Received: " << pw << endl;
+    if(pw.length() > MAXPASS_LEN)
+        return PAM_AUTH_ERR;
     PAM_RETURN pret = (were_correct==2)?SECOND_TIME:FIRST_TIME;
-    bool typtop_ret = tp.check(pass, pret);
-    pass.clear();
+    bool typtop_ret = tp.check(pw, pret);
+    pw.clear();
     if(typtop_ret)
         return PAM_SUCCESS;
     else

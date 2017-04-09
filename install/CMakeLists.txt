@@ -40,7 +40,7 @@ IF(WIN32)
 #    SET(CPACK_NSIS_MODIFY_PATH ON)
 ELSEIF(UNIX)
     IF(APPLE)
-        include(OSX.cmake)
+        include(${CMAKE_CURRENT_LIST_DIR}/OSX.cmake)
     ELSE(APPLE)  # Not apple
         MESSAGE(STATUS "CPack for non-osx unix systems")
         # INCLUDE(InstallRequiredSystemLibraries)

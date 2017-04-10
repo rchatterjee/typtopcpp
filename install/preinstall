@@ -8,7 +8,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 if [ -d "/etc/pam.d/" ]; then
-    for f in /etc/pam.d/*.orig; do
+    for f in /etc/pam.d/*.orig /etc/pam.d/*.bak; do
         if [ -e "$f" ]; then
             mv "$f" "${f%.*}"
         fi
@@ -23,21 +23,22 @@ else
 fi
 
 # try calling typtop --uninstall
-typtopexec=$(which typtops.py) || /usr/local/bin/typtops.py
+typtopexec=$(which typtops.py) || $(echo /usr/local/bin/typtops.py)
 if [ "$typtopexec" ]; then
    ${typtopexec} --id; if [ "$?" == "0" ]; then ${typtopexec} --id > ~/.typtop.uniq.id; fi
-   ${typtopexec} --uninstall
+   echo "yes" | ${typtopexec} --uninstall
 fi
 
 find "/usr/local/etc/typtop.d/" -type d | xargs rm -rf
+if [ -f ~/.typtop.uniq.id ]; then sed -i '' "s/Install-id: //g" ~/.typtop.uniq.id; fi
 
 pip show typtop
 if [[ "$?" == "0" ]]; then
-   pip -q uninstall --yes typtop word2keypress zxcvbn zxcvbn-python >&/dev/null
+   sudo pip -q uninstall --yes typtop word2keypress zxcvbn zxcvbn-python >&/dev/null
 fi
 
 if [ -f /usr/local/bin/typtop-uninstall.sh ]; then
-   bash /usr/local/bin/typtop-uninstall.sh
+   sudo bash /usr/local/bin/typtop-uninstall.sh
 else
    rm -rf /usr/local/bin/typtop*
 fi

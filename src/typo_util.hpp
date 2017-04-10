@@ -192,6 +192,10 @@ inline string get_install_id() {
     std::fstream f(UNIQ_ID_FILENAME, ios::in);
     string id;
     if (f.good() && (f >> id) && id.size()>=8) {
+        while (tolower(id).find("install-id") != string::npos) {
+            LOG_ERROR << "The id file is weird! contains: " << id << "Rewriting";
+            f>>id;
+        }
         LOG_INFO << "Install ID.fromFile: "<< id;
         return id;
     } else { // generate and store

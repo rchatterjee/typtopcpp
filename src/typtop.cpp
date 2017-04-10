@@ -34,7 +34,7 @@ TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
     }
     try {
         if(db.ParseFromIstream(&idbf)) {
-            LOG_INFO << "TypTop initialized: " << db.h().sys_state();
+            LOG_INFO << "TypTop initialized: " << bool(db.h().sys_state() == SystemStatus::ALL_GOOD);
             pkobj.set_pk(db.ch().public_key());
         } else {
             db.mutable_ch()->set_install_id(get_install_id());
@@ -125,14 +125,14 @@ void TypTop::initialize(const string &real_pw) {
     // - Set config header
     ch->set_install_id(get_install_id());
     pkobj.initialize();
-    LOG_DEBUG << "Initializing the db ";
+    LOG_INFO << "Initializing the db ";
     ch->set_public_key(pkobj.serialize_pk());
     if (ch->global_salt().empty()) { // only change the salt if it is empty
         SecByteBlock global_salt((ulong)AES::BLOCKSIZE);
         PRNG.GenerateBlock(global_salt, global_salt.size());  // random element
         ch->set_global_salt((const char *) global_salt.data(), global_salt.size());
     } else {
-        LOG_DEBUG << "Keeping the salt unchanged";
+        LOG_INFO << "Keeping the salt unchanged";
     }
 
     string sk_str = pkobj.serialize_sk();
@@ -155,7 +155,7 @@ void TypTop::initialize(const string &real_pw) {
             insert_into_log(T_cache[i], true, -1); // sets L
         }
         pwencrypt(T_cache[i], sk_str, sk_ctx);
-        LOG_DEBUG << "Inserting " << T_cache[i] << " at " << i;
+        // LOG_DEBUG << "Inserting " << T_cache[i] << " at " << i;
         _insert_into_typo_cache(i, sk_ctx, (i == 0 ? INT_MAX : T_size - i));
 #ifdef DEBUG
         // cerr << "Inserting -->" << T_cache[i] << endl;
@@ -183,6 +183,7 @@ void TypTop::initialize(const string &real_pw) {
     fill_waitlist_w_garbage();   // sets W
     db.mutable_h()->set_sys_state(SystemStatus::ALL_GOOD);
     assert(is_initialized());
+    LOG_INFO << "DB is initialized.";
 #ifdef DEBUG
     cerr << "TypTop db is successfully initialized!" << endl;
     if (db.t_size() != ench.freq_size() ||
@@ -246,7 +247,6 @@ bool TypTop::check(const string &pw, PAM_RETURN pret) {
     if(!is_initialized()) {
         if (pret == SECOND_TIME) {
             this -> initialize(pw);
-            LOG_DEBUG << "DB is initialized.";
             return true;
         } else {
             LOG_DEBUG << "DB is not initialized.";

@@ -111,8 +111,8 @@ int check_password(char* argv[], int argc) {
     string user = argv[2];
     int were_correct = atoi(argv[3]);
     string pw;
-    TypTop tp(user_db(user));
     cin >> pw;
+    TypTop tp(user_db(user));
     // cerr << "\nPassword Received: " << pw << endl;
     if(pw.length() > MAXPASS_LEN)
         return PAM_AUTH_ERR;
@@ -201,8 +201,8 @@ int main(int argc, char *argv[])  {
             if (y == "y" || y == "Y") {
                 int ret = system("sudo bash /usr/local/bin/typtop.prerm");
                 if (ret==0)
-                    cout << "The typtop has been disengaged from your authentication system.\n"
-                         << "The binary is still there and you can remove it manually." << endl;
+                    cerr << "The typtop has been disengaged from your authentication system.\n"
+                         << "The binary might be still there and you can remove it manually." << endl;
                 else
                     cerr << "Ther was some issue with unistalling typtop. Can you check by relogging.\n"
                          << "If everything works, then you are good to go. Delete typtop executable, \n"

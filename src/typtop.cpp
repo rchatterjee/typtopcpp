@@ -438,13 +438,28 @@ void TypTop::send_log() {
     }
 }
 
+int typo_stats(const Logs& L, int* saved) {
+    int t=0, s=0;
+    for (Log l: L.l()) {
+        if(l.edit_dist()>0 && l.edit_dist() < 4) {
+            t++;
+            if (l.in_cache())
+                s++;
+        }
+    }
+    *saved = s;
+    return t;
+}
 void TypTop::status() const {
+    int saved;
+    int typo_count = typo_stats(db.logs(), &saved);
     cout << "\nTypTop: A smart password checker" << endl
          << "  Version: " << typtop_VERSION_MAJOR << "." << typtop_VERSION_MINOR << endl
          << "  Install-id: " << db.ch().install_id() << endl
-         << "  Number of logins: " << db.h().login_count() << endl
-         << "  Number of typos: " << "--TODO--" << endl
-         << "  Volunteer for the: " << "--TODO--" << endl
-         << "  Allow login with typos: " << "--TODO--" << endl << endl;
+         << "  Login attempts: " << db.h().login_count() << endl
+         << "  Typos made: " << typo_count << endl
+         << "  Logins allowed by TypTop: " << saved << endl
+         << "  Volunteer for the study: " << 1 << endl
+         << "  Allow login with typos: " << 1 << endl << endl;
 }
 

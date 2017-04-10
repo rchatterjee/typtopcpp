@@ -13,7 +13,7 @@ For compiling the project from source, you need following libraries.
 ## Compile/Build
 ```bash
 $ mkdir build && cd build && cmake ..
-$ make  # If this fails, try running cmake again 
+$ make  # If this fails, try running cmake again
 ```
 
 Due to my very bad understanding of CMake and too much ambition to do things
@@ -43,7 +43,7 @@ confused too.)
 * **Pam Module**
   - (done) ~~direct integration with pam-modules.~~
   - (done) ~~Write `pam_config` file. Decide on how to write a~~
-    pam_modules that works for both MAC and Linux.
+    ~~pam_modules that works for both MAC and Linux.~~
   - (done) (NOT REQUIRED) ~~add to password change (`pam_sm_chkauthtok`) as well~~
   - (NOT REQUIRED) Checkout pam-auth-update and
   [Pam Config Framework](https://wiki.ubuntu.com/PAMConfigFrameworkSpec).
@@ -53,21 +53,20 @@ confused too.)
   - Fix .travis fail.
 
 * **Installation and Configuration**
-  - (Almost DONE) How to use `cpack` a cmake extension to generate
-    distributable binaries.
-  - Build in release mode.
+  - (DONE) ~~How to use `cpack` a cmake extension to generate distributable binaries.~~
+  - (DONE) ~~Build in release mode.~~
   - (DONE but does not work) Check Mac pkgbuild, add readme or license on the front page, sign the package.
   - Test the installation in at least 3-4 linux and 2 OSX systems.
-  - (Super Important) **Add uninstall script for old TypTop. **  
+  - (DONE) ~~(Super Important) **Add uninstall script for old TypTop. **~~
 
-* **Extra features**  
-  - Have configure option with typtop-main.cpp that lets users configure how they want to use typtop. 
-    To enable this, I first have to have a configure file. 
-  - How to update typtop? Should be a configurable option. 
-  
+* **Extra features**
+  - Have configure option with typtop-main.cpp that lets users configure how they want to use typtop.
+    To enable this, I first have to have a configure file.
+  - How to update typtop? Should be a configurable option.
+
 
 * **Bug**
-  - Many paths used in the code is absolute, I should move it to relative or install_prefix dependent.  
+  - Many paths used in the code is absolute, I should move it to relative or install_prefix dependent.
 
 
 * Cleanup cmake, it is a mess right now.
@@ -78,3 +77,4 @@ confused too.)
 
 ## Some useful resources
 * MAC packaging guide: https://matthew-brett.github.io/docosx/flat_packages.html
+* How to cross compile: http://www.fabriziodini.eu/posts/cross_compile_tutorial/

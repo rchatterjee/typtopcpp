@@ -282,19 +282,23 @@ TEST_CASE("typtop") {
 
     SECTION("Test log entries and upload") {
         TypTopTest tp;
+        tp.allow_upload(false);
         tp.check(pws[0], PAM_RETURN::SECOND_TIME);
-        tp.send_log(); // truncate
-        const typoDB& db = tp.get_db();
-        CHECK(db.logs().l_size()==0);  // log had the typos
 
-        CHECK(tp.check(pws[1], PAM_RETURN::FIRST_TIME));
-        CHECK(db.logs().l_size()==1);
-        for (int i = 0; i < 6; ++i) {
-            tp.check(pws[2], PAM_RETURN::FIRST_TIME);
-            CHECK(db.logs().l_size()==i+2);
+        SECTION("send_w/o_autoupload") {
+            tp.send_log(); // truncate
+            const typoDB &db = tp.get_db();
+            CHECK(db.logs().l_size() == 0);  // log had the typos
+
+            CHECK(tp.check(pws[1], PAM_RETURN::FIRST_TIME));
+            CHECK(db.logs().l_size() == 1);
+            for (int i = 0; i < 6; ++i) {
+                tp.check(pws[2], PAM_RETURN::FIRST_TIME);
+                CHECK(db.logs().l_size() == i + 2);
+            }
+            tp.send_log();
+            CHECK(db.logs().l_size() == 0);  // log had the typos
         }
-        tp.send_log();
-        CHECK(db.logs().l_size()==0);  // log had the typos
     }
 }
 

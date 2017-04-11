@@ -313,7 +313,7 @@ bool TypTop::check(const string &pw, PAM_RETURN pret) {
             }
 #ifndef DEBUG
             assert (false);
-            if(false && db.ch().allow_upload())
+            if(db.ch().allow_upload())
                 if(fork() == 0) { // in child make a network call
                     send_log();
                 }
@@ -378,7 +378,6 @@ void TypTop::permute_typo_cache(const string &sk_str) {
  * 1. Decrypt the waitlist, add to log, and consolidate
  * 2. for each consolidated and validated entries
  *     try to insert in the typo cache
- * @param ench
  */
 void TypTop::process_waitlist(const string &sk_str) {
     LOG_DEBUG << "Processing waitlist" ;
@@ -482,6 +481,7 @@ int typo_stats(const Logs& L, int* saved) {
     *saved = s;
     return t;
 }
+
 void TypTop::status() const {
     int saved;
     int typo_count = typo_stats(db.logs(), &saved);

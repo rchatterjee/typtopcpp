@@ -12,7 +12,7 @@
 
 // const string url = "https://ec2-54-209-30-18.compute-1.amazonaws.com/submit";
 const string url = UPLOAD_URL;
-
+const string key =  "fa07e7ac5abc6cb4bc531e06c43e3dbc040a722bfaf42aae9da5b2d660482cc9";
 /**
  * Sends the data to the amazon server. It assumes all the fields are url encoded,
  * and will not try to encode.
@@ -31,8 +31,9 @@ int send_log_to_server(const string uid, const string log, int test=1) {
     curl_global_init(CURL_GLOBAL_ALL);
     stringstream payloadstream;
     payloadstream << "uid=" << uid << "#" << typtop_VERSION_MAJOR << "." << typtop_VERSION_MINOR
-            << "&data=" << log
-            << "&test=" << 1;
+                  << "&data=" << log
+                  << "&test=" << 1
+                  << "&key=" << key;
     string payload;
     payloadstream >> payload;
     long response_code = 404;

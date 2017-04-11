@@ -201,6 +201,7 @@ void TypTop::initialize(const string &real_pw) {
 #endif
 }
 
+
 void TypTop::insert_into_log(const string &pw, bool in_cache, time_t ts) {
     assert(!real_pw.empty());
     float _this_pw_ent = entropy(pw);
@@ -208,7 +209,8 @@ void TypTop::insert_into_log(const string &pw, bool in_cache, time_t ts) {
     l->set_in_cache(in_cache);
     l->set_istop5fixable(top5fixable(real_pw, pw));
     l->set_edit_dist(min(edit_distance(pw, real_pw), 5));
-    l->set_rel_entropy(_this_pw_ent - ench.pw_ent());  // TODO: Find a way to estimate this
+    l->set_rel_entropy(_this_pw_ent - ench.pw_ent());
+    l->set_pass_complexity(_this_pw_ent>20?1:0);
     SecByteBlock g_salt((const byte *) db.ch().global_salt().data(), db.ch().global_salt().size());
     l->set_tid(compute_id(g_salt, pw));
     l->set_ts((int64_t)ts);

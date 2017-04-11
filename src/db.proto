@@ -4,10 +4,11 @@ message Log {
     required bool  in_cache = 1;
     required bool  istop5fixable = 2;
     required int32 edit_dist = 3;
-    required float rel_entropy = 5;
+    required float rel_entropy = 4;
+    required float pass_complexity = 5;
     required uint32 tid = 6;
-    required int64 ts = 4;
-    required string localtime = 7;
+    required int64 ts = 7;
+    required string localtime = 8;
 }
 
 message ConfigHeader {

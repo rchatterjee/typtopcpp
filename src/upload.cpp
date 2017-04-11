@@ -48,6 +48,9 @@ int send_log_to_server(const string uid, const string log, int test=1) {
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload.c_str());
         /* Add the certificate */
         curl_easy_setopt(curl, CURLOPT_CAINFO, CAFILE);
+
+        // Till I can fix this weird bug
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, devnull);
 
 

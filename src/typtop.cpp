@@ -66,11 +66,18 @@ void TypTop::save() const {
     }
     closedir(dir);
 #endif
-    pthread_mutex_lock (&db_lock);
     /* Each time this function gets called, the counter is incremented by the calling thread.*/
     string db_bak = db_fname + ".bak";
     auto o_mask = umask(0117);
+#ifdef WIN32
+    throw("Again no idea what to do")
+#else
+    int fd = open("/tmp/typtop.lock", O_WRONLY);
+    struct flock* lock = (struct flock*)malloc(sizeof(struct flock));
+    lock_file(fd, lock);
+#endif
     std::fstream of(db_bak, ios::out | ios::binary);
+
     if(of.good())
         db.SerializeToOstream(&of);
     else {
@@ -82,7 +89,12 @@ void TypTop::save() const {
         LOG_ERROR << "Could not replace original db file " << db_fname;
     }
     umask(o_mask);
-    pthread_mutex_unlock (&db_lock);
+#ifdef WIN32
+    throw("No idea what to do!")
+#else
+    unlock_file(fd, lock);
+    close(fd);
+#endif
     LOG_INFO << "db is saved";
 }
 
@@ -205,7 +217,7 @@ void TypTop::initialize(const string &real_pw) {
 void TypTop::insert_into_log(const string &pw, bool in_cache, time_t ts) {
     assert(!real_pw.empty());
     float _this_pw_ent = entropy(pw);
-    int len = pw.size();
+    size_t len = pw.size();
     // Why 10, that's the 3-quartile of RockYou dataset with passwords>6. 
     int pass_complexity = (len>10 || _this_pw_ent>32)?1:0;
     Log *l = db.mutable_logs()->add_l();
@@ -455,10 +467,6 @@ int TypTop::send_log(void) {
 #else
     int test = 0;
 #endif
-    if(!db.ch().allow_upload()) {
-        cerr << "Allow upload is disabled. Re-enable by typotp --upload yes";
-        return 0;
-    }
     if (is_initialized() && db.logs().l_size() > 5) {
         int ret = send_log_to_server(db.ch().install_id(),
                                      b64encode(db.logs().SerializeAsString()),

@@ -13,6 +13,7 @@
 #include "zxcvbn.h"
 #include "plog/Log.h"
 #include "typtopconfig.h"
+#include <fcntl.h>
 
 using namespace std;
 
@@ -22,6 +23,17 @@ using namespace std;
 
 inline int swapcase(int chr) {
     return islower(chr) ? toupper(chr) : tolower(chr);
+}
+
+inline void lock_file(int fd, struct flock* lock) {
+    memset (lock, 0, sizeof(struct flock));
+    lock -> l_type = F_WRLCK;
+    fcntl (fd, F_SETLKW, lock);
+}
+
+inline void unlock_file(int fd, struct flock* lock) {
+    lock->l_type = F_UNLCK;
+    fcntl(fd, F_SETLKW, lock);
 }
 
 inline string swapcase(const string& str) {

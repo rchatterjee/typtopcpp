@@ -8,7 +8,9 @@ For compiling the project from source, you need following libraries.
 * `cmake >= 3.6`
 * Depends on Google `protobuf`
 * Includes `cryptopp`, `zxcvbn` and `plog` (inside)
-* pam-dev (in future)
+* `pam-dev`
+* `cURL` (in debian install `libcurl4-openssl-dev`)
+
 
 ## Compile/Build
 ```bash
@@ -23,6 +25,14 @@ eventually. Trust me!
 
 You can package, or just install directly by running, `sudo make isntall`.
 If you install using `make install`, don't forget to run, `sudo ./script/postinst`.
+```bash
+# Installation steps 
+$ cd build
+$ sudo ./script/preinst
+$ sudo make install 
+$ sudo ./script/postinst
+```
+
 
 I would suggest creating the package and then install it using your favorite
 package manager.  TO build your own pacakge you have to change the
@@ -30,9 +40,11 @@ package manager.  TO build your own pacakge you have to change the
 are, `DEB`, `RPM`, `STGZ` etc. (I am confusing the hell out of you. I know. I am
 confused too.)
 
+You can see your existing log, number of typos etc. using the `typtop` binary 
+installed in your `/usr/local/bin`. Try `$ typtop` and it will show you the options. 
 
-### TODO:
-[See Todo](./todo.md)
+
+### TODO: [See Todo](./todo.md)
 
 ## Some useful resources
 * MAC packaging guide: https://matthew-brett.github.io/docosx/flat_packages.html

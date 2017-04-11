@@ -18,7 +18,10 @@ if [ -d "/etc/pam.d/" ]; then
     fi
     pushd /etc/pam.d > /dev/null
     for f in /etc/pam.d/*; do
+        # Don't insert typtop-auth in typtop-auth
         if [[ "$f" == *"typtop-auth"* ]]; then continue; fi
+        # Don't insert typtop-auth if it is already there.
+        grep typtop-auth $f; if [ "$?" == "0" ]; then continue; fi
         if [[ $(grep -e "^auth.*${pam_mod}" $f) ]]; then
             sed -i.orig "/^auth*.*${pam_mod}.*/iauth\tinclude\t\ttyptop-auth" $f
         fi

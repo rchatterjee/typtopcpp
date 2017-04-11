@@ -169,9 +169,10 @@ int main(int argc, char *argv[])  {
             cerr << "IsInitialized: " << tp.is_initialized() << endl;
             tp.status();
         } else if (strncmp("--upload", argv[1], 8) == 0 && argc==3) {
-            tp.send_log();  // send logs always truncates the db
-                cerr << "If this is the only line you are seeing then logs "
-                     << "are uploaded successfully. :)" << endl;
+            if(tp.send_log())  // send logs always truncates the db
+                cerr << "The logs are uploaded successfully. :)" << endl;
+            else
+                cerr << "Something went wrong. Check last few line of /tmp/typtop.log file for details." << endl;
         } else if (strncmp("--mytypos", argv[1], 9) == 0 && argc==3) {
             string pass;
             cout << "Password:";

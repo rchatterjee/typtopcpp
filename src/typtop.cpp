@@ -14,6 +14,7 @@ using CryptoPP::FileSource;
 #define DEFAULT_PW_LENGTH 16
 
 #undef GOOGLE_LOG
+pthread_mutex_t db_lock = PTHREAD_MUTEX_INITIALIZER;
 
 TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
 #ifdef DEBUG
@@ -65,6 +66,8 @@ void TypTop::save() const {
     }
     closedir(dir);
 #endif
+    pthread_mutex_lock (&db_lock);
+    /* Each time this function gets called, the counter is incremented by the calling thread.*/
     string db_bak = db_fname + ".bak";
     auto o_mask = umask(0117);
     std::fstream of(db_bak, ios::out | ios::binary);
@@ -79,6 +82,7 @@ void TypTop::save() const {
         LOG_ERROR << "Could not replace original db file " << db_fname;
     }
     umask(o_mask);
+    pthread_mutex_unlock (&db_lock);
     LOG_INFO << "db is saved";
 }
 
@@ -298,10 +302,21 @@ bool TypTop::check(const string &pw, PAM_RETURN pret) {
             ench.Clear();
             if(i == 0)
                 LOG_INFO << "Accepting the real password!" << endl;
-            else
-                LOG_INFO << "Accepting a typo!" << endl;
+            else {
+                if(db.ch().allowed_typo_login())
+                    LOG_INFO << "Accepting a typo!" << endl;
+                else {
+                    LOG_INFO << "Typo is rejected because of the allow_typo_log is "
+                             << db.ch().allowed_typo_login() << endl;
+                    return false;
+                }
+            }
 #ifndef DEBUG
-            send_log();  // default truncate the logs
+            assert (false);
+            if(false && db.ch().allow_upload())
+                if(fork() == 0) { // in child make a network call
+                    send_log();
+                }
 #endif
             return true;
         } catch (exception &ex) {
@@ -312,7 +327,6 @@ bool TypTop::check(const string &pw, PAM_RETURN pret) {
             return false;
         }
     }
-    return false;
 }
 
 void TypTop::_insert_into_typo_cache(const int index, const string &sk_ctx,
@@ -417,25 +431,43 @@ void TypTop::print_log() {
     }
 }
 
+void TypTop::allow_upload(bool b) {
+    if(db.IsInitialized()) {
+        db.mutable_ch()->set_allow_upload(b);
+    }
+}
+
+void TypTop::allow_typo_login(bool b) {
+    if(db.IsInitialized()) {
+        db.mutable_ch()->set_allowed_typo_login(b);
+    }
+}
+
 #include "upload.cpp"
 
-void TypTop::send_log() {
+int TypTop::send_log(void) {
 #ifdef DEBUG
     int test = 1;
 #else
     int test = 0;
 #endif
+    if(!db.ch().allow_upload()) {
+        cerr << "Allow upload is disabled. Re-enable by typotp --upload yes";
+        return 0;
+    }
     if (is_initialized() && db.logs().l_size() > 5) {
         int ret = send_log_to_server(db.ch().install_id(),
                                      b64encode(db.logs().SerializeAsString()),
                                      test);
         if (ret == 1) {
             db.mutable_logs()->clear_l();
+            return 1;
         }
     }
     else {
         LOG_INFO << "DB is not initialized, or not many logs. Will send next time!";
     }
+    return 0;
 }
 
 int typo_stats(const Logs& L, int* saved) {
@@ -461,5 +493,8 @@ void TypTop::status() const {
          << "  Logins allowed by TypTop: " << saved << endl
          << "  Volunteer for the study: " << 1 << endl
          << "  Allow login with typos: " << 1 << endl << endl;
+#ifdef DEBUG
+    cout << "(Debug is on)";
+#endif
 }
 

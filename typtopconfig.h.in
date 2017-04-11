@@ -7,3 +7,4 @@
 #define typtop_VERSION_MINOR @typtop_VERSION_MAJOR@
 #define CAFILE "@CAFILE@"
 #define OLD_CAFILE "@OLD_CAFILE@"
+#define UPLOAD_URL "https://typtop.info/submit"

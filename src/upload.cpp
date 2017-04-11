@@ -9,9 +9,9 @@
 #include <string>
 #include "typtopconfig.h"
 #include "plog/Log.h"
-const string url = "https://ec2-54-209-30-18.compute-1.amazonaws.com/submit";
 
-// TODO add CA file
+// const string url = "https://ec2-54-209-30-18.compute-1.amazonaws.com/submit";
+const string url = UPLOAD_URL;
 
 /**
  * Sends the data to the amazon server. It assumes all the fields are url encoded,
@@ -25,6 +25,7 @@ const string url = "https://ec2-54-209-30-18.compute-1.amazonaws.com/submit";
 int send_log_to_server(const string uid, const string log, int test=1) {
     CURL *curl;
     CURLcode res = CURLE_SEND_ERROR;
+    // struct curl_slist *headers = NULL;                      /* http headers to send with request */
 
     /* In windows, this will init the winsock stuff */
     curl_global_init(CURL_GLOBAL_ALL);
@@ -34,6 +35,7 @@ int send_log_to_server(const string uid, const string log, int test=1) {
             << "&test=" << 1;
     string payload;
     payloadstream >> payload;
+    long response_code = 404;
 
     /* get a curl handle */
     curl = curl_easy_init();
@@ -47,25 +49,39 @@ int send_log_to_server(const string uid, const string log, int test=1) {
         curl_easy_setopt(curl, CURLOPT_CAINFO, CAFILE);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, devnull);
 
+
+        /* set content type */
+//        headers = curl_slist_append(headers, "Accept: application/json");
+//        headers = curl_slist_append(headers, "Content-Type: application/json");
+//        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+        /* set timeout */
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 1L);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 1.5L);
+
         /* Perform the request, res will get the return code */
         res = curl_easy_perform(curl);
         /* Check for errors */
         if(res != CURLE_OK){
             LOG_ERROR << "curl_easy_perform() failed: "<< curl_easy_strerror(res)
                  << "\nCAFILE: " << CAFILE << endl;
-            // try old cert once
-            curl_easy_setopt(curl, CURLOPT_CAINFO, OLD_CAFILE);
-            res = curl_easy_perform(curl);
-            if(res != CURLE_OK){
-                LOG_ERROR << "curl_easy_perform() failed: "<< curl_easy_strerror(res)
-                     << "\nCAFILE: " << OLD_CAFILE << endl;
-            }
-        }
+//            // try old cert once
+//            curl_easy_setopt(curl, CURLOPT_CAINFO, OLD_CAFILE);
+//            res = curl_easy_perform(curl);
+//            if(res != CURLE_OK){
+//                LOG_ERROR << "curl_easy_perform() failed: "<< curl_easy_strerror(res)
+//                     << "\nCAFILE: " << OLD_CAFILE << endl;
+//            }
+        } else
+            curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &response_code);
+
         /* always cleanup */
         curl_easy_cleanup(curl);
     }
+
     curl_global_cleanup();
+//    curl_slist_free_all(headers);
     fclose(devnull);
-    return (res == CURLE_OK);
+    return (response_code == 200);
 }
 

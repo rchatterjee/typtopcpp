@@ -58,8 +58,9 @@ public:
     bool is_correct(const string& pw) const;
     inline bool is_initialized() const { return db.IsInitialized(); }
     void print_log();
-    void send_log();
-
+    int send_log(void);
+    void allow_upload(bool b);
+    void allow_typo_login(bool b);
     void status() const;
 
 protected:

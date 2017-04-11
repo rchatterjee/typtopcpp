@@ -61,7 +61,7 @@ int auth(const char *user) {
  TEST_CASE("Check Install") {
      const string user = "tmptyptop";
      SECTION("Basic") {
-         fstream of(PASS_FILE, ios::in);
+         fstream of(PASS_FILE, ios::out|ios::in);
          copy(pws.begin(), pws.end(), ostream_iterator<string>(of, "\n"));
          of.close();
          int i=0;

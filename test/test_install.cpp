@@ -10,28 +10,37 @@
 #include <security/pam_appl.h>
 #include <security/openpam.h>
 #else
+
 #include <security/pam_misc.h>
 #include <security/pam_ext.h>
+
 #endif
 
 #include <stdio.h>
 #include <fstream>
 #include <iostream>
+#include <vector>
 #include "catch.hpp"
 
 using namespace std;
 
-static struct pam_conv conv = {
-    misc_conv,
-    NULL
-};
+int conv_func(int num_msg, const struct pam_message **msg,
+              struct pam_response **resp, void *appdata_ptr) {
+    resp[0] = new struct pam_response[num_msg];
+    for (int i = 0; i < num_msg; i++) {
+        if (msg[i]->msg_style == PAM_PROMPT_ECHO_OFF) {
+            resp[i]->resp = strdup((char *) appdata_ptr);
+            resp[i]->resp_retcode = 0;
+        }
+    }
+    return 0;
+}
 
-#define PASS_FILE "/tmp/pass.txt"
-
-int auth(const char *user) {
-    pam_handle_t *pamh=NULL;
+int auth(const char *user, const char *password) {
+    pam_handle_t *pamh = NULL;
     int retval;
-    REQUIRE(freopen(PASS_FILE, "r", stdin) != NULL);
+    // REQUIRE(freopen(PASS_FILE, "r", stdin) != NULL);
+    struct pam_conv conv = {conv_func, (void *) password};
     retval = pam_start("su", user, &conv, &pamh);
     if (retval == PAM_SUCCESS)
         retval = pam_authenticate(pamh, 0);    /* is user really user? */
@@ -40,61 +49,59 @@ int auth(const char *user) {
     if (retval == PAM_SUCCESS)
         retval = pam_acct_mgmt(pamh, 0);       /* permitted access? */
     /* This is where we have been authorized or not. */
-    if (pam_end(pamh,retval) != PAM_SUCCESS) {     /* close Linux-PAM */
+    if (pam_end(pamh, retval) != PAM_SUCCESS) {     /* close Linux-PAM */
         pamh = NULL;
         fprintf(stderr, "su: failed to release authenticator\n");
         exit(1);
     }
 
-    return ( retval == PAM_SUCCESS ? 1:0 );       /* indicate success */
+    return (retval == PAM_SUCCESS);       /* indicate success */
 }
 
- const vector<string> pws = {
-         "hello_pass", // 0, ed=0
-         "Hello_pass",  // 1, ed=1
-         "hello_pass1", // 2, ed=1
-         "HELLO_PASS",  // 3, ed=1
-         "hlelo_pass", // 4, ed=1
-         "Hello_Pass",  // 5, ed=2
- };
+const vector<string> pws = {
+        "hello_pass", // 0, ed=0
+        "Hello_pass",  // 1, ed=1
+        "hello_pass1", // 2, ed=1
+        "HELLO_PASS",  // 3, ed=1
+        "hlelo_pass", // 4, ed=1
+        "Hello_Pass",  // 5, ed=2
+};
 
- TEST_CASE("Check Install") {
-     const string user = "tmptyptop";
-     SECTION("Basic") {
-         fstream of(PASS_FILE, ios::out|ios::in);
-         copy(pws.begin(), pws.end(), ostream_iterator<string>(of, "\n"));
-         of.close();
-         int i=0;
-         for(string pw: pws) {
-             if(i<=3)
-                 REQUIRE(auth(user.c_str()));
-             else
-                 REQUIRE_FALSE(auth(user.c_str()));
-             i++;
-         }
-         of.open(PASS_FILE, ios::in);
-         of << pws[0];
-         of << pws[4];
-         of.close();
-         REQUIRE(auth(user.c_str()));
-         REQUIRE(auth(user.c_str()));
-     }
- }
+TEST_CASE("Check Install") {
+    const string prepare = "sudo useradd tmptyptop -p $(openssl passwd -crypt hello_pass)"
+            " && sudo rm -rf /usr/local/etc/typtop.d/tmptyptop";
+    const string user = "tmptyptop";
+    SECTION("Basic") {
+        int i = 0;
+        for (string pw: pws) {
+            if (i <= 3)
+                REQUIRE(auth(user.c_str(), pw.c_str()));
+            else
+                REQUIRE_FALSE(auth(user.c_str(), pw.c_str()));
+            i++;
+        }
+        auth(user.c_str(), pws[4].c_str());
+        auth(user.c_str(), pws[4].c_str());
+        auth(user.c_str(), pws[4].c_str());
+        auth(user.c_str(), pws[4].c_str());
+        auth(user.c_str(), pws[4].c_str());
+        auth(user.c_str(), pws[4].c_str());
+        REQUIRE(auth(user.c_str(), pws[1].c_str()));
+        REQUIRE(auth(user.c_str(), pws[4].c_str()));
+    }
+}
 
-
+//
 //int main(int argc, char *argv[])
 //{
-//    const char *user="nobody";
+//   const char *user="nobody";
 //
-//    if (argc < 3) {
-//        cout << "USAGE: " << argv[0] << " <user> <password>" << endl;
-//        return -1;
-//    }
-//    user = argv[1];
-//    const char *pw = argv[2];
-//    fstream of(PASS_FILE, ios::out);
-//    of << pw << endl;
-//    of.close();
-//    cout << "Pw: " << pw << auth(user) << endl;
-//    return 0;
+//   if (argc < 3) {
+//       cout << "USAGE: " << argv[0] << " <user> <password>" << endl;
+//       return -1;
+//   }
+//   user = argv[1];
+//   const char *pw = argv[2];
+//   cout << "Pw: " << pw << "-->" << auth(user, pw) << endl;
+//   return 0;
 //}

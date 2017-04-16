@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 2.8)
 
 ## So it generates one executable and one shared library
 ## 1> pam_typtop.so : a pam module that to engage typtop via PAM

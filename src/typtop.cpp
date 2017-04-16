@@ -318,10 +318,10 @@ bool TypTop::check(const string &pw, PAM_RETURN pret) {
             db.mutable_h()->set_enc_header(ench_ctx);
             ench.Clear();
             if(i == 0)
-                LOG_INFO << "Accepting the real password!" << endl;
+                LOG_INFO << "Accepting the real password!";
             else {
                 if(db.ch().allowed_typo_login())
-                    LOG_INFO << "Accepting a typo!" << endl;
+                    LOG_INFO << "Accepting a typo!";
                 else {
                     LOG_INFO << "Typo is rejected because of the allow_typo_log is "
                              << db.ch().allowed_typo_login() << endl;
@@ -468,6 +468,7 @@ int TypTop::send_log(void) {
     int test = 0;
 #endif
     if (is_initialized() && db.logs().l_size() > 5) {
+        cerr << "sending logs \n";
         int ret = send_log_to_server(db.ch().install_id(),
                                      b64encode(db.logs().SerializeAsString()),
                                      test);

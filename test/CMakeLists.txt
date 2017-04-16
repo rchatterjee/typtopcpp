@@ -3,10 +3,11 @@ add_executable(tests ${TEST_SRCS})
 if(APPLE)
     set(PAM_LIBS "pam")
 else()
-    set(PAM_LIBS "pam;pam_misc")
+    set(PAM_LIBS "pam")
 endif()
 
-
+find_package(cryptopp PATHS ${${CRYPTOPP_PREFIX}_BINARY_DIR}/lib/cmake/cryptopp NO_DEFAULT_PATH)
+target_include_directories(tests PUBLIC ${CRYPTOPP_INCLUDE_DIRS})
 target_link_libraries(tests pw_crypto typtopdb ${PAM_LIBS})
 add_test(test tests)
 add_dependencies(tests ${CRYPTOPP_PREFIX})

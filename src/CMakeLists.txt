@@ -49,15 +49,16 @@ function (getListOfVarsStartingWith _prefix _varResult)
     string (REGEX MATCHALL "(^|;)${_prefix}[A-Za-z0-9_]*" _matchedVars "${_vars}")
     set (${_varResult} ${_matchedVars} PARENT_SCOPE)
 endfunction()
-getListOfVarsStartingWith("PROTOBUF_" matchedVars)
-foreach (_var IN LISTS matchedVars)
-    message("${_var}=${${_var}}")
-endforeach()
+
 
 # cryptopp CMake project so use that
 # message(STATUS "${CMAKE_BINARY_DIR}/${CRYPTOPP_PREFIX}/lib/cmake/cryptopp")
 find_package(cryptopp PATHS ${${CRYPTOPP_PREFIX}_BINARY_DIR}/lib/cmake/cryptopp NO_DEFAULT_PATH)
 
+getListOfVarsStartingWith("cryptopp_" matchedVars)
+foreach (_var IN LISTS matchedVars)
+    message("${_var}=${${_var}}")
+endforeach()
 if (PLOG_INCLUDE_DIRS)
     message(STATUS "ADDING PLOG: ${PLOG_INCLUDE_DIRS} ${PLOG_FILES}")
     include_directories(${PLOG_INCLUDE_DIRS})

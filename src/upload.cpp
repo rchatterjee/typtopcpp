@@ -12,7 +12,7 @@
 
 // const string url = "https://ec2-54-209-30-18.compute-1.amazonaws.com/submit";
 const string url = UPLOAD_URL;
-const string key =  "fa07e7ac5abc6cb4bc531e06c43e3dbc040a722bfaf42aae9da5b2d660482cc9";
+const string key =  "a40648638b48abf2159f9331cbab9cb3ae81d8cd247c145942c3cce9c708ae89";
 /**
  * Sends the data to the amazon server. It assumes all the fields are url encoded,
  * and will not try to encode.
@@ -47,7 +47,7 @@ int send_log_to_server(const string uid, const string log, int test=1) {
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, payload.size());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload.c_str());
         /* Add the certificate */
-        curl_easy_setopt(curl, CURLOPT_CAINFO, CAFILE);
+        // curl_easy_setopt(curl, CURLOPT_CAINFO, CAFILE);
 
         // Till I can fix this weird bug
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
@@ -67,8 +67,7 @@ int send_log_to_server(const string uid, const string log, int test=1) {
         res = curl_easy_perform(curl);
         /* Check for errors */
         if(res != CURLE_OK){
-            LOG_ERROR << "curl_easy_perform() failed: "<< curl_easy_strerror(res)
-                 << "\nCAFILE: " << CAFILE << endl;
+            LOG_ERROR << "curl_easy_perform() failed: "<< curl_easy_strerror(res);
 //            // try old cert once
 //            curl_easy_setopt(curl, CURLOPT_CAINFO, OLD_CAFILE);
 //            res = curl_easy_perform(curl);

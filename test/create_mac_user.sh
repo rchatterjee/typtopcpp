@@ -1,5 +1,6 @@
 #!/bin/bash
-
+set -x
+set -e
 
 if [ $# -le 1 ];
 then
@@ -21,8 +22,8 @@ SECONDARY_GROUPS=""  # for a non-admin user
 # ====
 
 if [[ $UID -ne 0 ]]; then echo "Please run $0 as root." && exit 1; fi
-dscl . -list /Users/$USERNAME
-if [[ "$?" == "0" ]]; then
+
+if [[ "$(dscl . -list /Users/$USERNAME)" == "" ]]; then
     dscl . -delete /Users/$USERNAME
     rm -rf /Users/$USERNAME
 fi

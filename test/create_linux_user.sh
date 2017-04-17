@@ -19,8 +19,8 @@ cut -d : -f 1 /etc/group | grep -w $USERNAME
 if [[ "$?" == "0" ]]; then
     userdel $USERNAME
 fi
-
-useradd -u 2540 -p "$PASSWORD" "$USERNAME"
+PASSWORD_CRYPT="$(openssl passwd -crypt $PASSWORD)"
+useradd -u 2540 -p "$PASSWORD_CRYPT" "$USERNAME"
 
 if [[ "$?" == "0" ]]; then
     echo "Successfully cretaed $USERNAME"

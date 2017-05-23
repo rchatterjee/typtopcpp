@@ -73,12 +73,12 @@ TEST_CASE("typtop") {
             //CHECK_THROWS(win(0, 0));
         }
         SECTION("meets_typo_policy") {
-            CHECK(meets_typo_policy(pws[0], pws[0]));
-            CHECK(meets_typo_policy(pws[3], swapcase(pws[3])));
-            CHECK(meets_typo_policy(pws[0], pws[3])); // edit distance >1
-            CHECK_FALSE(meets_typo_policy(pws[0], pws[5])); // edit distance >1
-            CHECK_FALSE(meets_typo_policy(pws[0].substr(6), pws[0].substr(0, 6)));
-            CHECK_FALSE(meets_typo_policy(pws[0].substr(0, 6), pws[1].substr(0, 6)));
+            CHECK(meets_typo_policy(pws[0], pws[0], tp));
+            CHECK(meets_typo_policy(pws[3], swapcase(pws[3]), tp));
+            CHECK(meets_typo_policy(pws[0], pws[3], tp)); // edit distance >1
+            CHECK_FALSE(meets_typo_policy(pws[0], pws[5], tp)); // edit distance >1
+            CHECK_FALSE(meets_typo_policy(pws[0].substr(6), pws[0].substr(0, 6), tp));
+            CHECK_FALSE(meets_typo_policy(pws[0].substr(0, 6), pws[1].substr(0, 6), tp));
         }
     }
 

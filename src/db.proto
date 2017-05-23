@@ -1,5 +1,12 @@
 package typtop;
 
+message TypoPolicy {
+    optional int32 edit_cutoff=1 [default = 1];
+    optional int32 abs_entcutoff=2 [default = 10];
+    optional int32 rel_entcutoff=3 [default = 3];
+    optional int32 min_length=4 [default = 6];
+}
+
 message Log {
     required bool  in_cache = 1;
     required bool  istop5fixable = 2;
@@ -16,6 +23,7 @@ message ConfigHeader {
     optional int32 period_for_sending_log = 2 [default = 21600]; // 6 hours
     optional int32 typo_expiry_time = 7 [default = 864000];  // expire a typo if not used in 10 days
     optional bool  allow_upload = 3 [default = true];
+    optional TypoPolicy tp = 8;
     required string install_id = 4;
     required bytes public_key = 5;
     required bytes global_salt = 6;

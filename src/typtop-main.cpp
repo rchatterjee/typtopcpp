@@ -3,10 +3,11 @@
 //
 
 #include "typtop.h"
-// #include <unistd.h>
+#include "typtopconfig.h"
+#include <unistd.h>
 #include <security/pam_appl.h>
 #include <pwd.h>
-#include <zconf.h>
+
 
 
 string curr_user() {
@@ -14,29 +15,27 @@ string curr_user() {
     return passwd->pw_name;
 }
 
-#ifdef WIN32
-#define OS_SEP '\\'
-#define USERDB_LOC "/somewhere/I/don't/know/"
-#else
-#define USERDB_LOC "/usr/local/etc/typtop.d/"
-#define OS_SEP '/'
-#endif
-
 /**
  * Main functionalities are
  * 1> --check <username> <were_correct>
  * 2> --status <username>
- * 3> --upload [all]|<username>
+ * 3> --upload <username>
  * 4> --mytypos <username>
- * 5> --log <username>
+ * 5> --mylogs <username>
+ * 6> --participate <username> [yes]|no
+ * 7> --allowtypo <username> [yes]|no
+ * 8> --uninstall (Have to be root)
  */
 string USAGE = "\nUsage: typtop [func] [options]"
         "\nfunc can be any one of --status, --upload, --mytypos, [and --check]"
         "\n --check <username> <were_correct>"
         "\n --status <username>"
-        "\n --upload [all]|<username>"
+        "\n --upload <username>"
         "\n --mytypos <username>"
-        "\n --log <username>\n"
+        "\n --mylogs <username>\n"
+        "\n --participate <username> [yes]|no"
+        "\n --allowtypo <username> [yes]|no"
+        "\n --change-typopolicy"   // TODO: Do it interactively
         "\n --uninstall\n"
         "\nex:\n"
         "typtop --status $USER"
@@ -59,7 +58,6 @@ string user_db(const string& user) {
 #include <windows.h>
 #else
 #include <termios.h>
-
 #endif
 
 void SetStdinEcho(bool enable = true) {
@@ -74,7 +72,6 @@ void SetStdinEcho(bool enable = true) {
         mode |= ENABLE_ECHO_INPUT;
 
     SetConsoleMode(hStdin, mode );
-
 #else
     struct termios tty;
     tcgetattr(STDIN_FILENO, &tty);
@@ -138,6 +135,40 @@ vector<string> find_what_in(const TypTop& tp, string const &real_pw) {
     return present;
 }
 
+void get_typo_policy(TypTop& tp) {
+    int ed_cutoff = 1;
+    int abs_entcutoff = 10;
+    int rel_entcutoff = 3;
+    cerr << "This settings decide what typos will be considered for tolerating into the cache.\n"
+            "There are three parameter that can be tuned for this. \n"
+            "1) Edit-distance cutoff: The edit distance between the typo and real password. This \n"
+            "   is a distance to decide how different the typo is. So, if this threshold is set to 1,\n"
+            "   then 'supersec2' and 'supersec3' will be considered typos of 'Supersec2', but not 'supersec34'\n"
+            "\n"
+            "2) Absolute cutoff of entropy: how easy to guess typos should be considered.\n"
+            "   For example, if this threshold is set ot 10, then '12345!6' will be considered as typo of\n"
+            "   '1234516', but not '123456', though both of them are within edit distance 1."
+            "\n"
+            "3) Relative entropy cutoff: how weaker the typo will be allowed. A default value of this is set to\n"
+            "   3, thus 'Password1&' will be allowed as a typo of 'Password17' but not 'Password1'\n"
+            "\n\nI would recommend read the paper on TypTop before trying to change this values.\n\n";
+
+    do{
+        cout << "\nHow far typo should be allowed? Edit-cutoff (0-3) [1]: ";
+        cin >> ed_cutoff;
+    } while (ed_cutoff <=3 && ed_cutoff >=0);
+    do{
+        cout << "\nHow weak typo should be allowed? Absolute entropy cutoff (0-30) [10]: ";
+        cin >> abs_entcutoff;
+    } while (abs_entcutoff <=30 && abs_entcutoff >=0);
+    do{
+        cout << "\nHow weaker typo should be allowed? Relative entropy cutoff (0-20) [10]: ";
+        cin >> rel_entcutoff;
+    } while (rel_entcutoff <=30 && rel_entcutoff >=0);
+    tp.set_typo_policy(ed_cutoff, abs_entcutoff, rel_entcutoff);
+}
+
+
 void ensure_root() {
     if (seteuid(0) != 0){
         cerr << "Not running as root. Your uid=" << geteuid() << endl;
@@ -189,9 +220,13 @@ int main(int argc, char *argv[])  {
                     cerr << " --> " << typo << endl;
                 }
             }
-        } else if (strncmp("--log", argv[1], 5) == 0 && argc==3) {
+        } else if (strncmp("--mylogs", argv[1], 5) == 0 && argc==3) {
             tp.print_log();
         } else if (strncmp("--uninstall", argv[1], 11) == 0 && (argc==2 || argc==3)) {
+            if(geteuid() != 0) {
+                cerr << "Need to be root to be able to call this!" << endl;
+                exit(-1);
+            }
             string y;
             if(argc==3 && string(argv[2])=="-y")
                 y = "y";
@@ -203,15 +238,31 @@ int main(int argc, char *argv[])  {
                 int ret = system("sudo bash /usr/local/bin/typtop.prerm");
                 if (ret==0)
                     cerr << "The typtop has been disengaged from your authentication system.\n"
-                         << "The binary might be still there and you can remove it manually." << endl;
+                            "The binary might be still there and you can remove it manually.\n"
+                            "The data file is left in " << USERDB_LOC << " in case you change\n"
+                            "your mind. You can delete the directory for safety."
+                         << endl;
                 else
                     cerr << "Ther was some issue with unistalling typtop. Can you check by relogging.\n"
                          << "If everything works, then you are good to go. Delete typtop executable, \n"
                          << "and /usr/local/etc/typtop.d directory for your safety.";
                 // TODO: remove the files in manifest file
             }
+        } else if (strncmp("--participate", argv[1], 13)==0 && (argc==3 || argc==4)) {
+            bool allow = true;
+            if (argc==4 && strncasecmp(argv[3], "no", 2)==0)
+                allow = false;
+            cerr << "Setting participate: " << allow << endl;
+            tp.allow_upload(allow);
+        } else if (strncmp("--allowtypo", argv[1], 13) == 0 && (argc==4 || argc==3)) {
+            bool allow = true;
+            if (argc==4 && strncasecmp(argv[3], "no", 2)==0)
+                allow = false;
+            cerr << "Setting allow typo login: " << allow << endl;
+            tp.allow_typo_login(allow);
+        } else if (strncmp("--change-typopolicy", argv[1], 19) == 0) {
         } else {
-            cerr << USAGE << endl;
+                cerr << USAGE << endl;
         }
     } catch (exception& ex) {
         cerr << __FILE__ << __func__ << ex.what() << endl;

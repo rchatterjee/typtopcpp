@@ -243,15 +243,13 @@ inline float entropy(const string& pw) {
  * @param pw: real password
  * @param typo: Whether the typo can be allowed to get into the cache
  */
-inline bool meets_typo_policy(const string& pw, const string& typo) {
-    // TODO: Add entropy requirements
-#ifdef ENTROYP_CUTOFF
+inline bool meets_typo_policy(const string& pw, const string& typo, const typtop::TypoPolicy& tp) {
     double entropy_pw = entropy(pw);
     double entropy_typo = entropy(pw);
-    if (entropy_typo < entropy_pw - ENTROPY_CUTOFF) return false;
-#endif
-    // if (entropy_typo < 10) return false;  // ignore it for now
-    return typo.size() > 6 && edit_distance(pw, typo) <= EDIST_CUTOFF;
+    if (entropy_typo < (entropy_pw - tp.rel_entcutoff()) or
+        entropy_typo < tp.abs_entcutoff())
+        return false;
+    return typo.size() > tp.min_length() && edit_distance(pw, typo) <= tp.edit_cutoff();
 }
 
 #endif //TYPTOP_C_TYPO_UTIL_HPP

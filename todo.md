@@ -44,7 +44,7 @@ TODO
   - Have configure option with typtop-main.cpp that lets users configure how they want to use typtop.
     To enable this, I first have to have a configure file.
   - How to update typtop? Should be a configurable option.
-
+  - Add typo expiry
 
 * **Bug**
   - Many paths used in the code is absolute, I should move it to relative or install_prefix dependent.

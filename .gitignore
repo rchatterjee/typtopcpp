@@ -38,3 +38,4 @@ cmake-*
 
 # OSX
 .DS_Store
+.typtop.uniq.id

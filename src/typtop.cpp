@@ -160,7 +160,7 @@ void TypTop::initialize(const string &real_pw) {
     string _t, sk_ctx;
 
     for (int i = 0; i < T_size; i++) {
-        if (T_cache[i].empty() || !meets_typo_policy(real_pw, T_cache[i])) { // generate random
+        if (T_cache[i].empty() || !meets_typo_policy(real_pw, T_cache[i], db.ch().tp())) { // generate random
             T_cache[i].resize(DEFAULT_PW_LENGTH, 0);
             PRNG.GenerateBlock((byte *) T_cache[i].data(), T_cache[i].size());
         } else {
@@ -403,7 +403,7 @@ void TypTop::process_waitlist(const string &sk_str) {
         wlent.ParseFromString(wlent_str);
         if (wlent.ts() > 0) // no points logging the garbage of the Wait-list
             insert_into_log(wlent.pw(), false, wlent.ts());
-        if (meets_typo_policy(real_pw, wlent.pw())) {
+        if (meets_typo_policy(real_pw, wlent.pw(), db.ch().tp())) {
             wl_typo[wlent.pw()] = wl_typo[wlent.pw()] + 1; // stl map initialized to 0 by default!!
         }
     }
@@ -455,8 +455,16 @@ void TypTop::allow_typo_login(bool b) {
     }
 }
 
-#include "upload.cpp"
+void TypTop::set_typo_policy(int edit_cutoff, int abs_entcutoff, int rel_entcutoff) {
+    if(db.IsInitialized()) {
+        TypoPolicy* tp = db.mutable_ch()->mutable_tp();
+        tp->set_edit_cutoff(edit_cutoff);
+        tp->set_abs_entcutoff(abs_entcutoff);
+        tp->set_rel_entcutoff(rel_entcutoff);
+    }
+}
 
+#include "upload.cpp"
 int TypTop::send_log(void) {
 #ifdef DEBUG
     int test = 1;

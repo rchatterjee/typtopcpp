@@ -10,17 +10,19 @@
 #include <security/pam_appl.h>
 #include <security/openpam.h>
 #else
-
 #include <security/pam_misc.h>
 #include <security/pam_ext.h>
-
 #endif
 
 #include <stdio.h>
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <dirent.h>
+#include <libgen.h>
 #include "catch.hpp"
+#include "typtopconfig.h"
+#include <stdlib.h>
 
 using namespace std;
 
@@ -66,11 +68,11 @@ const vector<string> pws = {
         "hlelo_pass", // 4, ed=1
         "Hello_Pass",  // 5, ed=2
 };
+const string user = "tmptyptop";
 
 TEST_CASE("Check Install") {
     const string prepare = "sudo useradd tmptyptop -p $(openssl passwd -crypt hello_pass)"
             " && sudo rm -rf /usr/local/etc/typtop.d/tmptyptop";
-    const string user = "tmptyptop";
     SECTION("Basic") {
         int i = 0;
         for (string pw: pws) {
@@ -89,6 +91,17 @@ TEST_CASE("Check Install") {
         REQUIRE(auth(user.c_str(), pws[1].c_str()));
         REQUIRE(auth(user.c_str(), pws[4].c_str()));
     }
+}
+
+TEST_CASE("Check Uninstall") {
+    const char* cmd = (const char*)"sudo typtop --uninstall -y";
+    system(cmd);
+    // REQUIRE_FALSE(opendir(USERDB_LOC));
+    REQUIRE(auth(user.c_str(), pws[0].c_str()));
+    REQUIRE_FALSE(auth(user.c_str(), pws[1].c_str()));
+    REQUIRE_FALSE(auth(user.c_str(), pws[2].c_str()));
+    REQUIRE_FALSE(auth(user.c_str(), pws[3].c_str()));
+    REQUIRE_FALSE(auth(user.c_str(), pws[4].c_str()));
 }
 
 //

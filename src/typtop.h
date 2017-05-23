@@ -62,6 +62,7 @@ public:
     void allow_upload(bool b);
     void allow_typo_login(bool b);
     void status() const;
+    void set_typo_policy(int edit_cutoff, int abs_entcutoff, int rel_entcutoff);
 
 protected:
     void fill_waitlist_w_garbage();
@@ -76,6 +77,7 @@ protected:
     inline const typoDB& get_db(){ return db; }
     inline const PkCrypto& get_pkobj(){return pkobj;}
     inline const EncHeaderData& get_ench(){return ench;}
+
 };
 
 

@@ -1,4 +1,8 @@
 #!/bin/bash
+# Not used anywhere
+# DO NOT RUN THIS
+exit;
+
 set -e
 set -u
 set -x

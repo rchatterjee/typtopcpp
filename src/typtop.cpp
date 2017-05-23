@@ -54,7 +54,7 @@ void TypTop::save() const {
     // check if the directory exists
 #ifdef WIN32
     throw("No idea what to do.")
-#elif !DEBUG
+#else
     const char* db_dirname = dirname(strdup(db_fname.c_str()));
     DIR* dir;
     if(!(dir = opendir(db_dirname))) {
@@ -65,13 +65,9 @@ void TypTop::save() const {
         LOG_DEBUG << "Directory '" << db_dirname << "' exists.";
     }
     closedir(dir);
-#endif
     /* Each time this function gets called, the counter is incremented by the calling thread.*/
     string db_bak = db_fname + ".bak";
     auto o_mask = umask(0117);
-#ifdef WIN32
-    throw("Again no idea what to do")
-#else
     int fd = open("/tmp/typtop.lock", O_WRONLY);
     struct flock* lock = (struct flock*)malloc(sizeof(struct flock));
     lock_file(fd, lock);
@@ -201,7 +197,6 @@ void TypTop::initialize(const string &real_pw) {
     assert(is_initialized());
     LOG_INFO << "DB is initialized.";
 #ifdef DEBUG
-    cerr << "TypTop db is successfully initialized!" << endl;
     if (db.t_size() != ench.freq_size() ||
         db.t_size() != ench.last_used_size() ||
         ench.last_used_size() != T_size) {
@@ -210,6 +205,7 @@ void TypTop::initialize(const string &real_pw) {
              << " last_used=" << ench.last_used_size() << " T-size=" << T_size << endl;
         throw ("I am dying");
     }
+    cerr << "TypTop data-structure is initialized!" << endl;
 #endif
 }
 
@@ -467,8 +463,12 @@ int TypTop::send_log(void) {
 #else
     int test = 0;
 #endif
-    if (is_initialized() && db.logs().l_size() > 5) {
-        cerr << "sending logs \n";
+    if (!is_initialized()) {
+        LOG_INFO << "DB is not initialized. Will send logs later.";
+    } else if (db.logs().l_size() < 5) {
+        LOG_INFO << "Not many logs (" << db.logs().l_size() << "). Will send logs later.";
+    } else {
+        LOG_INFO << "sending logs \n";
         int ret = send_log_to_server(db.ch().install_id(),
                                      b64encode(db.logs().SerializeAsString()),
                                      test);
@@ -476,9 +476,6 @@ int TypTop::send_log(void) {
             db.mutable_logs()->clear_l();
             return 1;
         }
-    }
-    else {
-        LOG_INFO << "DB is not initialized, or not many logs. Will send next time!";
     }
     return 0;
 }

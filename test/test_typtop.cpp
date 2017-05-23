@@ -272,6 +272,23 @@ TEST_CASE("typtop") {
         }
     }
 
+    SECTION("Timing") {
+        remove(_db_fname.c_str());
+        TypTopTest tp;
+        tp.check(pws[0], SECOND_TIME); // set the password
+
+        SECTION("Wrong password") {
+            times(100, CHECK_FALSE(tp.check(pws[4], FIRST_TIME)))
+        }
+
+        SECTION("Correct password") {
+            times(100, CHECK(tp.check(pws[0], FIRST_TIME)))
+        }
+
+        SECTION("Intiation") {
+        }
+    }
+
     SECTION("Typtop extra utilities") {
         // TODO: Other extra features
     }

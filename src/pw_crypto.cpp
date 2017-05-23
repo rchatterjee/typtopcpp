@@ -15,7 +15,7 @@ using CryptoPP::GCM;
  */
 void hash256(const std::vector<string>& msgvec, SecByteBlock& digest ) {
     SHA256 hash;
-    digest.resize(SHA256::DIGESTSIZE);
+    digest.resize((unsigned long) SHA256::DIGESTSIZE);
     for (auto it=msgvec.begin(); it != msgvec.end(); it++) {
         hash.Update((const byte*)it->data(), it->size());
         string _it_size = std::to_string(it->size());

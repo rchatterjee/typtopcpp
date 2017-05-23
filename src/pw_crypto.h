@@ -89,7 +89,7 @@ using CryptoPP::Base64URLDecoder;
 typedef unsigned long ulong;
 
 static const uint8_t KEYSIZE_BYTES = AES::DEFAULT_KEYLENGTH;  // key size 16 bytes
-static const uint32_t PBKDF_ITERATION_CNT = 1000;
+static const uint32_t PBKDF_ITERATION_CNT = 20000;   // number of hash iterations
 static const uint32_t MAC_SIZE_BYTES = 16; // size of tag
 static AutoSeededRandomPool PRNG;  // instantiate only one class
 static const OID CURVE = secp256r1();

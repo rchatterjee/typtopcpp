@@ -11,17 +11,18 @@ find_library(PROTOBUF_STATIC_LIB libprotobuf.a PROTO_LIB_DIR)
 
 
 find_package(CURL REQUIRED)
-# CA Certs
-# SET(DEBUG 1)
-# TODO: Change this for release
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
-    message("--> It thinks DEBUG MODE")
-    SET(CAFILE "${CMAKE_SOURCE_DIR}/src/typtop.d/typtopserver.crt")
-    SET(OLD_CAFILE "${CMAKE_SOURCE_DIR}/src/typtop.d/old_typtopserver.crt")
-else()
-    SET(CAFILE "${CMAKE_INSTALL_PREFIX}/etc/typtop.d/typtopserver.crt")
-    SET(OLD_CAFILE "${CMAKE_INSTALL_PREFIX}/etc/typtop.d/old_typtopserver.crt")
+    SET(DEBUG 1)
 endif()
+# CA Certs
+#if(CMAKE_BUILD_TYPE MATCHES "Debug")
+#    message("--> It thinks DEBUG MODE")
+#    SET(CAFILE "${CMAKE_SOURCE_DIR}/src/typtop.d/typtopserver.crt")
+#    SET(OLD_CAFILE "${CMAKE_SOURCE_DIR}/src/typtop.d/old_typtopserver.crt")
+#else()
+#    SET(CAFILE "${CMAKE_INSTALL_PREFIX}/etc/typtop.d/typtopserver.crt")
+#    SET(OLD_CAFILE "${CMAKE_INSTALL_PREFIX}/etc/typtop.d/old_typtopserver.crt")
+#endif()
 
 # configure a header file to pass some of the CMake settings
 # to the source code

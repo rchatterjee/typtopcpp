@@ -1,4 +1,4 @@
-#cmakedefine DEBUG
+// #cmakedefine DEBUG
 #define DB_ROOT "@INSTALL_DATA_DIR@/typtop.d"
 #cmakedefine LOG_DIR
 

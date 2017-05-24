@@ -76,10 +76,12 @@ TEST_CASE("Check Install") {
     SECTION("Basic") {
         int i = 0;
         for (string pw: pws) {
-            if (i <= 3)
+            if (i <= 3) {
+                cerr << "Trying " << i << " " << user << " " << pw << endl;
                 REQUIRE(auth(user.c_str(), pw.c_str()));
-            else
+            } else {
                 REQUIRE_FALSE(auth(user.c_str(), pw.c_str()));
+            }
             i++;
         }
         auth(user.c_str(), pws[4].c_str());

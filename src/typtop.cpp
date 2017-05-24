@@ -17,13 +17,7 @@ using CryptoPP::FileSource;
 pthread_mutex_t db_lock = PTHREAD_MUTEX_INITIALIZER;
 
 TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
-#ifdef DEBUG
-    std::srand(254);
     setup_logger(plog::debug);
-#else
-    std::srand( (unsigned)std::time(0) );
-    setup_logger(plog::info);
-#endif
     LOG_INFO << " -- TypTop Begin -- ";
     google::protobuf::SetLogHandler(NULL);  // stop annoying protobuf error messages
     auto o_mask = umask(0117);
@@ -58,7 +52,7 @@ void TypTop::save() const {
     const char* db_dirname = dirname(strdup(db_fname.c_str()));
     DIR* dir;
     if(!(dir = opendir(db_dirname))) {
-        cerr << "Trying to create directory " << db_dirname << ".\n";
+        LOGD << "Trying to create directory " << db_dirname << ".\n";
         if(mkdir(db_dirname, 0775) != 0) // (S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)))
             LOG_ERROR << strerror(errno) << " " << getuid() << endl;
     } else {
@@ -163,8 +157,10 @@ void TypTop::initialize(const string &real_pw) {
         if (T_cache[i].empty() || !meets_typo_policy(real_pw, T_cache[i], db.ch().tp())) { // generate random
             T_cache[i].resize(DEFAULT_PW_LENGTH, 0);
             PRNG.GenerateBlock((byte *) T_cache[i].data(), T_cache[i].size());
+            if (!T_cache[i].empty()) LOGD << "Skipping: " << T_cache[i];
         } else {
             insert_into_log(T_cache[i], true, -1); // sets L
+            LOGD << "Inserting: " << T_cache[i];
         }
         pwencrypt(T_cache[i], sk_str, sk_ctx);
         // LOG_DEBUG << "Inserting " << T_cache[i] << " at " << i;
@@ -205,7 +201,7 @@ void TypTop::initialize(const string &real_pw) {
              << " last_used=" << ench.last_used_size() << " T-size=" << T_size << endl;
         throw ("I am dying");
     }
-    cerr << "TypTop data-structure is initialized!" << endl;
+    LOGD << "TypTop data-structure is initialized!" << endl;
 #endif
 }
 
@@ -216,13 +212,13 @@ void TypTop::insert_into_log(const string &pw, bool in_cache, time_t ts) {
     size_t len = pw.size();
     // Why 10, that's the 3-quartile of RockYou dataset with passwords>6. 
     int pass_complexity = (len>10 || _this_pw_ent>32)?1:0;
+    SecByteBlock g_salt((const byte *) db.ch().global_salt().data(), db.ch().global_salt().size());
     Log *l = db.mutable_logs()->add_l();
     l->set_in_cache(in_cache);
     l->set_istop5fixable(top5fixable(real_pw, pw));
     l->set_edit_dist(min(edit_distance(pw, real_pw), 5));
     l->set_rel_entropy(_this_pw_ent - ench.pw_ent());
     l->set_pass_complexity(pass_complexity);
-    SecByteBlock g_salt((const byte *) db.ch().global_salt().data(), db.ch().global_salt().size());
     l->set_tid(compute_id(g_salt, pw));
     l->set_ts((int64_t)ts);
     l->set_localtime(localtime());
@@ -316,16 +312,17 @@ bool TypTop::check(const string &pw, PAM_RETURN pret) {
             if(i == 0)
                 LOG_INFO << "Accepting the real password!";
             else {
-                if(db.ch().allowed_typo_login())
+                if(db.ch().allowed_typo_login() && meets_typo_policy(this->real_pw, pw, db.ch().tp()))
                     LOG_INFO << "Accepting a typo!";
                 else {
                     LOG_INFO << "Typo is rejected because of the allow_typo_log is "
-                             << db.ch().allowed_typo_login() << endl;
+                             << db.ch().allowed_typo_login();
+                    LOG_INFO << " or does not meet the typo-policy"
+                             << db.ch().tp().SerializePartialAsString();
                     return false;
                 }
             }
 #ifndef DEBUG
-            assert (false);
             if(db.ch().allow_upload())
                 if(fork() == 0) { // in child make a network call
                     send_log();
@@ -455,12 +452,16 @@ void TypTop::allow_typo_login(bool b) {
     }
 }
 
+const TypoPolicy& TypTop::get_typo_policy() {
+    return db.ch().tp();
+}
+
 void TypTop::set_typo_policy(int edit_cutoff, int abs_entcutoff, int rel_entcutoff) {
     if(db.IsInitialized()) {
         TypoPolicy* tp = db.mutable_ch()->mutable_tp();
-        tp->set_edit_cutoff(edit_cutoff);
-        tp->set_abs_entcutoff(abs_entcutoff);
-        tp->set_rel_entcutoff(rel_entcutoff);
+        if(edit_cutoff>=0) tp->set_edit_cutoff(edit_cutoff);
+        if(abs_entcutoff>=0) tp->set_abs_entcutoff(abs_entcutoff);
+        if(rel_entcutoff>=0) tp->set_rel_entcutoff(rel_entcutoff);
     }
 }
 
@@ -510,10 +511,15 @@ void TypTop::status() const {
          << "  Login attempts: " << db.h().login_count() << endl
          << "  Typos made: " << typo_count << endl
          << "  Logins allowed by TypTop: " << saved << endl
-         << "  Volunteer for the study: " << 1 << endl
-         << "  Allow login with typos: " << 1 << endl << endl;
+         << "  Volunteer for the study: " << db.ch().allow_upload() << endl
+         << "  Allow login with typos: " << db.ch().allowed_typo_login() << endl;
+    const typtop::TypoPolicy& tp = db.ch().tp();
+    cout << "  TypoPolicy: \n"
+         << "\t EditDistance Cutoff: " << tp.edit_cutoff() << endl
+         << "\t Absolute Entropy Cutoff: " << tp.abs_entcutoff() << endl
+         << "\t Relative Entropy Cutoff: " << tp.rel_entcutoff() << endl << endl;
 #ifdef DEBUG
-    cout << "(Debug is on)";
+    cout << "(Debug is on)\n";
 #endif
 }
 

@@ -35,7 +35,8 @@ string USAGE = "\nUsage: typtop [func] [options]"
         "\n --mylogs <username>\n"
         "\n --participate <username> [yes]|no"
         "\n --allowtypo <username> [yes]|no"
-        "\n --change-typopolicy"   // TODO: Do it interactively
+        "\n --change-typopolicy\n"
+
         "\n --uninstall\n"
         "\nex:\n"
         "typtop --status $USER"
@@ -248,13 +249,13 @@ int main(int argc, char *argv[])  {
                          << "and /usr/local/etc/typtop.d directory for your safety.";
                 // TODO: remove the files in manifest file
             }
-        } else if (strncmp("--participate", argv[1], 13)==0 && (argc==3 || argc==4)) {
+        } else if (strncmp("--participate", argv[1], 13)==0 && argc==4) {
             bool allow = true;
             if (argc==4 && strncasecmp(argv[3], "no", 2)==0)
                 allow = false;
-            cerr << "Setting participate: " << allow << endl;
+            cerr << "Setting participate: " << allow << " " << argv[3] << endl;
             tp.allow_upload(allow);
-        } else if (strncmp("--allowtypo", argv[1], 13) == 0 && (argc==4 || argc==3)) {
+        } else if (strncmp("--allowtypo", argv[1], 13) == 0 && argc==4) {
             bool allow = true;
             if (argc==4 && strncasecmp(argv[3], "no", 2)==0)
                 allow = false;

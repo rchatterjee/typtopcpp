@@ -32,176 +32,176 @@ public:
     using TypTop::reinitialize;
 };
 
-TEST_CASE("typtop") {
 
+TEST_CASE("typtop_util") {
     install_id = get_install_id();
-    SECTION("typtop_util functions") {
-        SECTION("edit_distance") {
-            byte b[] = {0x32, 0xf4, 0x32, 0x65, 0xff};
-            string b_str((char *) b, 5);
-            REQUIRE(edit_distance(pws[0], pws[0]) == 0);
-            CHECK(edit_distance(b_str, b_str) == 0);
-            CHECK(edit_distance(pws[0], pws[1]) == 1);
-            CHECK(edit_distance(pws[0], pws[2]) == 1);
-            CHECK(edit_distance(pws[0], pws[3]) == 1);
-            CHECK(edit_distance(pws[0], pws[4]) == 1);
-            CHECK(edit_distance(pws[0], pws[5]) == 2);
+    SECTION("edit_distance") {
+        byte b[] = {0x32, 0xf4, 0x32, 0x65, 0xff};
+        string b_str((char *) b, 5);
+        REQUIRE(edit_distance(pws[0], pws[0]) == 0);
+        CHECK(edit_distance(b_str, b_str) == 0);
+        CHECK(edit_distance(pws[0], pws[1]) == 1);
+        CHECK(edit_distance(pws[0], pws[2]) == 1);
+        CHECK(edit_distance(pws[0], pws[3]) == 1);
+        CHECK(edit_distance(pws[0], pws[4]) == 1);
+        CHECK(edit_distance(pws[0], pws[5]) == 2);
+    }
+    SECTION("get_typos") {
+        vector<string> typos(10);
+        // hello_pass
+        vector<string> should_be = {
+                "Hello_pass", "HELLO_PASS", "hello_pass1", "ello_pass", "hello_pas",
+                "hello_pass`"
+        };
+        get_typos(pws[0], typos);
+        REQUIRE(typos.size() == 10);
+        CHECK(std::find(typos.begin(), typos.end(), pws[0]) == typos.end());
+        for (auto ti: should_be) {
+            CHECK(std::find(typos.begin(), typos.end(), ti) != typos.end());
         }
-        SECTION("get_typos") {
-            vector<string> typos(10);
-            // hello_pass
-            vector<string> should_be = {
-                    "Hello_pass", "HELLO_PASS", "hello_pass1", "ello_pass", "hello_pas",
-                    "hello_pass`"
-            };
+    }
+    SECTION("win(f_o, f_n)") {
+        REQUIRE(win(0, INT_MAX));
+        REQUIRE_FALSE(win(-1, 0));
+        REQUIRE(win(-1, 1));
+        REQUIRE(win(-1, INT_MAX));
+        REQUIRE_FALSE(win(INT_MAX, 0));
+        REQUIRE_FALSE(win(INT_MAX, INT_MAX));
+        REQUIRE_FALSE(win(INT_MAX - 4, 5));
+        CHECK_FALSE(win(1, 0));
+        //CHECK_THROWS(win(0, 0));
+    }
+    SECTION("meets_typo_policy") {
+        const typtop::TypoPolicy tp;
+        CHECK(meets_typo_policy(pws[0], pws[0], tp));
+        CHECK(meets_typo_policy(pws[3], swapcase(pws[3]), tp));
+        CHECK(meets_typo_policy(pws[0], pws[3], tp)); // edit distance >1
+        CHECK_FALSE(meets_typo_policy(pws[0], pws[5], tp)); // edit distance >1
+        CHECK_FALSE(meets_typo_policy(pws[0].substr(6), pws[0].substr(0, 6), tp));
+        CHECK_FALSE(meets_typo_policy(pws[0].substr(0, 6), pws[1].substr(0, 6), tp));
+    }
+}
+
+TEST_CASE("Test TypTop DB") {
+    install_id = get_install_id();
+    remove(_db_fname.c_str()); // fresh initialization
+    TypTopTest tp;
+    const typoDB &db = tp.get_db();
+    REQUIRE(db.h().sys_state() == SystemStatus::UNINITIALIZED);
+    tp.check(pws[0], SECOND_TIME);
+    REQUIRE(db.h().sys_state() == SystemStatus::ALL_GOOD);
+    const PkCrypto &pkobj = tp.get_pkobj();
+    REQUIRE(db.w_size() == W_size);
+    REQUIRE(db.t_size() == T_size);
+
+    SECTION("Install id") {
+        CHECK(tp.this_install_id() == install_id);
+        CHECK(db.ch().install_id() == install_id);
+    }
+
+    SECTION("post install checks") {
+        EncHeaderData ench;
+        string ench_str, ctx, rdata, sk_str;
+
+        PkCrypto mut_pkobj(pkobj);
+        REQUIRE(pwdecrypt(pws[0], db.t(0), sk_str));
+        mut_pkobj.set_sk(sk_str);
+        // decrypt real_pw
+        mut_pkobj.pk_decrypt(db.h().enc_header(), ench_str);
+        REQUIRE(ench.ParseFromString(ench_str));
+        REQUIRE(ench.freq_size() == T_size);
+        REQUIRE(ench.last_used_size() == T_size);
+
+        SECTION("check permutation") {
+            vector<string> T(db.t().begin(), db.t().end());
+            tp.permute_typo_cache(sk_str);
+            const EncHeaderData &new_ench = tp.get_ench();
+            CHECK(db.t(0) == T[0]); // Fist index should always match
+            CHECK(new_ench.last_used(0) == ench.last_used(0));
+            CHECK(new_ench.freq(0) == ench.freq(0));
+            int j = 0;
+            bool at_least_permuted = false;
+            for (int i = 0; i < T_size; i++) {
+                for (j = 0; j < T_size; j++) {
+                    if (new_ench.freq(j) == ench.freq(i)) {
+                        CHECK(new_ench.last_used(j) == ench.last_used(i));
+                        CHECK(T[i] == db.t(j));
+                        at_least_permuted |= (i != j);
+                        // cerr << i << " <<-->> " << j << endl;
+                        break;
+                    }
+                }
+                REQUIRE(j < T_size);
+            }
+            // REQUIRE(at_least_permuted); // TODO: Fix permute cache function;
+        }
+
+        SECTION("Verify inserted typos") {
+            vector<string> typos(T_size);
             get_typos(pws[0], typos);
-            REQUIRE(typos.size() == 10);
-            CHECK(std::find(typos.begin(), typos.end(), pws[0]) == typos.end());
-            for (auto ti: should_be) {
-                CHECK(std::find(typos.begin(), typos.end(), ti) != typos.end());
+            string sK_str;
+            typos.insert(typos.begin(), pws[0]);
+            REQUIRE(pwdecrypt(pws[0], db.t(0), sk_str));
+            for(int j=1; j<T_size; j++) {
+                size_t i=0;
+                for(i=0; i<typos.size(); i++){
+                    // cerr << "<<-- checking >> " << typos[i] << endl;
+                    if (pwdecrypt(typos[i], db.t(j), sk_str))
+                        break;
+                }
+                CHECK(i < typos.size());
             }
         }
-        SECTION("win(f_o, f_n)") {
-            REQUIRE(win(0, INT_MAX));
-            REQUIRE_FALSE(win(-1, 0));
-            REQUIRE(win(-1, 1));
-            REQUIRE(win(-1, INT_MAX));
-            REQUIRE_FALSE(win(INT_MAX, 0));
-            REQUIRE_FALSE(win(INT_MAX, INT_MAX));
-            REQUIRE_FALSE(win(INT_MAX - 4, 5));
-            CHECK_FALSE(win(1, 0));
-            //CHECK_THROWS(win(0, 0));
+
+        SECTION("Check(pw)") {
+            CHECK(db.h().sys_state() == SystemStatus::ALL_GOOD);
+            mut_pkobj.pk_decrypt(db.h().enc_header(), ench_str);
+            CHECK(tp.check(pws[0], FIRST_TIME));
+            ench.Clear();
+            ench.ParseFromString(ench_str);
+            CHECK(ench.pw() == pws[0]);
+            CHECK(tp.check(pws[0], FIRST_TIME));
         }
-        SECTION("meets_typo_policy") {
-            CHECK(meets_typo_policy(pws[0], pws[0], tp));
-            CHECK(meets_typo_policy(pws[3], swapcase(pws[3]), tp));
-            CHECK(meets_typo_policy(pws[0], pws[3], tp)); // edit distance >1
-            CHECK_FALSE(meets_typo_policy(pws[0], pws[5], tp)); // edit distance >1
-            CHECK_FALSE(meets_typo_policy(pws[0].substr(6), pws[0].substr(0, 6), tp));
-            CHECK_FALSE(meets_typo_policy(pws[0].substr(0, 6), pws[1].substr(0, 6), tp));
+
+        SECTION("step-by-step 'check' function") {
+            ench.Clear();
+            string enc_header_str;
+            /* Standard book-keeping */
+            CHECK(pwdecrypt(pws[0], db.t(0), sk_str));
+            mut_pkobj.set_sk(sk_str);
+            mut_pkobj.pk_decrypt(db.h().enc_header(), enc_header_str);
+            ench.ParseFromString(enc_header_str);
+            CHECK(ench.pw() == pws[0]);
+
+            CHECK(ench.IsInitialized());
+            string ench_ctx, _t_ench_str;
+            pkobj.pk_encrypt(ench.SerializeAsString(), ench_ctx);
+            pkobj.pk_decrypt(ench_ctx, _t_ench_str);
+            // db.mutable_h()->set_enc_header(ench_ctx);
+            CHECK(_t_ench_str == ench.SerializeAsString());
+            ench.Clear();
+        }
+
+        SECTION("Reinitializing tests") {
+            string old_salt = db.ch().global_salt();
+            tp.reinitialize(pws[0]);
+            CHECK(old_salt == db.ch().global_salt());
         }
     }
 
-    SECTION("Test TypTop DB") {
-        remove(_db_fname.c_str()); // fresh initialization
-        TypTopTest tp;
-        const typoDB &db = tp.get_db();
-        REQUIRE(db.h().sys_state() == SystemStatus::UNINITIALIZED);
-        tp.check(pws[0], SECOND_TIME);
-        REQUIRE(db.h().sys_state() == SystemStatus::ALL_GOOD);
-        const PkCrypto &pkobj = tp.get_pkobj();
-        REQUIRE(db.w_size() == W_size);
-        REQUIRE(db.t_size() == T_size);
-
-        SECTION("Install id") {
-            CHECK(tp.this_install_id() == install_id);
-            CHECK(db.ch().install_id() == install_id);
+    SECTION("add_to_waitlist") {
+        SECTION("one typo add") { // Please make sure added typo is not in the typo cache
+            int indexj = db.h().indexj();
+            tp.add_to_waitlist("Blahblah", now());
+            CHECK((indexj + 1) % W_size == db.h().indexj());
+            CHECK(db.w_size() == W_size);
         }
-
-        SECTION("post install checks") {
-            EncHeaderData ench;
-            string ench_str, ctx, rdata, sk_str;
-
-            PkCrypto mut_pkobj(pkobj);
-            REQUIRE(pwdecrypt(pws[0], db.t(0), sk_str));
-            mut_pkobj.set_sk(sk_str);
-            // decrypt real_pw
-            mut_pkobj.pk_decrypt(db.h().enc_header(), ench_str);
-            REQUIRE(ench.ParseFromString(ench_str));
-            REQUIRE(ench.freq_size() == T_size);
-            REQUIRE(ench.last_used_size() == T_size);
-
-            SECTION("check permutation") {
-                vector<string> T(db.t().begin(), db.t().end());
-                tp.permute_typo_cache(sk_str);
-                const EncHeaderData &new_ench = tp.get_ench();
-                CHECK(db.t(0) == T[0]); // Fist index should always match
-                CHECK(new_ench.last_used(0) == ench.last_used(0));
-                CHECK(new_ench.freq(0) == ench.freq(0));
-                int j = 0;
-                bool at_least_permuted = false;
-                for (int i = 0; i < T_size; i++) {
-                    for (j = 0; j < T_size; j++) {
-                        if (new_ench.freq(j) == ench.freq(i)) {
-                            CHECK(new_ench.last_used(j) == ench.last_used(i));
-                            CHECK(T[i] == db.t(j));
-                            at_least_permuted |= (i != j);
-                            // cerr << i << " <<-->> " << j << endl;
-                            break;
-                        }
-                    }
-                    REQUIRE(j < T_size);
-                }
-                // REQUIRE(at_least_permuted); // TODO: Fix permute cache function;
-            }
-
-            SECTION("Verify inserted typos") {
-                vector<string> typos(T_size);
-                get_typos(pws[0], typos);
-                string sK_str;
-                typos.insert(typos.begin(), pws[0]);
-                REQUIRE(pwdecrypt(pws[0], db.t(0), sk_str));
-                for(int j=1; j<T_size; j++) {
-                    size_t i=0;
-                    for(i=0; i<typos.size(); i++){
-                        // cerr << "<<-- checking >> " << typos[i] << endl;
-                        if (pwdecrypt(typos[i], db.t(j), sk_str))
-                            break;
-                    }
-                    CHECK(i < typos.size());
-                }
-            }
-
-            SECTION("Check(pw)") {
-                CHECK(db.h().sys_state() == SystemStatus::ALL_GOOD);
-                mut_pkobj.pk_decrypt(db.h().enc_header(), ench_str);
-                CHECK(tp.check(pws[0], FIRST_TIME));
-                ench.Clear();
-                ench.ParseFromString(ench_str);
-                CHECK(ench.pw() == pws[0]);
-                CHECK(tp.check(pws[0], FIRST_TIME));
-            }
-
-            SECTION("step-by-step 'check' function") {
-                ench.Clear();
-                string enc_header_str;
-                /* Standard book-keeping */
-                CHECK(pwdecrypt(pws[0], db.t(0), sk_str));
-                mut_pkobj.set_sk(sk_str);
-                mut_pkobj.pk_decrypt(db.h().enc_header(), enc_header_str);
-                ench.ParseFromString(enc_header_str);
-                CHECK(ench.pw() == pws[0]);
-
-                CHECK(ench.IsInitialized());
-                string ench_ctx, _t_ench_str;
-                pkobj.pk_encrypt(ench.SerializeAsString(), ench_ctx);
-                pkobj.pk_decrypt(ench_ctx, _t_ench_str);
-                // db.mutable_h()->set_enc_header(ench_ctx);
-                CHECK(_t_ench_str == ench.SerializeAsString());
-                ench.Clear();
-            }
-
-            SECTION("Reinitializing tests") {
-                string old_salt = db.ch().global_salt();
-                tp.reinitialize(pws[0]);
-                CHECK(old_salt == db.ch().global_salt());
-            }
-        }
-
-        SECTION("add_to_waitlist") {
-            SECTION("one typo add") { // Please make sure added typo is not in the typo cache
-                int indexj = db.h().indexj();
+        SECTION("add 20 typos") {
+            int indexj = db.h().indexj();
+            for (int i = 0; i < W_size; i++)
                 tp.add_to_waitlist("Blahblah", now());
-                CHECK((indexj + 1) % W_size == db.h().indexj());
-                CHECK(db.w_size() == W_size);
-            }
-            SECTION("add 20 typos") {
-                int indexj = db.h().indexj();
-                for (int i = 0; i < W_size; i++)
-                    tp.add_to_waitlist("Blahblah", now());
-                REQUIRE(indexj == db.h().indexj());
-                REQUIRE(db.w_size() == W_size);
-            }
+            REQUIRE(indexj == db.h().indexj());
+            REQUIRE(db.w_size() == W_size);
         }
     }
 
@@ -236,10 +236,8 @@ TEST_CASE("typtop") {
         CHECK(s1 == s2);
     }
 
-    SECTION("Test TypTop Public functions") {
+    SECTION("Test check function") {
         remove(_db_fname.c_str());
-        TypTopTest tp;
-        const typoDB &db = tp.get_db();
         tp.check(pws[0], SECOND_TIME); // set the password
         REQUIRE(db.ch().install_id() == install_id);
 
@@ -272,39 +270,16 @@ TEST_CASE("typtop") {
         }
     }
 
-    SECTION("Timing") {
-        remove(_db_fname.c_str());
-        TypTopTest tp;
-        tp.check(pws[0], SECOND_TIME); // set the password
-
-        SECTION("Wrong password") {
-            times(100, CHECK_FALSE(tp.check(pws[4], FIRST_TIME)))
-        }
-
-        SECTION("Correct password") {
-            times(100, CHECK(tp.check(pws[0], FIRST_TIME)))
-        }
-
-        SECTION("Intiation") {
-        }
-    }
-
-    SECTION("Typtop extra utilities") {
-        // TODO: Other extra features
-    }
-
     SECTION("Long term use of typtop.") {
 
     }
 
     SECTION("Test log entries and upload") {
-        TypTopTest tp;
         tp.allow_upload(false);
         tp.check(pws[0], PAM_RETURN::SECOND_TIME);
 
         SECTION("send_w/o_autoupload") {
             tp.send_log(); // truncate
-            const typoDB &db = tp.get_db();
             CHECK(db.logs().l_size() == 0);  // log had the typos
 
             CHECK(tp.check(pws[1], PAM_RETURN::FIRST_TIME));
@@ -319,3 +294,75 @@ TEST_CASE("typtop") {
     }
 }
 
+TEST_CASE("Timing") {
+    remove(_db_fname.c_str());
+    TypTopTest tp;
+    tp.check(pws[0], SECOND_TIME); // set the password
+
+    SECTION("Wrong password") {
+        times(100, CHECK_FALSE(tp.check(pws[4], FIRST_TIME)))
+    }
+
+    SECTION("Correct password") {
+        times(100, CHECK(tp.check(pws[0], FIRST_TIME)))
+    }
+
+    SECTION("Intiation") {
+    }
+}
+
+TEST_CASE("Typtop extra utilities") {
+    string hpws[] = {
+            "Password1#",
+            "password1#",
+            "Password1",
+            "password1"
+    };
+    remove(_db_fname.c_str());
+    TypTopTest tp;
+    tp.check(hpws[0], SECOND_TIME); // set the password
+    tp.set_typo_policy(1, 0, 30);
+    tp.check(hpws[0], SECOND_TIME); // reset the password
+    REQUIRE(tp.check(hpws[0], FIRST_TIME));
+//    vector<string> typos(10);
+//    get_typos(hpws[0], typos);
+//    for(string it: typos){
+//        cerr << it << endl;
+//    }
+    SECTION("set_typo_policy") {
+        const TypoPolicy& tpoly = tp.get_typo_policy();
+        CHECK(tpoly.edit_cutoff() == 1);
+        CHECK(tpoly.abs_entcutoff() == 0);
+        CHECK(tpoly.rel_entcutoff() == 30);
+    }
+
+
+    SECTION("Allow Typo login") {
+        CHECK(tp.check(hpws[1], FIRST_TIME));
+        tp.allow_typo_login(false);
+        CHECK_FALSE(tp.get_db().ch().allowed_typo_login());
+        CHECK(tp.check(hpws[0], FIRST_TIME));
+        CHECK_FALSE(tp.check(hpws[1], FIRST_TIME));
+        tp.allow_typo_login(true);
+        CHECK(tp.check(hpws[0], FIRST_TIME));
+        CHECK(tp.check(hpws[1], FIRST_TIME));
+    }
+
+    SECTION("Typo Policy.EditCutoff") {
+        tp.set_typo_policy(2, -1, -1);
+        times(5, tp.check(hpws[3], FIRST_TIME));
+        tp.check(hpws[1], FIRST_TIME);
+        CHECK(tp.check(hpws[3], FIRST_TIME));
+        tp.set_typo_policy(1, -1, -1);
+    }
+
+    SECTION("Typo Policy.AbsEntCutoff") {
+        CHECK(tp.check(hpws[1], FIRST_TIME));
+        tp.set_typo_policy(-1, 30, -1);
+        CHECK_FALSE(tp.check(hpws[1], FIRST_TIME));
+    }
+
+    SECTION("Typo Policy.RelEntCutoff") {
+
+    }
+}

@@ -1,6 +1,5 @@
 // #cmakedefine DEBUG
 #define DB_ROOT "@INSTALL_DATA_DIR@/typtop.d"
-#cmakedefine LOG_DIR
 
 // the configured options and settings for Tutorial
 #define typtop_VERSION_MAJOR @typtop_VERSION_MAJOR@

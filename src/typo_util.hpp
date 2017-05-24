@@ -91,14 +91,15 @@ inline void get_typos(const string& pw, vector<string>& ret) {
             toupper(pw),
             tolower(pw),
     };
-    set<string> typo_set(typos.begin(), typos.end());
+    set<string> done;
     size_t i=0;
-    for(auto it = typo_set.begin(); it != typo_set.end(); it++) {
-        if (it->compare(pw) == 0) continue;
-        ret[i++] = *it;
+    for(string it:  typos) {
+        if (done.find(it) != done.end() || it.compare(pw) == 0) continue;
+        ret[i++] = it;
+        done.insert(it);
         if (i>=ret.size()) break;
     }
-    typo_set.clear(); typos.clear();
+    done.clear(); typos.clear();
 }
 
 
@@ -249,7 +250,7 @@ inline bool meets_typo_policy(const string& pw, const string& typo, const typtop
     if (entropy_typo < (entropy_pw - tp.rel_entcutoff()) or
         entropy_typo < tp.abs_entcutoff())
         return false;
-    return typo.size() > tp.min_length() && edit_distance(pw, typo) <= tp.edit_cutoff();
+    return (int)typo.size() > tp.min_length() && edit_distance(pw, typo) <= tp.edit_cutoff();
 }
 
 #endif //TYPTOP_C_TYPO_UTIL_HPP

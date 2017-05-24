@@ -27,9 +27,15 @@ const int T_size = 5 + 1; // 1 for the real password
 
 inline void setup_logger(plog::Severity severity) {
     const size_t MAX_LOG_FILE_SIZE = size_t(1e6); // 1 MB
+    if(plog::get() != nullptr) {
+        LOGD << "Logger already exists.";
+        return;
+    }
 #ifdef DEBUG
-    plog::init(severity, TYPTOP_LOG_FILE"_test", MAX_LOG_FILE_SIZE, 1);
+    std::srand(254);
+    plog::init(plog::debug, TYPTOP_LOG_FILE"_test", MAX_LOG_FILE_SIZE, 1);
 #else
+    std::srand( (unsigned)std::time(0) );
     plog::init(severity, TYPTOP_LOG_FILE, MAX_LOG_FILE_SIZE, 1);
 #endif
 }
@@ -62,7 +68,8 @@ public:
     void allow_upload(bool b);
     void allow_typo_login(bool b);
     void status() const;
-    void set_typo_policy(int edit_cutoff, int abs_entcutoff, int rel_entcutoff);
+    void set_typo_policy(int edit_cutoff=-1, int abs_entcutoff=-1, int rel_entcutoff=-1);
+    const TypoPolicy &get_typo_policy();
 
 protected:
     void fill_waitlist_w_garbage();
@@ -77,7 +84,6 @@ protected:
     inline const typoDB& get_db(){ return db; }
     inline const PkCrypto& get_pkobj(){return pkobj;}
     inline const EncHeaderData& get_ench(){return ench;}
-
 };
 
 

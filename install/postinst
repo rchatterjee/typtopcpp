@@ -36,3 +36,12 @@ else
     echo "Could not determine where to install pam config files, please do so manually"
 fi
 
+
+# Usage Agreement
+# read -p "Do you want to send anonymous usage data for our research?" -n 1 -r
+# echo    # (optional) move to a new line
+# if [[ $REPLY =~ ^[Yy]$ ]]; then
+#   echo "Thanks!!"
+# fi
+
+cat @CPACK_PACKAGING_INSTALL_PREFIX@/@INSTALL_DATA_DIR@/typtop.d/welcome.txt

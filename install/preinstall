@@ -30,10 +30,12 @@ if [ "$typtopexec" ]; then
 fi
 
 find "/usr/local/etc/typtop.d/" -type d | xargs rm -rf
-if [ -f ~/.typtop.uniq.id ]; then sed -i '' "s/Install-id: //g" ~/.typtop.uniq.id; fi
 
-pip show typtop
-if [[ "$?" == "0" ]]; then
+uniq_id_f=~/.typtop.uniq.id
+if [ -f ${uniq_id_f}]; then sed -i '' "s/Install-id: //g" ${uniq_id_f}; fi
+
+pip show typtop;
+if [ $? -eq 0 ]; then
    sudo pip -q uninstall --yes typtop word2keypress zxcvbn zxcvbn-python >&/dev/null
 fi
 
@@ -44,3 +46,4 @@ else
 fi
 
 rm -rf /var/log/*typtop*log /usr/local/bin/*typtop* /usr/loca/etc/security/*typtop*
+

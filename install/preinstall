@@ -32,11 +32,17 @@ fi
 find "/usr/local/etc/typtop.d/" -type d | xargs rm -rf
 
 uniq_id_f=~/.typtop.uniq.id
-if [ -f ${uniq_id_f}]; then sed -i '' "s/Install-id: //g" ${uniq_id_f}; fi
+if [ -f ${uniq_id_f} ]; then
+   if [[ `uname` == "Darwin" ]]; then
+      sed -i '' "s/Install-id: //g" ${uniq_id_f};
+   else
+      sed -i'' "s/Install-id: //g" ${uniq_id_f};
+   fi
+fi
 
 pip show typtop;
 if [ $? -eq 0 ]; then
-   sudo pip -q uninstall --yes typtop word2keypress zxcvbn zxcvbn-python >&/dev/null
+   sudo pip -q uninstall --yes typtop word2keypress zxcvbn zxcvbn-python >& /dev/null
 fi
 
 if [ -f /usr/local/bin/typtop-uninstall.sh ]; then

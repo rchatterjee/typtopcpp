@@ -65,9 +65,9 @@ ELSEIF(UNIX)
                 COMMAND debsigs --sign=origin -k 445E6411 ${CPACK_PACKAGE_FILE_NAME}.deb # No idea what exactly it is doing
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                 DEPENDS ${PROJECT_NAME})
-        set(CPACK_DEBIAN_PACKAGE_DEPENDS "libcurl4-openssl-dev")
+        # set(CPACK_DEBIAN_PACKAGE_DEPENDS "libcurl4-openssl-dev")
         # RPM
-        set(CPACK_RPM_PACKAGE_REQUIRES "libcurl4-openssl-devevl")
+        # set(CPACK_RPM_PACKAGE_REQUIRES "libcurl4-openssl-devevl")
         set(CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_BINARY_DIR}/scripts/preinst")
         set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_BINARY_DIR}/scripts/postinst")
         set(CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_BINARY_DIR}/scripts/prerm")

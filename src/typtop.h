@@ -68,7 +68,7 @@ public:
     void allow_upload(bool b);
     void allow_typo_login(bool b);
     void status() const;
-    void set_typo_policy(int edit_cutoff=-1, int abs_entcutoff=-1, int rel_entcutoff=-1);
+    void set_typo_policy(int edit_cutoff = -1, int abs_entcutoff = -1, int rel_entcutoff = -1);
     const TypoPolicy &get_typo_policy();
 
 protected:

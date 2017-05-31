@@ -49,8 +49,11 @@ message Header {
     required bytes enc_header = 5;
 }
 
-message Logs { // for sending the log to the server
+// for sending the log to the server
+message Logs {
     repeated Log L = 1;  // Log
+    optional int32 typos = 2 [default = 0];
+    optional int32 typos_saved = 3 [default = 0];
 }
 
 message typoDB {

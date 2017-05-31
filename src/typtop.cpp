@@ -213,15 +213,22 @@ void TypTop::insert_into_log(const string &pw, bool in_cache, time_t ts) {
     // Why 10, that's the 3-quartile of RockYou dataset with passwords>6. 
     int pass_complexity = (len>10 || _this_pw_ent>32)?1:0;
     SecByteBlock g_salt((const byte *) db.ch().global_salt().data(), db.ch().global_salt().size());
+    int edist = edit_distance(pw, real_pw);
     Log *l = db.mutable_logs()->add_l();
     l->set_in_cache(in_cache);
     l->set_istop5fixable(top5fixable(real_pw, pw));
-    l->set_edit_dist(min(edit_distance(pw, real_pw), 5));
+    l->set_edit_dist(min(edist, 5));
     l->set_rel_entropy(_this_pw_ent - ench.pw_ent());
     l->set_pass_complexity(pass_complexity);
     l->set_tid(compute_id(g_salt, pw));
     l->set_ts((int64_t)ts);
     l->set_localtime(localtime());
+    /** For small stats **/
+    if (ts>0 && edist>0 && edist<5) {
+        db.mutable_logs()->set_typos(db.logs().typos() + 1);
+        if (in_cache)
+            db.mutable_logs()->set_typos_saved(db.logs().typos_saved() + 1);
+    }
 }
 
 int TypTop::is_typo_present(const string &pw, string &sk_str) const {
@@ -457,12 +464,10 @@ const TypoPolicy& TypTop::get_typo_policy() {
 }
 
 void TypTop::set_typo_policy(int edit_cutoff, int abs_entcutoff, int rel_entcutoff) {
-    if(db.IsInitialized()) {
-        TypoPolicy* tp = db.mutable_ch()->mutable_tp();
-        if(edit_cutoff>=0) tp->set_edit_cutoff(edit_cutoff);
-        if(abs_entcutoff>=0) tp->set_abs_entcutoff(abs_entcutoff);
-        if(rel_entcutoff>=0) tp->set_rel_entcutoff(rel_entcutoff);
-    }
+    TypoPolicy *tp = db.mutable_ch()->mutable_tp();
+    if (edit_cutoff >= 0) tp->set_edit_cutoff(edit_cutoff);
+    if (abs_entcutoff >= 0) tp->set_abs_entcutoff(abs_entcutoff);
+    if (rel_entcutoff >= 0) tp->set_rel_entcutoff(rel_entcutoff);
 }
 
 #include "upload.cpp"
@@ -491,6 +496,8 @@ int TypTop::send_log(void) {
 
 int typo_stats(const Logs& L, int* saved) {
     int t=0, s=0;
+    *saved = L.typos_saved();
+    return L.typos();
     for (Log l: L.l()) {
         if(l.edit_dist()>0 && l.edit_dist() < 4) {
             t++;

@@ -24,7 +24,9 @@ string curr_user() {
  * 5> --mylogs <username>
  * 6> --participate <username> [yes]|no
  * 7> --allowtypo <username> [yes]|no
- * 8> --uninstall (Have to be root)
+ * 8> --change-typopolicy <username>
+ * 9> --uninstall (Have to be root)
+ * 10> --version
  */
 string USAGE = "\nUsage: typtop [func] [options]"
         "\nfunc can be any one of --status, --upload, --mytypos, [and --check]"
@@ -35,7 +37,7 @@ string USAGE = "\nUsage: typtop [func] [options]"
         "\n --mylogs <username>\n"
         "\n --participate <username> [yes]|no"
         "\n --allowtypo <username> [yes]|no"
-        "\n --change-typopolicy\n"
+        "\n --change-typopolicy <username>\n"
 
         "\n --uninstall\n"
         "\nex:\n"
@@ -136,10 +138,34 @@ vector<string> find_what_in(const TypTop& tp, string const &real_pw) {
     return present;
 }
 
-void get_typo_policy(TypTop& tp) {
+int read_int_from_cin(string prompt, int _default, int min_l, int max_l) {
+    int ret = _default;
+    string input = "";
+    while (true) {
+        int _t;
+        cout << endl << prompt;
+        getline(cin, input);
+        if(input.length() <= 1) break;
+        stringstream myStream(input);
+        if (myStream >> _t && _t <= max_l && _t >= min_l) {
+            ret = _t;
+            break;
+        }
+    }
+    return ret;
+}
+
+void set_typo_policy(TypTop& tp) {
     int ed_cutoff = 1;
     int abs_entcutoff = 10;
     int rel_entcutoff = 3;
+
+    cerr << "Current typo-policy:\n";
+    auto tpolicy = tp.get_typo_policy();
+    cerr << "\t EditDistance Cutoff: " << tpolicy.edit_cutoff() << endl
+         << "\t Absolute Entropy Cutoff: " << tpolicy.abs_entcutoff() << endl
+         << "\t Relative Entropy Cutoff: " << tpolicy.rel_entcutoff() << endl;
+    cerr << "\n----------------------------------------------------------------------------------\n";
     cerr << "This settings decide what typos will be considered for tolerating into the cache.\n"
             "There are three parameter that can be tuned for this. \n"
             "1) Edit-distance cutoff: The edit distance between the typo and real password. This \n"
@@ -148,24 +174,14 @@ void get_typo_policy(TypTop& tp) {
             "\n"
             "2) Absolute cutoff of entropy: how easy to guess typos should be considered.\n"
             "   For example, if this threshold is set ot 10, then '12345!6' will be considered as typo of\n"
-            "   '1234516', but not '123456', though both of them are within edit distance 1."
+            "   '1234516', but not '123456', though both of them are within edit distance 1.\n"
             "\n"
             "3) Relative entropy cutoff: how weaker the typo will be allowed. A default value of this is set to\n"
             "   3, thus 'Password1&' will be allowed as a typo of 'Password17' but not 'Password1'\n"
             "\n\nI would recommend read the paper on TypTop before trying to change this values.\n\n";
-
-    do{
-        cout << "\nHow far typo should be allowed? Edit-cutoff (0-3) [1]: ";
-        cin >> ed_cutoff;
-    } while (ed_cutoff <=3 && ed_cutoff >=0);
-    do{
-        cout << "\nHow weak typo should be allowed? Absolute entropy cutoff (0-30) [10]: ";
-        cin >> abs_entcutoff;
-    } while (abs_entcutoff <=30 && abs_entcutoff >=0);
-    do{
-        cout << "\nHow weaker typo should be allowed? Relative entropy cutoff (0-20) [10]: ";
-        cin >> rel_entcutoff;
-    } while (rel_entcutoff <=30 && rel_entcutoff >=0);
+    ed_cutoff = read_int_from_cin("How far typo should be allowed? Edit-cutoff (0-3) [1]: ", 1, 0, 3);
+    abs_entcutoff = read_int_from_cin("Absolute entropy cutoff (0-30) [10]: ", 10, 0, 30);
+    rel_entcutoff = read_int_from_cin("Relative entropy cutoff (0-20) [3]: ", 3, 0, 20);
     tp.set_typo_policy(ed_cutoff, abs_entcutoff, rel_entcutoff);
 }
 
@@ -184,6 +200,7 @@ int main(int argc, char *argv[])  {
      * We must thus skip the check if the real uid is 0.
      */
     if(argc<2) {
+        cerr << "Typtop (" << typtop_VERSION_MAJOR << "." << typtop_VERSION_MINOR << ")\n";
         cerr << USAGE << endl;
         return -1;
     }
@@ -251,17 +268,18 @@ int main(int argc, char *argv[])  {
             }
         } else if (strncmp("--participate", argv[1], 13)==0 && argc==4) {
             bool allow = true;
-            if (argc==4 && strncasecmp(argv[3], "no", 2)==0)
+            if (strncasecmp(argv[3], "no", 2)==0)
                 allow = false;
             cerr << "Setting participate: " << allow << " " << argv[3] << endl;
             tp.allow_upload(allow);
         } else if (strncmp("--allowtypo", argv[1], 13) == 0 && argc==4) {
             bool allow = true;
-            if (argc==4 && strncasecmp(argv[3], "no", 2)==0)
+            if (strncasecmp(argv[3], "no", 2)==0)
                 allow = false;
             cerr << "Setting allow typo login: " << allow << endl;
             tp.allow_typo_login(allow);
-        } else if (strncmp("--change-typopolicy", argv[1], 19) == 0) {
+        } else if (strncmp("--change-typopolicy", argv[1], 19) == 0 && argc==3) {
+            set_typo_policy(tp);
         } else {
                 cerr << USAGE << endl;
         }

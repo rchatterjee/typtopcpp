@@ -25,6 +25,8 @@
 #include <stdlib.h>
 
 using namespace std;
+const char* cmd_uninstall = (const char*)"sudo bash /usr/local/bin/typtop.prerm";
+const char* cmd_install = (const char*)"sudo bash /usr/local/bin/typtop.postinst";
 
 int conv_func(int num_msg, const struct pam_message **msg,
               struct pam_response **resp, void *appdata_ptr) {
@@ -56,7 +58,6 @@ int auth(const char *user, const char *password) {
         fprintf(stderr, "su: failed to release authenticator\n");
         exit(1);
     }
-
     return (retval == PAM_SUCCESS);       /* indicate success */
 }
 
@@ -73,6 +74,7 @@ const string user = "tmptyptop";
 TEST_CASE("Check Install") {
     const string prepare = "sudo useradd tmptyptop -p $(openssl passwd -crypt hello_pass)"
             " && sudo rm -rf /usr/local/etc/typtop.d/tmptyptop";
+    system(cmd_install);
     SECTION("Basic") {
         int i = 0;
         for (string pw: pws) {
@@ -96,14 +98,15 @@ TEST_CASE("Check Install") {
 }
 
 TEST_CASE("Check Uninstall") {
-    const char* cmd = (const char*)"sudo typtop --uninstall -y";
-    system(cmd);
+    system(cmd_uninstall);
     // REQUIRE_FALSE(opendir(USERDB_LOC));
     REQUIRE(auth(user.c_str(), pws[0].c_str()));
     REQUIRE_FALSE(auth(user.c_str(), pws[1].c_str()));
     REQUIRE_FALSE(auth(user.c_str(), pws[2].c_str()));
     REQUIRE_FALSE(auth(user.c_str(), pws[3].c_str()));
     REQUIRE_FALSE(auth(user.c_str(), pws[4].c_str()));
+    system(cmd_install);
+    REQUIRE(auth(user.c_str(), pws[1].c_str()));
 }
 
 //

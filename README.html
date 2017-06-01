@@ -1,97 +1,37 @@
-<h1>TypTop-CPP</h1>
+<pre>
+  /  |                          /  |
+ _$$ |_    __    __   ______   _$$ |_     ______    ______
+/ $$   |  /  |  /  | /      \ / $$   |   /      \  /      \\
+$$$$$$/   $$ |  $$ |/$$$$$$  |$$$$$$/   /$$$$$$  |/$$$$$$  |
+  $$ | __ $$ |  $$ |$$ |  $$ |  $$ | __ $$ |  $$ |$$ |  $$ |
+  $$ |/  |$$ \__$$ |$$ |__$$ |  $$ |/  |$$ \__$$ |$$ |__$$ |
+  $$  $$/ $$    $$ |$$    $$/   $$  $$/ $$    $$/ $$    $$/
+   $$$$/   $$$$$$$ |$$$$$$$/     $$$$/   $$$$$$/  $$$$$$$/
+          /  \__$$ |$$ |                          $$ |
+          $$    $$/ $$ |                          $$ |
+           $$$$$$/  $$/                           $$/
+</pre>
+<h3>Hello!</h3>
 
-<p><a href="https://travis-ci.org/rchatterjee/typtopcpp"><img src="https://travis-ci.org/rchatterjee/typtopcpp.svg?branch=master" alt="Build Status" title="" /></a></p>
+<p>
+    Thanks for installing TypToP.  This software
+attaches a new pluggable authentication module (PAM) to all of your
+common authentication processes, such as su, login, lock-screen etc.
+Typtop observes for password typing mistakes, and enable logging in
+with slight variations of your actual login password that are
+    frequent and safe.</p>
 
-<p>An effort to port <a href="https://github.com/rchatterjee/pam-typopw">typtop</a> to C++.</p>
+<p>This is a research prototype, and we are collecting some anonymous
+non-sensitive data about your password typing patterns to verify our
+design. The details of what we collect, how we collect and store, and
+the security blueprint of this software can be found in the GitHub
+    page: https://github.com/rchatterjee/typtopcpp.</p>
 
-<h2>Dependencies</h2>
+<p>The participation in the study is completely voluntary,
+    and you can opt out at any time while still keep using the software.</p>
 
-<p>For compiling the project from source, you need following libraries.
-* <code>cmake &gt;= 3.6</code>
-* Depends on Google <code>protobuf</code>
-* Includes <code>cryptopp</code>, <code>zxcvbn</code> and <code>plog</code> (inside)
-* pam-dev (in future)</p>
-
-<h2>Compile/Build</h2>
-
-<p><code>bash
-$ mkdir build &amp;&amp; cd build &amp;&amp; cmake ..
-$ make  # If this fails, try running cmake again
-</code></p>
-
-<p>Due to my very bad understanding of CMake and too much ambition to do things
-perfectly, I messed up the whole build system. If your first try does not build
-it, try running combination of <code>cmake ..</code> and <code>make</code> few times. It will build
-eventually. Trust me!</p>
-
-<p>You can package, or just install directly by running, <code>sudo make isntall</code>.
-If you install using <code>make install</code>, don't forget to run, <code>sudo ./script/postinst</code>.</p>
-
-<p>I would suggest creating the package and then install it using your favorite
-package manager.  TO build your own pacakge you have to change the
-<code>CPACK_GENERATOR</code> in <code>install/CMakeList.txt</code> to what you like, possible options
-are, <code>DEB</code>, <code>RPM</code>, <code>STGZ</code> etc. (I am confusing the hell out of you. I know. I am
-confused too.)</p>
-
-<h3>TODO:</h3>
-
-<ul>
-<li><p><strong>TypTop functionality</strong></p>
-
-<ul>
-<li>(half done) ~~Add support for password change~~ (Remainig: detect entering old typos)</li>
-<li>(done) ~~Add log upload mechanism~~</li>
-<li>(done) ~~Check timing using catch~~</li>
-<li>(done) ~~Add version in typtop protobuf~~</li>
-<li>(done) ~~Check ways to use zxcvbn for C++~~</li>
-<li>(done) ~~Add upload functionality~~</li>
-</ul></li>
-<li><p><strong>Pam Module</strong></p>
-
-<ul>
-<li>(done) ~~direct integration with pam-modules.~~</li>
-<li>(done) ~~Write <code>pam_config</code> file. Decide on how to write a~~
-pam_modules that works for both MAC and Linux.</li>
-<li>(done) (NOT REQUIRED) ~~add to password change (<code>pam_sm_chkauthtok</code>) as well~~</li>
-<li>(NOT REQUIRED) Checkout pam-auth-update and
-<a href="https://wiki.ubuntu.com/PAMConfigFrameworkSpec">Pam Config Framework</a>.</li>
-</ul></li>
-<li><p><strong>Testing</strong></p>
-
-<ul>
-<li>~~(added) Add .travis.yml~~</li>
-<li>Fix .travis fail.</li>
-</ul></li>
-<li><p><strong>Installation and Configuration</strong></p>
-
-<ul>
-<li>(Almost DONE) How to use <code>cpack</code> a cmake extension to generate
-distributable binaries.</li>
-<li>Build in release mode.</li>
-<li>(DONE but does not work) Check Mac pkgbuild, add readme or license on the front page, sign the package.</li>
-<li>Test the installation in at least 3-4 linux and 2 OSX systems.</li>
-<li>(Super Important) <em>*Add uninstall script for old TypTop. *</em>  </li>
-</ul></li>
-<li><p><strong>Extra features</strong>  </p>
-
-<ul>
-<li>Have configure option with typtop-main.cpp that lets users configure how they want to use typtop. 
-To enable this, I first have to have a configure file. </li>
-<li>How to update typtop? Should be a configurable option. </li>
-</ul></li>
-<li><p><strong>Bug</strong></p>
-
-<ul>
-<li>Many paths used in the code is absolute, I should move it to relative or install_prefix dependent.  </li>
-</ul></li>
-<li><p>Cleanup cmake, it is a mess right now.</p></li>
-<li>(done) ~~Insert logic of typo-db manipulation.~~</li>
-<li>(done) ~~FIX the seg-faulting permute cache function.~~</li>
-<li>(done) ~~<strong>CHECK OUT <code>ExternalProject_Add</code></strong>~~</li>
-</ul>
-
-<h2>Some useful resources</h2>
-
-<ul>
-<li>MAC packaging guide: https://matthew-brett.github.io/docosx/flat_packages.html</li>
-</ul>
+<p>Checkout other options (such as opting out of the study) of the
+    utilit script `typtop` by running:</p>
+<pre>
+    $ typtop
+</pre>

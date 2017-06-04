@@ -9,6 +9,10 @@ include_directories(${PROTOBUF_INCLUDE_DIRS})
 get_filename_component(PROTO_LIB_DIR ${PROTOBUF_LIBRARY} DIRECTORY)
 find_library(PROTOBUF_STATIC_LIB libprotobuf.a PROTO_LIB_DIR)
 
+if(NOT PROTOBUF_STATIC_LIB)
+  message(STATUS, "Protobuf static library not found. Using dynamic one.")
+  find_library(PROTOBUF_STATIC_LIB libprotobuf.a PROTO_LIB_DIR)
+endif()
 
 find_package(CURL REQUIRED)
 if(CMAKE_BUILD_TYPE MATCHES "Debug")

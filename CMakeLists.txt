@@ -9,7 +9,7 @@ project(typtop)
 # The version number.
 set (typtop_VERSION_MAJOR 1)
 set (typtop_VERSION_MINOR 0)
-set (typtop_VERSION_PATCH 2)
+set (typtop_VERSION_PATCH 3)
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     add_definitions(-DDEBUG)

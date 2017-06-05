@@ -32,7 +32,7 @@ int send_log_to_server(const string uid, const string log, int test=1) {
     stringstream payloadstream;
     payloadstream << "uid=" << uid << "#" << typtop_VERSION_MAJOR << "." << typtop_VERSION_MINOR
                   << "&data=" << log
-                  << "&test=" << 1
+                  << "&test=" << test
                   << "&key=" << key;
     string payload;
     payloadstream >> payload;

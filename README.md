@@ -43,6 +43,27 @@ confused too.)
 You can see your existing log, number of typos etc. using the `typtop` binary 
 installed in your `/usr/local/bin`. Try `$ typtop` and it will show you the options. 
 
+```bash
+$ typtop
+Typtop (1.1)
+
+Usage: typtop [func] [options]
+func can be any one of --status, --upload, --mytypos, [and --check]
+ --check <username> <were_correct>  # (Private function)
+ --status <username>  # Shows some status info of the binary and typo-correction
+ --upload <username>  # Uploads the log to the server. Shouold not need to call it manually
+ --mytypos <username> # Show your frequent typos that are cached in the cache
+ --mylogs <username>  # Shows the logs (that are not yet uploaded to the server)
+
+ --participate <username> [yes]|no  # Set whether or not you want to participate in the research study. Default: yes
+ --allowtypo <username> [yes]|no  # Should typtop all login with typos.
+ --change-typopolicy <username> # Change the typo-policy. The command will prompt for user options. 
+
+ --uninstall  # Disengage typtop from the authentications. 
+ --install # Install typtop 
+ex:
+typtop --status $USER
+```
 
 ### TODO: [See Todo](./todo.md)
 

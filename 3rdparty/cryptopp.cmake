@@ -1,51 +1,45 @@
+### Produces a `cryptopp` library which either points to a static or shared version.
+
+include(ExternalProject)
+
 set(NCPU 6)   # Number of CPUs to use
 
-ExternalProject_Add(
-        ${CRYPTOPP_PREFIX}
-        PREFIX ${${CRYPTOPP_PREFIX}_SOURCE_DIR}
 
-        SOURCE_DIR ${${CRYPTOPP_PREFIX}_SOURCE_DIR}
-        INSTALL_DIR ${${CRYPTOPP_PREFIX}_BINARY_DIR}
+find_package(CryptoPP)
+message(STATUS "Found CryptoPP installation: ${CRYPTOPP_FOUND}")
+if(CRYPTOPP_FOUND AND CMAKE_PREFER_SHARED_LIBRARIES)
+    ## If we insist on using shared version of cryptopp, set the library to the
+    ## shared one
+    set(CRYPTOPP_SHARED true)
+    message(STATUS "Using CryptoPP system libraries")
+    set(CRYPTOPP_INCLUDE_DIRS ${CRYPTOPP_INCLUDE_DIRS}/cryptopp)
+    add_library(cryptopp SHARED IMPORTED)
+    set_target_properties(cryptopp PROPERTIES IMPORTED_LOCATION ${CRYPTOPP_LIBRARY})
+else()
+    ### Add external projet for adding CryptoPP in case we need to build package
+    ExternalProject_Add(
+      ${CRYPTOPP_PREFIX}
 
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -j${NCPU}
-        # BUILD_IN_SOURCE 1
-        LOG_DOWNLOAD 1
-        LOG_BUILD 1
-        # STEP_TARGETS ${CRYPTOPP_PREFIX}_info
-)
+      GIT_REPOSITORY ${CRYPTOPP_URL}
+      GIT_TAG "CRYPTOPP_5_6_5 "
+      
+      UPDATE_COMMAND ""
+      PATCH_COMMAND ""
+      
+      SOURCE_DIR "${CMAKE_SOURCE_DIR}/3rdparty/${CRYPTOPP_PREFIX}"
+      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -j${NCPU} -DCMAKE_BUILD_TYPE=Release -DDISABLE_NATIVE_ARCH=ON
+      
+      TEST_COMMAND ""
+    )
 
-# include(src/${CRYPTOPP_PREFIX}-stamp/down)
-
-## get the unpacked source directory path
-#ExternalProject_Get_Property(${CRYPTOPP_PREFIX} SOURCE_DIR INSTALL_DIR)
-#message(STATUS "Source directory of ${CRYPTOPP_PREFIX} ${SOURCE_DIR}, ${INSTALL_DIR}")
-#
-## build another dependency
-##ExternalProject_Add_Step(${CRYPTOPP_PREFIX} ${CRYPTOPP_PREFIX}_info
-##  COMMAND cmake ${CMAKE_ARGS}
-##  DEPENDEES build
-##  WORKING_DIRECTORY ${SOURCE_DIR}
-##  LOG 1
-##)
-#
-#
-## set the include directory variable and include it
-#set(CRYPTOPP_INCLUDE_DIRS ${INSTALL_DIR}/include CACHE INTERNL "Cryptopp include dirs")
-#message(STATUS ">> ${LIBRARY_DIR}")
-#set(CRYPTOPP_LIBRARY_DIRS ${INSTALL_DIR}/lib CACHE INTERNAL "Cryptopp libs")
-#set(CRYPTOPP_LIBS cryptopp-static)
-## SET_PROPERTY(GLOBAL PROPERTY CRYPTOPP_INCLUDE_DIRS "${INSTALL_DIR}/include")
-## SET_PROPERTY(GLOBAL PROPERTY CRYPTOPP_LIBS "${INSTALL_DIR}/lib")
-#
-#
-## verify that the CRYPTOPP header files can be included
-#set(CMAKE_REQUIRED_INCLUDES_SAVE ${CMAKE_REQUIRED_INCLUDES})
-#set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} ${CRYPTOPP_INCLUDE_DIRS})
-## message(STATUS "CMAKE_REQUIRED_INCLUDES: ${CMAKE_REQUIRED_INCLUDES}")
-#
-#check_include_file_cxx("cryptopp/cryptlib.h" HAVE_CRYPTOPP)
-#set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES_SAVE})
-# if (NOT HAVE_CRYPTOPP)
-#   message(STATUS "Did not build CRYPTOPP correctly as cannot find cryptopp.h. Will build it.")
-#   set(HAVE_CRYPTOPP 1)
-#endif (NOT HAVE_CRYPTOPP)
+    ## Otherwise, use the static library which will be compiled using the above
+    ## directories
+    set(CRYPTOPP_SHARED false)
+    message(STATUS "Install cryptopp from sources with prefix: ${CRYPTOPP_PREFIX}")
+    set(CRYPTOPP_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/3rdparty/${CRYPTOPP_PREFIX}/")
+    message(STATUS "CRYPTOPP_INCLUDE_DIRS: " ${CRYPTOPP_INCLUDE_DIRS})
+    add_library(cryptopp STATIC IMPORTED)
+    add_dependencies(cryptopp ${CRYPTOPP_PREFIX})
+    ExternalProject_Get_Property(${CRYPTOPP_PREFIX} BINARY_DIR)
+    set_target_properties(cryptopp PROPERTIES IMPORTED_LOCATION ${BINARY_DIR}/libcryptopp.a)
+endif()

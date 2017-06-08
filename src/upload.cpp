@@ -10,6 +10,9 @@
 #include "typtopconfig.h"
 #include "plog/Log.h"
 
+using namespace std;
+
+
 // const string url = "https://ec2-54-209-30-18.compute-1.amazonaws.com/submit";
 const string url = UPLOAD_URL;
 const string key =  "a40648638b48abf2159f9331cbab9cb3ae81d8cd247c145942c3cce9c708ae89";

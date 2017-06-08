@@ -2,21 +2,37 @@ language: cpp
 
 sudo: required
 
-compiler:
-   - clang
-   - g++
 
-os:
-   - linux
-   - osx
+matrix:
+  include:
+    - compiler: clang
+      os: osx
+    - compiler: g++
+      os: linux
+      env: CMAKE_PREFER_SHARED_LIBRARIES=true
+    - compiler: g++
+      os: linux
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+      - binutils-dev
+      - build-essential
+      - cmake
+      - gcc-5
+      - g++-5
+      - libcrypto++-dev
+      - libpthread-stubs0-dev
+
 before_install:
   - echo $LANG
   - echo $LC_ALL
   - if [ $TRAVIS_OS_NAME == linux ]; then
-       sudo apt-get install protobuf-compiler cmake clang libprotobuf-dev libpam-dev build-essential;
-       sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update;
-       sudo apt-get install libpthread-stubs0-dev libatomic-ops-dev gcc-4.9;
-       sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.9;
+       sudo apt-get install protobuf-compiler libprotobuf-dev libpam-dev;
+       sudo unlink /usr/bin/gcc && sudo ln -s /usr/bin/gcc-5 /usr/bin/gcc; 
+       sudo unlink /usr/bin/g++ && sudo ln -s /usr/bin/g++-5 /usr/bin/g++; 
     fi
   - if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew reinstall protobuf cmake; fi
   - if [ $TRAVIS_OS_NAME == linux ]; then sudo ./test/create_linux_user.sh tmptyptop hello_pass; fi

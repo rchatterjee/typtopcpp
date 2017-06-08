@@ -18,15 +18,6 @@ find_package(CURL REQUIRED)
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     SET(DEBUG 1)
 endif()
-# CA Certs
-#if(CMAKE_BUILD_TYPE MATCHES "Debug")
-#    message("--> It thinks DEBUG MODE")
-#    SET(CAFILE "${CMAKE_SOURCE_DIR}/src/typtop.d/typtopserver.crt")
-#    SET(OLD_CAFILE "${CMAKE_SOURCE_DIR}/src/typtop.d/old_typtopserver.crt")
-#else()
-#    SET(CAFILE "${CMAKE_INSTALL_PREFIX}/etc/typtop.d/typtopserver.crt")
-#    SET(OLD_CAFILE "${CMAKE_INSTALL_PREFIX}/etc/typtop.d/old_typtopserver.crt")
-#endif()
 
 # configure a header file to pass some of the CMake settings
 # to the source code
@@ -50,7 +41,6 @@ add_dependencies(typtopdb ${ZXCVBN_PREFIX})
 add_dependencies(typtop ${ZXCVBN_PREFIX})
 
 # Now the local dependencies
-
 function (getListOfVarsStartingWith _prefix _varResult)
     get_cmake_property(_vars VARIABLES)
     string (REGEX MATCHALL "(^|;)${_prefix}[A-Za-z0-9_]*" _matchedVars "${_vars}")
@@ -88,8 +78,13 @@ else(ZXCVBN_INCLUDE_DIRS)
     message(SEND_ERROR "Zxcvbn not found")
 endif()
 
+check_library_exists(atomic __atomic_fetch_add_4 "" HAVE_LIBATOMIC)
+if(HAVE_LIBATOMIC)
+    set(LIBATOMIC "-latomic")
+endif()
+
 target_include_directories (pw_crypto PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CRYPTOPP_INCLUDE_DIRS})
-target_link_libraries(pw_crypto cryptopp-static)
+target_link_libraries(pw_crypto cryptopp-static ${LIBATOMIC})
 
 
 target_include_directories(typtopdb PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}

@@ -33,9 +33,9 @@ If you install using `make install`, don't forget to run, `sudo ./script/postins
 ```bash
 # Installation steps 
 $ cd build
-$ sudo ./script/preinst
-$ sudo make install 
-$ sudo ./script/postinst
+$ sudo ./scripts/preinst
+$ make install 
+$ sudo ./scripts/postinst
 ```
 
 

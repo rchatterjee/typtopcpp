@@ -15,14 +15,3 @@ if [[ $? != 0 ]]; then
     cmake ..
     make && make tests
 fi
-
-# Try couple times more in case the last build failed
-if [[ $? != 0 ]]; then
-    cmake ..
-    make && make tests
-fi
-
-if [[ $? != 0 ]]; then
-    cmake ..
-    make && make tests
-fi

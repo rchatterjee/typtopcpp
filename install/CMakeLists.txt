@@ -1,15 +1,14 @@
-
-SET(CPACK_BUNDLE_NAME ${PROJECT_NAME})
-SET(CPACK_SOURCE_GENERATOR "TGZ;ZIP")
+set(CPACK_BUNDLE_NAME ${PROJECT_NAME})
+set(CPACK_SOURCE_GENERATOR "TGZ;ZIP")
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 1)
-SET(CPACK_PACKAGE_CONTACT "Rahul Chatterjee <rahul@cs.cornell.edu>")
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "TypTop - A smart typo-tolerant password checking system.")
-SET(CPACK_PACKAGE_VENDOR "Rahul Chatterjee")
+set(CPACK_PACKAGE_CONTACT "Rahul Chatterjee <rahul@cs.cornell.edu>")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "TypTop - A smart typo-tolerant password checking system.")
+set(CPACK_PACKAGE_VENDOR "Rahul Chatterjee")
 
-SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/install/welcome.txt")
-SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
-SET(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.html")
-SET(CPACK_RESOURCE_FILE_WELCOME "${CMAKE_SOURCE_DIR}/install/welcome.txt")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/install/welcome.txt")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.html")
+set(CPACK_RESOURCE_FILE_WELCOME "${CMAKE_SOURCE_DIR}/install/welcome.txt")
 set(CPACK_SOURCE_IGNORE_FILES "/cmake-*/;/.svn/;/.git*/;.swp$;.#;/#;.*~;cscope.*")
 
 
@@ -17,7 +16,7 @@ set(CPACK_SOURCE_IGNORE_FILES "/cmake-*/;/.svn/;/.git*/;.swp$;.#;/#;.*~;cscope.*
 set(CPACK_PACKAGE_VERSION_MAJOR ${typtop_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${typtop_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${typtop_VERSION_PATCH})
-SET(CPACK_PACKAGE_VERSION "${typtop_VERSION_MAJOR}.${typtop_VERSION_MINOR}.${typtop_VERSION_PATCH}")
+set(CPACK_PACKAGE_VERSION "${typtop_VERSION_MAJOR}.${typtop_VERSION_MINOR}.${typtop_VERSION_PATCH}")
 
 SET(CPACK_SET_DESTDIR "on")
 SET(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local/")
@@ -45,7 +44,7 @@ ELSEIF(UNIX)
     ELSE(APPLE)  # Not apple
         MESSAGE(STATUS "CPack for non-osx unix systems")
         # INCLUDE(InstallRequiredSystemLibraries)
-        SET(CPACK_GENERATOR "DEB;RPM")
+        SET(CPACK_GENERATOR "DEB")
         # Debian details
         configure_file(${CMAKE_SOURCE_DIR}/install/postinst
                 ${CMAKE_BINARY_DIR}/scripts/postinst @ONLY)
@@ -59,7 +58,7 @@ ELSEIF(UNIX)
                 "${CMAKE_BINARY_DIR}/scripts/prerm"
                 "${CMAKE_BINARY_DIR}/scripts/preinst")
             message("${CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA}")
-        SET(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION TRUE)
+        set(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION TRUE)
         add_custom_target(bundle DEPENDS typtop)
         add_custom_command(TARGET bundle POST_BUILD
                 COMMAND debsigs --sign=origin -k 445E6411 ${CPACK_PACKAGE_FILE_NAME}.deb # No idea what exactly it is doing
@@ -80,7 +79,7 @@ ELSEIF(UNIX)
     ENDIF(APPLE)
 ENDIF(WIN32)
 
-SET(CPACK_PACKAGE_EXECUTABLES typtop "TypTop")
+set(CPACK_PACKAGE_EXECUTABLES typtop "TypTop")
 
 INSTALL(FILES ${CMAKE_BINARY_DIR}/install_manifest.txt DESTINATION ${INSTALL_DATA_DIR}/typtop.d/)
 INSTALL(FILES ${CPACK_RESOURCE_FILE_WELCOME} DESTINATION ${INSTALL_DATA_DIR}/typtop.d/)

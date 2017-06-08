@@ -1,3 +1,10 @@
+
+# set(PAM_SOURCES pam_typtop.cpp)
+# add_library(pam_typtop SHARED ${PAM_SOURCES})
+# set_target_properties(pam_typtop PROPERTIES PREFIX "")
+
+
+
 set(CMAKE_MACOSX_RPATH 1)
 
 IF(UNIX)

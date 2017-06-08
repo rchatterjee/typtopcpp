@@ -1,0 +1,6 @@
+arch:
+    image: base/archlinux
+    volumes:
+        - .:/tmp/typtop
+    command:
+        - cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" ..

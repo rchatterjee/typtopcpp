@@ -517,7 +517,7 @@ void TypTop::status() const {
          << "  Install-id: " << db.ch().install_id() << endl
          << "  Login attempts: " << db.h().login_count() << endl
          << "  Typos made: " << typo_count << endl
-         << "  Logins allowed by TypTop: " << saved << endl
+         << "  Logins saved by TypTop: " << saved << endl
          << "  Volunteer for the study: " << db.ch().allow_upload() << endl
          << "  Allow login with typos: " << db.ch().allowed_typo_login() << endl;
     const typtop::TypoPolicy& tp = db.ch().tp();

@@ -32,13 +32,13 @@ int main(int argc, char *argv[]) {
     assert(rdata == m);
     */
     /**************************************************************/
-    string fname = "./tmp_db";
-    string pws[] = {"hellobrother", "hellobrother1"};
-    remove(fname.c_str());
+    Logs logs;
+    logs.ParseFromString(b64decode(argv[1]));
+    logs.PrintDebugString();
+
 //    TypTop tp(fname);
 //    cout << "Trying 0: " << tp.check(pws[0], true) << endl;
 //    cout << "Trying 1: " << tp.check(pws[1], false) << endl;
-    cout << "Entropy: " << entropy(pws[0]) << endl;
 //    }
 //    catch(CryptoPP::Exception& ex)
 //    {

@@ -41,6 +41,8 @@ add_library(pw_crypto STATIC pw_crypto.cpp pw_crypto.h)
 add_library(typtopdb STATIC ${TYPTOP_SRCS})
 add_executable(typtop WIN32 typtop-main.cpp)
 add_executable(testmain main.cpp)
+set(CMAKE_MACOSX_RPATH 1)
+add_library(b64decoder SHARED b64decoder.cpp)
 
 # add_dependencies(pw_crypto ${CRYPTOPP_PREFIX})
 add_dependencies(pw_crypto ${PLOG_PREFIX})
@@ -103,6 +105,8 @@ target_link_libraries(typtopdb ${PROTOBUF_STATIC_LIB} pw_crypto ${extra_libs} ${
 target_link_libraries(typtop pw_crypto typtopdb)
 
 target_link_libraries(testmain pw_crypto typtopdb)
+
+target_link_libraries(b64decoder pw_crypto)
 
 add_subdirectory(pam_modules)
 ### --- INSTALL --- ###

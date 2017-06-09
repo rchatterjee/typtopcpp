@@ -6,11 +6,10 @@
 // #include <sqlite3.h>
 // #include <typtop.h>
 
-using namespace std;
-
 string mydecode(string& s) {
     return b64decode(s);
 }
+
 
 //sqlite3* open_db(const char* dname) {
 //    sqlite3 *db;

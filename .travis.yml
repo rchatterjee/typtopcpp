@@ -14,7 +14,7 @@ before_install:
   - echo $LC_ALL
   - if [ $TRAVIS_OS_NAME == linux ]; then
        sudo apt-get install protobuf-compiler cmake g++ clang libprotobuf-dev libpam-dev build-essential;
-       sudo apt-get install libpthread-stubs0-dev;
+       sudo apt-get install libpthread-stubs0-dev libatomic-ops;
     fi
   - if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew reinstall protobuf cmake; fi
   - if [ $TRAVIS_OS_NAME == linux ]; then sudo ./test/create_linux_user.sh tmptyptop hello_pass; fi

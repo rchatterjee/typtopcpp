@@ -6,8 +6,8 @@ set(NCPU 6)   # Number of CPUs to use
 
 
 find_package(CryptoPP)
-message(STATUS "Found CryptoPP installation: ${CRYPTOPP_FOUND}")
-if(CRYPTOPP_FOUND AND CMAKE_PREFER_SHARED_LIBRARIES)
+message(STATUS "CryptoPP installation: ${CRYPTOPP_FOUND} Version: ${CRYPTOPP_VERSION}")
+if(CRYPTOPP_FOUND AND CMAKE_PREFER_SHARED_LIBRARIES AND (NOT CRYPTOPP_VERSION VERSION_LESS CRYPTOPP_TARGET_VERSION))
     ## If we insist on using shared version of cryptopp, set the library to the
     ## shared one
     set(CRYPTOPP_SHARED true)

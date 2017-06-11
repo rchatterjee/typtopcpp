@@ -227,9 +227,9 @@ int main(int argc, char *argv[])  {
             string pass;
             cout << "Password:";
             SetStdinEcho(false);
-            cin >> pass;
+            std::getline(std::cin, pass);
             SetStdinEcho(true);
-            cerr << "This will going to print out your passwords.\n"
+            cerr << "This is going to print out your passwords.\n"
                     "Please be careful about the shoulder surfers!!"
                     "(y/n)" << endl;
             string y;

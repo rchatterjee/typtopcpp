@@ -30,7 +30,7 @@ target_include_directories(typtopdb PRIVATE ${CRYPTOPP_INCLUDE_DIRS} ${CMAKE_CUR
 target_include_directories(typtop PUBLIC ${CRYPTOPP_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} ${ZXCVBN_INCLUDE_DIRS} ${PLOG_INCLUDE_DIRS})
 ### Link libraries. These are configured through 3rdparty/${lib_name}
 target_link_libraries(typtopdb cryptopp)
-target_link_libraries(typtop typtopdb cryptopp zxcvbn pam_typtop typtopdb curl)
+target_link_libraries(typtop typtopdb cryptopp zxcvbn typtopdb curl)
 
 ### Make sure cryptopp and zxcvbn are built when necessary.
 add_dependencies(typtopdb cryptopp zxcvbn)
@@ -56,11 +56,11 @@ endif()
 # #   3> typtop.conf -> /etc/pam.d
 # #   4> POST_INSTALL_SCRIPT := to update the pam_config files,
 
-# INSTALL(TARGETS typtop
-#         RUNTIME DESTINATION ${INSTALL_BIN_DIR}
-#         PERMISSIONS SETUID WORLD_EXECUTE OWNER_EXECUTE GROUP_EXECUTE
-#         OWNER_WRITE GROUP_READ WORLD_READ
-#         OWNER_READ GROUP_READ
-#         )
+INSTALL(TARGETS typtop
+        RUNTIME DESTINATION ${INSTALL_BIN_DIR}
+        PERMISSIONS SETUID WORLD_EXECUTE OWNER_EXECUTE GROUP_EXECUTE
+        OWNER_WRITE GROUP_READ WORLD_READ
+        OWNER_READ GROUP_READ
+        )
 INSTALL(DIRECTORY typtop.d DESTINATION ${INSTALL_DATA_DIR})
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION ${INSTALL_DATA_DIR}/typtop.d/)

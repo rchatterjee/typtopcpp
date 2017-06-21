@@ -88,7 +88,7 @@ TEST_CASE("Test TypTop DB") {
     TypTopTest tp;
     const typoDB &db = tp.get_db();
     REQUIRE(db.h().sys_state() == SystemStatus::UNINITIALIZED);
-    tp.check(pws[0], SECOND_TIME);
+    tp.check(pws[0], SECOND_TIME, false);
     REQUIRE(db.h().sys_state() == SystemStatus::ALL_GOOD);
     const PkCrypto &pkobj = tp.get_pkobj();
     REQUIRE(db.w_size() == W_size);
@@ -156,11 +156,11 @@ TEST_CASE("Test TypTop DB") {
         SECTION("Check(pw)") {
             CHECK(db.h().sys_state() == SystemStatus::ALL_GOOD);
             mut_pkobj.pk_decrypt(db.h().enc_header(), ench_str);
-            CHECK(tp.check(pws[0], FIRST_TIME));
+            CHECK(tp.check(pws[0], FIRST_TIME, false));
             ench.Clear();
             ench.ParseFromString(ench_str);
             CHECK(ench.pw() == pws[0]);
-            CHECK(tp.check(pws[0], FIRST_TIME));
+            CHECK(tp.check(pws[0], FIRST_TIME, false));
         }
 
         SECTION("step-by-step 'check' function") {
@@ -207,7 +207,7 @@ TEST_CASE("Test TypTop DB") {
 
     SECTION("persistence of the db on re-reading") {
         TypTopTest tp1;
-        REQUIRE(tp1.check(pws[0], PAM_RETURN::SECOND_TIME));
+        REQUIRE(tp1.check(pws[0], PAM_RETURN::SECOND_TIME, false));
         tp1.save();
         TypTopTest tp2;
 
@@ -238,35 +238,35 @@ TEST_CASE("Test TypTop DB") {
 
     SECTION("Test check function") {
         remove(_db_fname.c_str());
-        tp.check(pws[0], SECOND_TIME); // set the password
+        tp.check(pws[0], SECOND_TIME, false); // set the password
         REQUIRE(db.ch().install_id() == install_id);
 
         SECTION("check") {
-            REQUIRE(tp.check(pws[0], FIRST_TIME));
-            REQUIRE(tp.check(pws[0], FIRST_TIME));
-            CHECK(tp.check(pws[1], FIRST_TIME));
-            CHECK(tp.check(pws[2], FIRST_TIME));
-            CHECK(tp.check(pws[3], FIRST_TIME));
-            CHECK_FALSE(tp.check(pws[4], FIRST_TIME));
-            CHECK_FALSE(tp.check(pws[5], FIRST_TIME));
+            REQUIRE(tp.check(pws[0], FIRST_TIME, false));
+            REQUIRE(tp.check(pws[0], FIRST_TIME, false));
+            CHECK(tp.check(pws[1], FIRST_TIME, false));
+            CHECK(tp.check(pws[2], FIRST_TIME, false));
+            CHECK(tp.check(pws[3], FIRST_TIME, false));
+            CHECK_FALSE(tp.check(pws[4], FIRST_TIME, false));
+            CHECK_FALSE(tp.check(pws[5], FIRST_TIME, false));
         }
 
         SECTION("try inserting a typo with real pw") {
-            REQUIRE(tp.check(pws[0], FIRST_TIME));
-            times(5, CHECK_FALSE(tp.check(pws[4], FIRST_TIME)));
-            times(5, CHECK_FALSE(tp.check(pws[5], FIRST_TIME)));
-            REQUIRE(tp.check(pws[0], FIRST_TIME));
-            CHECK(tp.check(pws[4], FIRST_TIME));
-            CHECK_FALSE(tp.check(pws[5], FIRST_TIME));
+            REQUIRE(tp.check(pws[0], FIRST_TIME, false));
+            times(5, CHECK_FALSE(tp.check(pws[4], FIRST_TIME, false)));
+            times(5, CHECK_FALSE(tp.check(pws[5], FIRST_TIME, false)));
+            REQUIRE(tp.check(pws[0], FIRST_TIME, false));
+            CHECK(tp.check(pws[4], FIRST_TIME, false));
+            CHECK_FALSE(tp.check(pws[5], FIRST_TIME, false));
         }
 
         SECTION("try inserting a typo with typo") {
-            REQUIRE(tp.check(pws[1], FIRST_TIME));
-            times(5, CHECK_FALSE(tp.check(pws[4], FIRST_TIME)));
-            times(5, CHECK_FALSE(tp.check(pws[5], FIRST_TIME)));
-            REQUIRE(tp.check(pws[1], FIRST_TIME));
-            CHECK(tp.check(pws[4], FIRST_TIME));
-            CHECK_FALSE(tp.check(pws[5], FIRST_TIME));
+            REQUIRE(tp.check(pws[1], FIRST_TIME, false));
+            times(5, CHECK_FALSE(tp.check(pws[4], FIRST_TIME, false)));
+            times(5, CHECK_FALSE(tp.check(pws[5], FIRST_TIME, false)));
+            REQUIRE(tp.check(pws[1], FIRST_TIME, false));
+            CHECK(tp.check(pws[4], FIRST_TIME, false));
+            CHECK_FALSE(tp.check(pws[5], FIRST_TIME, false));
         }
     }
 
@@ -276,19 +276,19 @@ TEST_CASE("Test TypTop DB") {
 
     SECTION("Test log entries and upload") {
         tp.allow_upload(false);
-        tp.check(pws[0], PAM_RETURN::SECOND_TIME);
+        tp.check(pws[0], PAM_RETURN::SECOND_TIME, false);
 
         SECTION("send_w/o_autoupload") {
-            tp.send_log(); // truncate
+            tp.send_log(0); // truncate
             CHECK(db.logs().l_size() == 0);  // log had the typos
 
-            CHECK(tp.check(pws[1], PAM_RETURN::FIRST_TIME));
+            CHECK(tp.check(pws[1], PAM_RETURN::FIRST_TIME, false));
             CHECK(db.logs().l_size() == 1);
             for (int i = 0; i < 6; ++i) {
-                tp.check(pws[2], PAM_RETURN::FIRST_TIME);
+                tp.check(pws[2], PAM_RETURN::FIRST_TIME, false);
                 CHECK(db.logs().l_size() == i + 2);
             }
-            tp.send_log();
+            tp.send_log(0);
             CHECK(db.logs().l_size() == 0);  // log had the typos
         }
     }
@@ -297,14 +297,14 @@ TEST_CASE("Test TypTop DB") {
 TEST_CASE("Timing") {
     remove(_db_fname.c_str());
     TypTopTest tp;
-    tp.check(pws[0], SECOND_TIME); // set the password
+    tp.check(pws[0], SECOND_TIME, false); // set the password
 
     SECTION("Wrong password") {
-        times(100, CHECK_FALSE(tp.check(pws[4], FIRST_TIME)))
+        times(100, CHECK_FALSE(tp.check(pws[4], FIRST_TIME, false)))
     }
 
     SECTION("Correct password") {
-        times(100, CHECK(tp.check(pws[0], FIRST_TIME)))
+        times(100, CHECK(tp.check(pws[0], FIRST_TIME, false)))
     }
 
     SECTION("Intiation") {
@@ -320,10 +320,10 @@ TEST_CASE("Typtop extra utilities") {
     };
     remove(_db_fname.c_str());
     TypTopTest tp;
-    tp.check(hpws[0], SECOND_TIME); // set the password
+    tp.check(hpws[0], SECOND_TIME, false); // set the password
     tp.set_typo_policy(1, 0, 30);
-    tp.check(hpws[0], SECOND_TIME); // reset the password
-    REQUIRE(tp.check(hpws[0], FIRST_TIME));
+    tp.check(hpws[0], SECOND_TIME, false); // reset the password
+    REQUIRE(tp.check(hpws[0], FIRST_TIME, false));
 //    vector<string> typos(10);
 //    get_typos(hpws[0], typos);
 //    for(string it: typos){
@@ -338,28 +338,28 @@ TEST_CASE("Typtop extra utilities") {
 
 
     SECTION("Allow Typo login") {
-        CHECK(tp.check(hpws[1], FIRST_TIME));
+        CHECK(tp.check(hpws[1], FIRST_TIME, false));
         tp.allow_typo_login(false);
         CHECK_FALSE(tp.get_db().ch().allowed_typo_login());
-        CHECK(tp.check(hpws[0], FIRST_TIME));
-        CHECK_FALSE(tp.check(hpws[1], FIRST_TIME));
+        CHECK(tp.check(hpws[0], FIRST_TIME, false));
+        CHECK_FALSE(tp.check(hpws[1], FIRST_TIME, false));
         tp.allow_typo_login(true);
-        CHECK(tp.check(hpws[0], FIRST_TIME));
-        CHECK(tp.check(hpws[1], FIRST_TIME));
+        CHECK(tp.check(hpws[0], FIRST_TIME, false));
+        CHECK(tp.check(hpws[1], FIRST_TIME, false));
     }
 
     SECTION("Typo Policy.EditCutoff") {
         tp.set_typo_policy(2, -1, -1);
-        times(5, tp.check(hpws[3], FIRST_TIME));
-        tp.check(hpws[1], FIRST_TIME);
-        CHECK(tp.check(hpws[3], FIRST_TIME));
+        times(5, tp.check(hpws[3], FIRST_TIME, false));
+        tp.check(hpws[1], FIRST_TIME, false);
+        CHECK(tp.check(hpws[3], FIRST_TIME, false));
         tp.set_typo_policy(1, -1, -1);
     }
 
     SECTION("Typo Policy.AbsEntCutoff") {
-        CHECK(tp.check(hpws[1], FIRST_TIME));
+        CHECK(tp.check(hpws[1], FIRST_TIME, false));
         tp.set_typo_policy(-1, 30, -1);
-        CHECK_FALSE(tp.check(hpws[1], FIRST_TIME));
+        CHECK_FALSE(tp.check(hpws[1], FIRST_TIME, false));
     }
 
     SECTION("Typo Policy.RelEntCutoff") {

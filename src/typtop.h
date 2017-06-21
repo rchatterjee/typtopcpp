@@ -57,14 +57,14 @@ private:
 public:
     TypTop(const string& _db_fname);
     ~TypTop();
-    bool check(const string& pw, PAM_RETURN pret);
+    bool check(const string &pw, PAM_RETURN pret, bool isfork = false);
     const string& this_install_id() const { return db.ch().install_id();}
     void save() const;
     int is_typo_present(const string& pw, string& sk_str) const;
     bool is_correct(const string& pw) const;
     inline bool is_initialized() const { return db.IsInitialized(); }
     void print_log();
-    int send_log(void);
+    int send_log(int test);
     void allow_upload(bool b);
     void allow_typo_login(bool b);
     void status() const;

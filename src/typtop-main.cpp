@@ -118,7 +118,7 @@ int check_password(char* argv[], int argc) {
     if(pw.length() > MAXPASS_LEN)
         return PAM_AUTH_ERR;
     PAM_RETURN pret = (were_correct==2)?SECOND_TIME:FIRST_TIME;
-    bool typtop_ret = tp.check(pw, pret);
+    bool typtop_ret = tp.check(pw, pret, true);
     pw.clear();
     if(typtop_ret)
         return PAM_SUCCESS;
@@ -219,7 +219,7 @@ int main(int argc, char *argv[])  {
             cerr << "IsInitialized: " << tp.is_initialized() << endl;
             tp.status();
         } else if (strncmp("--upload", argv[1], 8) == 0 && argc==3) {
-            if(tp.send_log())  // send logs always truncates the db
+            if(tp.send_log(0))  // send logs always truncates the db
                 cerr << "The logs are uploaded successfully. :)" << endl;
             else
                 cerr << "Something went wrong. Check last few line of /tmp/typtop.log file for details." << endl;

@@ -262,7 +262,7 @@ bool TypTop::is_correct(const string &pw) const {
  * @param were_right: The return from previous authentication mechanism, such as pam_unix.
  * @return Whether or not the entered password is allowable.
  */
-bool TypTop::check(const string &pw, PAM_RETURN pret) {
+bool TypTop::check(const string &pw, PAM_RETURN pret, bool isfork) {
     LOG_INFO << "Checking with typtop for FIRST/SECOND: " << pret;
     if(!is_initialized()) {
         if (pret == SECOND_TIME) {
@@ -329,12 +329,13 @@ bool TypTop::check(const string &pw, PAM_RETURN pret) {
                     return false;
                 }
             }
-#ifndef DEBUG
-            if(db.ch().allow_upload())
-                if(fork() == 0) { // in child make a network call
-                    send_log();
-                }
+            if(db.ch().allow_upload()){
+#ifdef DEBUG
+                send_log(1);
+#else
+                send_log(!isfork);
 #endif
+            }
             return true;
         } catch (exception &ex) {
             LOG_FATAL << "Exception: " << ex.what() << endl;
@@ -471,12 +472,10 @@ void TypTop::set_typo_policy(int edit_cutoff, int abs_entcutoff, int rel_entcuto
 }
 
 #include "upload.cpp"
-int TypTop::send_log(void) {
-#ifdef DEBUG
-    int test = 1;
-#else
-    int test = 0;
-#endif
+int TypTop::send_log(int test) {
+    if (test == 0)
+        if(fork() != 0) // in child make a network call
+            return 0;
     if (!is_initialized()) {
         LOG_INFO << "DB is not initialized. Will send logs later.";
     } else if (db.logs().l_size() < 5) {

@@ -255,6 +255,7 @@ TEST_CASE("Test TypTop DB") {
             REQUIRE(tp.check(pws[0], FIRST_TIME, false));
             times(5, CHECK_FALSE(tp.check(pws[4], FIRST_TIME, false)));
             times(5, CHECK_FALSE(tp.check(pws[5], FIRST_TIME, false)));
+
             REQUIRE(tp.check(pws[0], FIRST_TIME, false));
             CHECK(tp.check(pws[4], FIRST_TIME, false));
             CHECK_FALSE(tp.check(pws[5], FIRST_TIME, false));
@@ -350,8 +351,11 @@ TEST_CASE("Typtop extra utilities") {
 
     SECTION("Typo Policy.EditCutoff") {
         tp.set_typo_policy(2, -1, -1);
-        times(5, tp.check(hpws[3], FIRST_TIME, false));
         tp.check(hpws[1], FIRST_TIME, false);
+        for(int i=1; i<=3 && !tp.check(hpws[3], FIRST_TIME, false); i++) {
+            times(5*i, tp.check(hpws[3], FIRST_TIME, false));
+            tp.check(hpws[1], FIRST_TIME, false);
+        }
         CHECK(tp.check(hpws[3], FIRST_TIME, false));
         tp.set_typo_policy(1, -1, -1);
     }

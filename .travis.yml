@@ -42,4 +42,4 @@ before_script:
   - bash .build.sh
 
 script:
-  - ./build/test/tests -d yes
+  - ./build/test/tests -d yes --rng-seed 254

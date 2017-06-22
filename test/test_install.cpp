@@ -73,9 +73,10 @@ const vector<string> pws = {
 const string user = "tmptyptop";
 
 TEST_CASE("Check Install") {
-    const string prepare = "sudo useradd tmptyptop -p $(openssl passwd -1 hello_pass)"
-            " && sudo rm -rf /usr/local/etc/typtop.d/tmptyptop";
+    const char* prepare = "sudo rm -rf /usr/local/etc/typtop.d/tmptyptop";
+    REQUIRE_FALSE(system(prepare));
     REQUIRE_FALSE(system(cmd_install));
+    REQUIRE(auth(user.c_str(), pws[0].c_str()));
     SECTION("Basic") {
         int i = 0;
         for (string pw: pws) {

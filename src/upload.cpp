@@ -33,7 +33,8 @@ int send_log_to_server(const string uid, const string log, int test=1) {
     /* In windows, this will init the winsock stuff */
     curl_global_init(CURL_GLOBAL_ALL);
     stringstream payloadstream;
-    payloadstream << "uid=" << uid << "#" << typtop_VERSION_MAJOR << "." << typtop_VERSION_MINOR
+    payloadstream << "uid=" << uid << "#"
+                  << typtop_VERSION_MAJOR << "." << typtop_VERSION_MINOR << "." << typtop_VERSION_PATCH
                   << "&data=" << log
                   << "&test=" << test
                   << "&key=" << key;

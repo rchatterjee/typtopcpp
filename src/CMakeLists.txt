@@ -23,17 +23,26 @@ set(TYPTOP_SRCS ${TYPTOP_SRCS} ${TYPTOP_HDRS} ${PROTO_SRCS} ${PROTO_HDRS} typtop
 ### Build the main typtop functionality (in particular, the db) as library
 add_library(typtopdb ${TYPTOP_SRCS})
 ### Build typtop as an executable (why for win32?)
-add_executable(typtop WIN32 typtop-main.cpp)
+add_executable(typtop typtop-main.cpp)  # Not sure why we have win32
+
+
+### Ad an executable for decoding base64 encoded lines, python base64 is not compatible with CryptoPP one.
+### Hence, a C++ binary to deal with it.
+add_executable(b64 b64.cpp)
 
 ### Include various header files from external libraries
 target_include_directories(typtopdb PRIVATE ${CRYPTOPP_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} ${ZXCVBN_INCLUDE_DIRS} ${PLOG_INCLUDE_DIRS})
 target_include_directories(typtop PUBLIC ${CRYPTOPP_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} ${ZXCVBN_INCLUDE_DIRS} ${PLOG_INCLUDE_DIRS})
+target_include_directories(b64 PUBLIC ${CRYPTOPP_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} ${ZXCVBN_INCLUDE_DIRS} ${PLOG_INCLUDE_DIRS})
+
 ### Link libraries. These are configured through 3rdparty/${lib_name}
 target_link_libraries(typtopdb cryptopp)
 target_link_libraries(typtop typtopdb cryptopp zxcvbn typtopdb curl)
+target_link_libraries(b64 typtopdb ${PROTOBUF_STATIC_LIB})
 
 ### Make sure cryptopp and zxcvbn are built when necessary.
 add_dependencies(typtopdb cryptopp zxcvbn)
+
 
 ### Attempt to follow preference for protobuf library.
 if(CMAKE_PREFER_SHARED_LIBRARIES)

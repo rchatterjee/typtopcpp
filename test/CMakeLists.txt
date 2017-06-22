@@ -26,5 +26,9 @@ else()
 endif()
 target_link_libraries(tests typtopdb)
 target_link_libraries(tests curl)
-add_test(test tests)
 add_dependencies(tests typtopdb zxcvbn ${PLOG_PREFIX})
+
+
+enable_testing()
+find_file(test_exec tests PATHS ${CMAKE_BINARY_DIR}/test)
+add_test(test ${test_exec} -d yes)

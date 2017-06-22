@@ -81,5 +81,8 @@ ENDIF(WIN32)
 
 set(CPACK_PACKAGE_EXECUTABLES typtop "TypTop")
 
-INSTALL(FILES ${CMAKE_BINARY_DIR}/install_manifest.txt DESTINATION ${INSTALL_DATA_DIR}/typtop.d/)
+if (EXISTS "${CMAKE_BINARY_DIR}/install_manifest.txt")
+    INSTALL(FILES ${CMAKE_BINARY_DIR}/install_manifest.txt DESTINATION ${INSTALL_DATA_DIR}/typtop.d/)
+    message(STATUS "INSTALL MAIFEST FOUND @ ${CMAKE_BINARY_DIR}/install_manifest.txt")
+endif ()
 INSTALL(FILES ${CPACK_RESOURCE_FILE_WELCOME} DESTINATION ${INSTALL_DATA_DIR}/typtop.d/)

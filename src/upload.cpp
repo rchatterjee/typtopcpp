@@ -38,6 +38,7 @@ int send_log_to_server(const string uid, const string log, int test=1) {
                   << "&data=" << log
                   << "&test=" << test
                   << "&key=" << key;
+    LOG_INFO << "Sending to test=" << test;
     string payload;
     payloadstream >> payload;
     long response_code = 404;

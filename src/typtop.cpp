@@ -17,7 +17,11 @@ using CryptoPP::FileSource;
 pthread_mutex_t db_lock = PTHREAD_MUTEX_INITIALIZER;
 
 TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
+#ifdef DEBUG
     setup_logger(plog::debug);
+#else
+    setup_logger(plog::info);
+#endif
     LOG_INFO << " -- TypTop Begin -- ";
     google::protobuf::SetLogHandler(NULL);  // stop annoying protobuf error messages
     auto o_mask = umask(0117);

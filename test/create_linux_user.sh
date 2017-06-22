@@ -19,7 +19,7 @@ cut -d : -f 1 /etc/group | grep -w $USERNAME
 if [[ "$?" == "0" ]]; then
     userdel $USERNAME
 fi
-PASSWORD_CRYPT="$(openssl passwd -crypt $PASSWORD)"
+PASSWORD_CRYPT="$(openssl passwd -1 $PASSWORD)"
 useradd -u 2540 -p "$PASSWORD_CRYPT" "$USERNAME"
 
 if [[ "$?" == "0" ]]; then

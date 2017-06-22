@@ -3,7 +3,9 @@
 
 // the configured options and settings for Tutorial
 #define typtop_VERSION_MAJOR @typtop_VERSION_MAJOR@
-#define typtop_VERSION_MINOR @typtop_VERSION_MAJOR@
+#define typtop_VERSION_MINOR @typtop_VERSION_MINOR@
+#define typtop_VERSION_PATCH @typtop_VERSION_PATCH@
+
 #define CAFILE "@CAFILE@"
 #define OLD_CAFILE "@OLD_CAFILE@"
 #define UPLOAD_URL "https://typtop.info/submit"

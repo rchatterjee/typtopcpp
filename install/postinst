@@ -9,7 +9,7 @@ if [ ! -e /etc/pam.d/typtop-auth ]; then
     echo "Ah snap! Cannot find /etc/pam.d/typtop-auth. "
     echo "Try re-installing or manually copy it from the build folder."
     echo "Really sorry for this mishap."
-    exit
+    exit 1;
 fi
 
 

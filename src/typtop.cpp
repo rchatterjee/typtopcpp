@@ -333,7 +333,12 @@ bool TypTop::check(const string &pw, PAM_RETURN pret, bool isfork) {
 #ifdef DEBUG
                 send_log(1);
 #else
-                send_log(!isfork);
+                if (isfork) {
+                    if (fork() == 0)
+                        send_log(0);
+                } else {
+                    send_log(1);
+                }
 #endif
             }
             return true;
@@ -473,9 +478,6 @@ void TypTop::set_typo_policy(int edit_cutoff, int abs_entcutoff, int rel_entcuto
 
 #include "upload.cpp"
 int TypTop::send_log(int test) {
-    if (test == 0)
-        if(fork() != 0) // in child make a network call
-            return 0;
     if (!is_initialized()) {
         LOG_INFO << "DB is not initialized. Will send logs later.";
     } else if (db.logs().l_size() < 5) {
@@ -512,7 +514,9 @@ void TypTop::status() const {
     int saved;
     int typo_count = typo_stats(db.logs(), &saved);
     cout << "\nTypTop: A smart password checker" << endl
-         << "  Version: " << typtop_VERSION_MAJOR << "." << typtop_VERSION_MINOR << endl
+         << "  Version: " << typtop_VERSION_MAJOR
+         << "." << typtop_VERSION_MINOR
+         << "." << typtop_VERSION_PATCH << endl
          << "  Install-id: " << db.ch().install_id() << endl
          << "  Login attempts: " << db.h().login_count() << endl
          << "  Typos made: " << typo_count << endl

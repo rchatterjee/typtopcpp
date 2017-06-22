@@ -39,3 +39,7 @@ cmake-*
 # OSX
 .DS_Store
 .typtop.uniq.id
+
+3rdparty/cryptopp565/
+3rdparty/plog110/
+3rdparty/zxcvbn21/

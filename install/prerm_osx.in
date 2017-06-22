@@ -12,8 +12,11 @@ if [ -d "/etc/pam.d/" ]; then
             mv "$f" "${f%.*}"
         fi
     done
-    rm -f /etc/pam.d/typtop-auth
-    echo "Reverting to original files"
+   if [ "$1" != "-disengage" ]; then
+      rm -f /etc/pam.d/typtop-auth
+      rm -rf /usr/local/etc/typtop.d/$USER
+   fi
+   echo "Reverting to original files"
 elif [ -e "/etc/pam.conf" ]; then
     mv /etc/pam.conf.orig /etc/pam.conf
     echo "Reverting to original files"

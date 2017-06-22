@@ -242,7 +242,7 @@ int main(int argc, char *argv[])  {
         } else if (strncmp("--mylogs", argv[1], 5) == 0 && argc==3) {
             tp.print_log();
         } else if (strncmp("--install", argv[1], 9) == 0 && argc==2) {
-            cout << "Installed: " << (system("sudo bash /usr/local/bin/typtop.postinst")==0)<< endl;
+            cout << "Installed: " << (system("sudo bash /usr/local/bin/typtop.postinst")?"No":"Yes")<< endl;
         } else if (strncmp("--uninstall", argv[1], 11) == 0 && (argc==2 || argc==3)) {
             if(geteuid() != 0) {
                 cerr << "Need to be root to be able to call this!" << endl;
@@ -256,7 +256,7 @@ int main(int argc, char *argv[])  {
                 cin >> y;
             }
             if (y == "y" || y == "Y") {
-                int ret = system("sudo bash /usr/local/bin/typtop.prerm disengage");
+                int ret = system("sudo bash /usr/local/bin/typtop.prerm -disengage");
                 if (ret==0)
                     cerr << "The typtop has been disengaged from your authentication system.\n"
                             "The binary might be still there and you can remove it manually.\n"
@@ -264,9 +264,9 @@ int main(int argc, char *argv[])  {
                             "your mind. You can delete the directory for safety."
                          << endl;
                 else
-                    cerr << "Ther was some issue with unistalling typtop. Can you check by relogging.\n"
+                    cerr << "There was some issues with uninstalling typtop. Can you check by re-logging in?\n"
                          << "If everything works, then you are good to go. Delete typtop executable, \n"
-                         << "and /usr/local/etc/typtop.d directory for your safety.";
+                         << "and " << USERDB_LOC << " directory for your safety." << endl;
                 // TODO: remove the files in manifest file
             }
         } else if (strncmp("--participate", argv[1], 13)==0 && argc==4) {

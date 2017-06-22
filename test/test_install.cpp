@@ -13,6 +13,7 @@
 #include <security/pam_misc.h>
 #include <security/pam_ext.h>
 #endif
+#define times(n, code_block) {for(int _ti=0; _ti<n; _ti++) code_block;}
 
 #include <stdio.h>
 #include <fstream>
@@ -25,8 +26,8 @@
 #include <stdlib.h>
 
 using namespace std;
-const char* cmd_uninstall = (const char*)"sudo bash /usr/local/bin/typtop.prerm";
-const char* cmd_install = (const char*)"sudo bash /usr/local/bin/typtop.postinst";
+const char* cmd_uninstall = (const char*)"sudo typtop --uninstall -y";
+const char* cmd_install = (const char*)"sudo typtop --install";
 
 int conv_func(int num_msg, const struct pam_message **msg,
               struct pam_response **resp, void *appdata_ptr) {
@@ -72,9 +73,9 @@ const vector<string> pws = {
 const string user = "tmptyptop";
 
 TEST_CASE("Check Install") {
-    const string prepare = "sudo useradd tmptyptop -p $(openssl passwd -crypt hello_pass)"
+    const string prepare = "sudo useradd tmptyptop -p $(openssl passwd -1 hello_pass)"
             " && sudo rm -rf /usr/local/etc/typtop.d/tmptyptop";
-    system(cmd_install);
+    REQUIRE_FALSE(system(cmd_install));
     SECTION("Basic") {
         int i = 0;
         for (string pw: pws) {
@@ -86,26 +87,25 @@ TEST_CASE("Check Install") {
             }
             i++;
         }
-        auth(user.c_str(), pws[4].c_str());
-        auth(user.c_str(), pws[4].c_str());
-        auth(user.c_str(), pws[4].c_str());
-        auth(user.c_str(), pws[4].c_str());
-        auth(user.c_str(), pws[4].c_str());
-        auth(user.c_str(), pws[4].c_str());
+        times(5, auth(user.c_str(), pws[4].c_str()));
         REQUIRE(auth(user.c_str(), pws[1].c_str()));
         REQUIRE(auth(user.c_str(), pws[4].c_str()));
     }
 }
 
 TEST_CASE("Check Uninstall") {
-    system(cmd_uninstall);
+    REQUIRE_FALSE(system(cmd_uninstall));
     // REQUIRE_FALSE(opendir(USERDB_LOC));
     REQUIRE(auth(user.c_str(), pws[0].c_str()));
+    cout << "Tried: " << pws[1] << endl;
     REQUIRE_FALSE(auth(user.c_str(), pws[1].c_str()));
+    cout << "Tried: " << pws[2] << endl;
     REQUIRE_FALSE(auth(user.c_str(), pws[2].c_str()));
+    cout << "Tried: " << pws[3] << endl;
     REQUIRE_FALSE(auth(user.c_str(), pws[3].c_str()));
+    cout << "Tried: " << pws[4] << endl;
     REQUIRE_FALSE(auth(user.c_str(), pws[4].c_str()));
-    system(cmd_install);
+    REQUIRE_FALSE(system(cmd_install));
     REQUIRE(auth(user.c_str(), pws[1].c_str()));
 }
 

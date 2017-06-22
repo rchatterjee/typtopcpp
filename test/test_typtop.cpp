@@ -6,6 +6,7 @@
 #include "catch.hpp"
 
 #define DEBUG 1
+#define times(n, code_block) {for(int _ti=0; _ti<n; _ti++) code_block;}
 
 const string _db_fname = "./test_typtop_db";
 const vector<string> pws = {
@@ -18,7 +19,6 @@ const vector<string> pws = {
 };
 string install_id; // get_install_id();
 const int32_t infinity = INT_MAX;
-#define times(n, code_block) {for(int _ti=0; _ti<n; _ti++) code_block;}
 
 class TypTopTest : public TypTop {
 public:
@@ -279,7 +279,7 @@ TEST_CASE("Test TypTop DB") {
         tp.check(pws[0], PAM_RETURN::SECOND_TIME, false);
 
         SECTION("send_w/o_autoupload") {
-            tp.send_log(0); // truncate
+            tp.send_log(1); // truncate  // test=1
             CHECK(db.logs().l_size() == 0);  // log had the typos
 
             CHECK(tp.check(pws[1], PAM_RETURN::FIRST_TIME, false));
@@ -288,7 +288,7 @@ TEST_CASE("Test TypTop DB") {
                 tp.check(pws[2], PAM_RETURN::FIRST_TIME, false);
                 CHECK(db.logs().l_size() == i + 2);
             }
-            tp.send_log(0);
+            tp.send_log(1);
             CHECK(db.logs().l_size() == 0);  // log had the typos
         }
     }

@@ -299,11 +299,11 @@ TEST_CASE("Timing") {
     TypTopTest tp;
     tp.check(pws[0], SECOND_TIME, false); // set the password
 
-    SECTION("Wrong password") {
+    SECTION("Wrong password - 100 times") {
         times(100, CHECK_FALSE(tp.check(pws[4], FIRST_TIME, false)))
     }
 
-    SECTION("Correct password") {
+    SECTION("Correct password - 100 times") {
         times(100, CHECK(tp.check(pws[0], FIRST_TIME, false)))
     }
 

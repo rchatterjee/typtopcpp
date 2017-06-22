@@ -14,4 +14,5 @@ make tests
 if [[ $? != 0 ]]; then
     cmake ..
     make && make tests
+    sudo make install
 fi

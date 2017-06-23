@@ -28,7 +28,7 @@ add_executable(typtop typtop-main.cpp)  # Not sure why we have win32
 
 ### Ad an executable for decoding base64 encoded lines, python base64 is not compatible with CryptoPP one.
 ### Hence, a C++ binary to deal with it.
-add_executable(b64 b64.cpp)
+add_executable(b64 EXCLUDE_FROM_ALL b64.cpp)
 
 ### Include various header files from external libraries
 target_include_directories(typtopdb PRIVATE ${CRYPTOPP_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} ${ZXCVBN_INCLUDE_DIRS} ${PLOG_INCLUDE_DIRS})

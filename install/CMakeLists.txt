@@ -25,7 +25,7 @@ SET(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local/")
 SET(CPACK_OUTPUT_CONFIG_FILE CPackConfig.cmake)
 
 SET(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
-string(TIMESTAMP TIME_NOW %Y%m%d_%H%M%S)
+string(TIMESTAMP TIME_NOW %Y%m%d_%H%M)
 SET(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.${TIME_NOW}")
 
 IF(WIN32)
@@ -44,7 +44,7 @@ ELSEIF(UNIX)
     ELSE(APPLE)  # Not apple
         MESSAGE(STATUS "CPack for non-osx unix systems")
         # INCLUDE(InstallRequiredSystemLibraries)
-        SET(CPACK_GENERATOR "DEB")
+        SET(CPACK_GENERATOR "DEB;RPM")
         # Debian details
         configure_file(${CMAKE_SOURCE_DIR}/install/postinst
                 ${CMAKE_BINARY_DIR}/scripts/postinst @ONLY)

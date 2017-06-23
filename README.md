@@ -7,9 +7,9 @@ An effort to port [typtop](https://github.com/rchatterjee/pam-typopw) to C++.
 For compiling the project from source, you need following libraries.
 * `cmake >= 3.6`
 * Depends on Google `protobuf`
-* Includes `cryptopp`, `zxcvbn` and `plog` (inside)
 * `pam-dev`
 * `cURL` (in debian install `libcurl4-openssl-dev`)
+* Includes `cryptopp`, `zxcvbn` and `plog` (inside)
 
 
 ## Install
@@ -23,10 +23,6 @@ $ mkdir build && cd build && cmake ..
 $ make  # If this fails, try running cmake again
 ```
 
-Due to my very bad understanding of CMake and too much ambition to do things
-perfectly, I messed up the whole build system. If your first try does not build
-it, try running combination of `cmake ..` and `make` few times. It will build
-eventually. Trust me!
 
 You can package, or just install directly by running, `sudo make install`.
 If you install using `make install`, don't forget to run, `sudo ./script/postinst`.

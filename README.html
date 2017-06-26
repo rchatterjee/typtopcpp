@@ -1,37 +1,56 @@
-<pre>
-  /  |                          /  |
- _$$ |_    __    __   ______   _$$ |_     ______    ______
-/ $$   |  /  |  /  | /      \ / $$   |   /      \  /      \\
-$$$$$$/   $$ |  $$ |/$$$$$$  |$$$$$$/   /$$$$$$  |/$$$$$$  |
-  $$ | __ $$ |  $$ |$$ |  $$ |  $$ | __ $$ |  $$ |$$ |  $$ |
-  $$ |/  |$$ \__$$ |$$ |__$$ |  $$ |/  |$$ \__$$ |$$ |__$$ |
-  $$  $$/ $$    $$ |$$    $$/   $$  $$/ $$    $$/ $$    $$/
-   $$$$/   $$$$$$$ |$$$$$$$/     $$$$/   $$$$$$/  $$$$$$$/
-          /  \__$$ |$$ |                          $$ |
-          $$    $$/ $$ |                          $$ |
-           $$$$$$/  $$/                           $$/
-</pre>
-<h3>Hello!</h3>
+<h1 id="typtop-cpp">TypTop-CPP</h1>
+<p><a href="https://travis-ci.org/rchatterjee/typtopcpp"><embed src="https://travis-ci.org/rchatterjee/typtopcpp.svg?branch=master" /></a></p>
+<p>An effort to port <a href="https://github.com/rchatterjee/pam-typopw">typtop</a> to C++.</p>
+<h2 id="dependencies">Dependencies</h2>
+<p>For compiling the project from source, you need following libraries. * <code>cmake &gt;= 3.6</code> * Depends on Google <code>protobuf</code> * <code>pam-dev</code> * <code>cURL</code> (in debian install <code>libcurl4-openssl-dev</code>) * Includes <code>cryptopp</code>, <code>zxcvbn</code> and <code>plog</code> (inside)</p>
+<h2 id="install">Install</h2>
+<p>For <code>Debian</code>, <code>Fedora</code>, and <code>Mac OSX</code> I have a prebuilt packages. Check out the <a href="https://github.com/rchatterjee/typtopcpp/releases">releases</a>.</p>
+<p><code>Mac OSX</code> users just download <code>.pkg</code> file and double click to install it. (Requires account password.)</p>
+<p>For <code>Debian</code> based operating systems, download the <code>.deb</code> package and run the following command to install the package.</p>
+<pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">sudo</span> dpkg -i <span class="kw">&lt;</span>typtop-file-name<span class="kw">&gt;</span>.deb</code></pre>
+<p>Or, you can double click on the downloaded <code>.deb</code> file.</p>
+<p>For <code>Fedora</code> (and probably <code>CentOS</code>), download the <code>.rpm</code> package and run the following command</p>
+<pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">sudo</span> rpm -ivh --replacefiles <span class="kw">&lt;</span>typtop-file-name<span class="kw">&gt;</span>.rpm</code></pre>
+<h2 id="compilebuild">Compile/Build</h2>
+<pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">mkdir</span> build <span class="kw">&amp;&amp;</span> <span class="kw">cd</span> build <span class="kw">&amp;&amp;</span> <span class="kw">cmake</span> ..
+$ <span class="kw">make</span>  <span class="co"># If this fails, try running cmake again</span>
+$ <span class="kw">./test/tests</span> -d yes --rng-seed 254    <span class="co"># To run the tests or &quot;make tests&quot; will work too. </span></code></pre>
+<p>You can package, or just install directly by running, <code>sudo make install</code>. If you install using <code>make install</code>, don't forget to run, <code>sudo ./script/postinst</code>.</p>
+<pre class="sourceCode bash"><code class="sourceCode bash"><span class="co"># Installation steps </span>
+$ <span class="kw">cd</span> build
+$ <span class="kw">sudo</span> ./scripts/preinst
+$ <span class="kw">make</span> install 
+$ <span class="kw">sudo</span> ./scripts/postinst</code></pre>
+<!-- I would suggest creating the package and then install it using your favorite
+package manager.  TO build your own package you have to change the
+`CPACK_GENERATOR` in `install/CMakeList.txt` to what you like, possible options
+are, `DEB`, `RPM`, `STGZ` etc. (I am confusing the hell out of you. I know. I am little
+confused too.)
+-->
 
-<p>
-    Thanks for installing TypToP.  This software
-attaches a new pluggable authentication module (PAM) to all of your
-common authentication processes, such as su, login, lock-screen etc.
-Typtop observes for password typing mistakes, and enable logging in
-with slight variations of your actual login password that are
-    frequent and safe.</p>
+<p>There is a useful binary <code>typtop</code> installed in your <code>/usr/local/bin</code>. Try <code>$ typtop</code> and it will show you the options. You can check existing logs, stored typos and other info using this binary. You can also modify some of the config with this binary.</p>
+<pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">typtop</span>
+<span class="kw">Typtop</span> (1.1)
 
-<p>This is a research prototype, and we are collecting some anonymous
-non-sensitive data about your password typing patterns to verify our
-design. The details of what we collect, how we collect and store, and
-the security blueprint of this software can be found in the GitHub
-    page: https://github.com/rchatterjee/typtopcpp.</p>
+<span class="kw">Usage</span>: typtop [func] [options]
+<span class="kw">func</span> can be any one of --status, --upload, --mytypos, [and --check]
+ <span class="kw">--status</span> <span class="kw">&lt;</span>username<span class="kw">&gt;</span>  <span class="co"># Shows some status info of the binary and typo-correction</span>
+ <span class="kw">--upload</span> <span class="kw">&lt;</span>username<span class="kw">&gt;</span>  <span class="co"># Uploads the log to the server. Shouold not need to call it manually</span>
+ <span class="kw">--mytypos</span> <span class="kw">&lt;</span>username<span class="kw">&gt;</span> <span class="co"># Show your frequent typos that are cached in the cache</span>
+ <span class="kw">--mylogs</span> <span class="kw">&lt;</span>username<span class="kw">&gt;</span>  <span class="co"># Shows the logs (that are not yet uploaded to the server)</span>
 
-<p>The participation in the study is completely voluntary,
-    and you can opt out at any time while still keep using the software.</p>
+ <span class="kw">--participate</span> <span class="kw">&lt;</span>username<span class="kw">&gt;</span> [yes]<span class="kw">|no</span>  <span class="co"># Set whether or not you want to participate in the research study. </span>
+                                    <span class="co"># Default: yes</span>
+ <span class="kw">--allowtypo</span> <span class="kw">&lt;</span>username<span class="kw">&gt;</span> [yes]<span class="kw">|no</span>  <span class="co"># Should typtop all login with typos. Default: yes</span>
+ <span class="kw">--change-typopolicy</span> <span class="kw">&lt;</span>username<span class="kw">&gt;</span>   <span class="co"># Change the typo-policy. The command will prompt for user options. </span>
 
-<p>Checkout other options (such as opting out of the study) of the
-    utilit script `typtop` by running:</p>
-<pre>
-    $ typtop
-</pre>
+ <span class="kw">--uninstall</span>  <span class="co"># Disengage typtop from the authentications. </span>
+ <span class="kw">--install</span> <span class="co"># Install typtop </span>
+<span class="kw">ex</span>:
+<span class="kw">typtop</span> --status <span class="ot">$USER</span></code></pre>
+<h3 id="todo-see-todo">TODO: <a href="./todo.md">See Todo</a></h3>
+<h2 id="some-useful-resources">Some useful resources</h2>
+<ul>
+<li>MAC packaging guide: https://matthew-brett.github.io/docosx/flat_packages.html</li>
+<li>How to cross compile: http://www.fabriziodini.eu/posts/cross_compile_tutorial/</li>
+</ul>

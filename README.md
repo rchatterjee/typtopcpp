@@ -16,9 +16,9 @@ For compiling the project from source, you need following libraries.
 For `Debian`, `Fedora`, and `Mac OSX` I have a prebuilt packages. Check out the
 [releases](https://github.com/rchatterjee/typtopcpp/releases).
 
-`Mac OSX` just download `.pkg` file and double click to install it. (Requires account password.)
+`Mac OSX` users just download `.pkg` file and double click to install it. (Requires account password.)
 
-For `Debian`, download the `.deb` package and run the following command to install the package.
+For `Debian` based operating systems, download the `.deb` package and run the following command to install the package.
 ```bash
 $ sudo dpkg -i <typtop-file-name>.deb
 ```
@@ -49,14 +49,17 @@ $ sudo ./scripts/postinst
 ```
 
 
-I would suggest creating the package and then install it using your favorite
+<!-- I would suggest creating the package and then install it using your favorite
 package manager.  TO build your own package you have to change the
 `CPACK_GENERATOR` in `install/CMakeList.txt` to what you like, possible options
 are, `DEB`, `RPM`, `STGZ` etc. (I am confusing the hell out of you. I know. I am little
 confused too.)
+-->
 
-You can see your existing log, number of typos etc. using the `typtop` binary 
-installed in your `/usr/local/bin`. Try `$ typtop` and it will show you the options. 
+There is a useful binary `typtop` installed in your `/usr/local/bin`. Try 
+`$ typtop` and it will show you the options. You can check existing logs,
+ stored typos and other info using this binary. You can also modify some of
+ the config with this binary. 
 
 ```bash
 $ typtop

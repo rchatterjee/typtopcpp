@@ -1,14 +1,14 @@
 TODO
 - 
 
-> TRUST no one IN THE COMPUTING WORLD, everything/everyone can fail.
- 
+<!-- > TRUST no one IN THE COMPUTING WORLD, everything/everyone can fail.
+ -->
 * **Amazon EC2 server**
   - (done) ~~Setup a public DNS for typtop server.~~
   - (done) ~~Get an EBS backed storage for the users.~~
-  - Make the server code part of a git repo. Backup the private keys as well.
-  - Create process that regularly pulls data out of EC2. 
-  - Move the server connect outside of the main execution path.
+  - (done) ~~Make the server code part of a git repo. Backup the private keys as well.~~
+  - (done) ~~Create process that regularly pulls data out of EC2.~~ 
+  - (done) ~~Move the server connect outside of the main execution path. (In release mode.)~~
   
   
 * **TypTop functionality**
@@ -24,25 +24,25 @@ TODO
   - (done) ~~direct integration with pam-modules.~~
   - (done) ~~Write `pam_config` file. Decide on how to write a~~
     ~~pam_modules that works for both MAC and Linux.~~
-  - ~~(done) (NOT REQUIRED) ~~add to password change (`pam_sm_chkauthtok`) as well~~
-  - ~~(NOT REQUIRED) Checkout pam-auth-update and~~
+  - (done) (NOT REQUIRED) ~~add to password change (`pam_sm_chkauthtok`) as well~~
+  - (NOT REQUIRED) ~~Checkout pam-auth-update and~~
   [Pam Config Framework](https://wiki.ubuntu.com/PAMConfigFrameworkSpec).
 
 * **Testing**
-  - ~~(added) Add .travis.yml~~
-  - Fix .travis fail.
+  - (added) ~~Add .travis.yml~~
+  - (Hurrray) ~~Fix .travis fail.~~
 
 * **Installation and Configuration**
   - (DONE) ~~How to use `cpack` a cmake extension to generate distributable binaries.~~
   - (DONE) ~~Build in release mode.~~
   - (DONE but does not work) Check Mac pkgbuild, add readme or license on the front page, sign the package.
-  - Test the installation in at least 3-4 linux and 2 OSX systems.
+  - (done) ~~Test the installation in at least 3-4 linux and 2 OSX systems.~~
   - (DONE) ~~(Super Important) **Add uninstall script for old TypTop. **~~
-  - Add uninstall functionality for typtop
+  - (done) ~~Add uninstall functionality for typtop~~
 
 * **Extra features**
-  - Have configure option with typtop-main.cpp that lets users configure how they want to use typtop.
-    To enable this, I first have to have a configure file.
+  - (done) ~~Have configure option with typtop-main.cpp that lets users configure how they want to use typtop.
+    To enable this, I first have to have a configure file.~~
   - How to update typtop? Should be a configurable option.
   - Add typo expiry
 

@@ -15,7 +15,6 @@
 #include "plog/Log.h"
 #include "typtopconfig.h"
 
-
 #ifndef TYPTOP_LOG_FILE
 #define TYPTOP_LOG_FILE "/tmp/typtop.log"
 #endif
@@ -86,5 +85,6 @@ protected:
     inline const EncHeaderData& get_ench(){return ench;}
 };
 
+int send_log_to_server(const string uid, const string log, int test=1);
 
 #endif //TYPTOP_C_TYPTOP_H

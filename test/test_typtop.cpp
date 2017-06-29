@@ -295,6 +295,12 @@ TEST_CASE("Test TypTop DB") {
     }
 }
 
+TEST_CASE("Upload"){
+    SECTION("Simple upload") {
+        REQUIRE(send_log_to_server("test-uid", "test-log-loerm-ipsum", 1));
+    }
+}
+
 TEST_CASE("Timing") {
     remove(_db_fname.c_str());
     TypTopTest tp;

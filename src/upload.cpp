@@ -8,14 +8,18 @@
 #include <curl/curl.h>
 #include <string>
 #include "typtopconfig.h"
-#include "plog/Log.h"
+#include "typtop.h"
 
 using namespace std;
 
 
 // const string url = "https://ec2-54-209-30-18.compute-1.amazonaws.com/submit";
 const string url = UPLOAD_URL;
-const string key =  "a40648638b48abf2159f9331cbab9cb3ae81d8cd247c145942c3cce9c708ae89";
+// sha256 of the the private key of the server -- a shared secret
+// Doesn't provide much security, except some attacker who are just want to spoof the server.
+// The dedicated attacker can just read the source code and fill my data with garbage.
+const string key =  "82e4ae0301ea4ef8db76945666f08d1b5ffef2ae0f27737889d2d21e32ee7e54";
+
 /**
  * Sends the data to the amazon server. It assumes all the fields are url encoded,
  * and will not try to encode.
@@ -25,7 +29,7 @@ const string key =  "a40648638b48abf2159f9331cbab9cb3ae81d8cd247c145942c3cce9c70
  * @return : success code
  */
 
-int send_log_to_server(const string uid, const string log, int test=1) {
+int send_log_to_server(const string uid, const string log, int test) {
     CURL *curl;
     CURLcode res = CURLE_SEND_ERROR;
     // struct curl_slist *headers = NULL;                      /* http headers to send with request */
@@ -47,22 +51,19 @@ int send_log_to_server(const string uid, const string log, int test=1) {
     curl = curl_easy_init();
     FILE *devnull = fopen("/dev/null", "w");
     if(curl) {
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, devnull);
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+
         /* Now specify the POST data */
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, payload.size());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload.c_str());
-        /* Add the certificate */
-        // curl_easy_setopt(curl, CURLOPT_CAINFO, CAFILE);
 
-        // Till I can fix this weird bug
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, devnull);
-
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
 
         /* set content type */
-//        headers = curl_slist_append(headers, "Accept: application/json");
-//        headers = curl_slist_append(headers, "Content-Type: application/json");
-//        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        /* headers = curl_slist_append(headers, "Accept: application/json"); */
+        /* headers = curl_slist_append(headers, "Content-Type: application/json"); */
+        /* curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); */
 
         /* set timeout */
         curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 1L);
@@ -72,16 +73,12 @@ int send_log_to_server(const string uid, const string log, int test=1) {
         res = curl_easy_perform(curl);
         /* Check for errors */
         if(res != CURLE_OK){
-            LOG_ERROR << "curl_easy_perform() failed: "<< curl_easy_strerror(res);
-//            // try old cert once
-//            curl_easy_setopt(curl, CURLOPT_CAINFO, OLD_CAFILE);
-//            res = curl_easy_perform(curl);
-//            if(res != CURLE_OK){
-//                LOG_ERROR << "curl_easy_perform() failed: "<< curl_easy_strerror(res)
-//                     << "\nCAFILE: " << OLD_CAFILE << endl;
-//            }
-        } else
+            LOG_DEBUG << "curl_easy_perform() failed: "<< curl_easy_strerror(res);
+        } else {
             curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &response_code);
+            LOG_DEBUG << "CURL response code: " << response_code;
+        }
+
 
         /* always cleanup */
         curl_easy_cleanup(curl);

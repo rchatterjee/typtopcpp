@@ -480,21 +480,24 @@ void TypTop::set_typo_policy(int edit_cutoff, int abs_entcutoff, int rel_entcuto
     if (rel_entcutoff >= 0) tp->set_rel_entcutoff(rel_entcutoff);
 }
 
-#include "upload.cpp"
 int TypTop::send_log(int test) {
     if (!is_initialized()) {
         LOG_INFO << "DB is not initialized. Will send logs later.";
     } else if (db.logs().l_size() < 5) {
         LOG_INFO << "Not many logs (" << db.logs().l_size() << "). Will send logs later.";
     } else {
-        LOG_INFO << "sending logs \n";
+        LOG_INFO << "Sending logs.";
         int ret = send_log_to_server(db.ch().install_id(),
                                      b64encode(db.logs().SerializeAsString()),
                                      test);
         if (ret == 1) {
+            LOG_INFO << "Sending logs succeeded.";
             db.mutable_logs()->clear_l();
             return 1;
+        } else {
+            LOG_INFO << "Sending logs failed.";
         }
+
     }
     return 0;
 }

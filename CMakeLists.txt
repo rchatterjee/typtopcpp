@@ -5,7 +5,7 @@ project(typtop)
 # The version number.
 set (typtop_VERSION_MAJOR 1)
 set (typtop_VERSION_MINOR 0)
-set (typtop_VERSION_PATCH 4)
+set (typtop_VERSION_PATCH 5)
 
 ## Set compiler flags
 if(CMAKE_BUILD_TYPE MATCHES "Debug")

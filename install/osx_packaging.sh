@@ -17,8 +17,10 @@ tar -zvxf ${package_file}
 pkgbuild --root ${package_name} --scripts ${SCRIPT_DIR} \
          --identifier com.typtop.cornell.edu \
          --sign "Developer ID Installer" \
-         ${package_name}.pkg
+         ${package_name}-tmp.pkg
 
-# productbuild --distribution distribution.plist \
-#              --resources ${package_name} \
-#              --package-path ${package_name} ${package_name}
+productbuild --distribution ../install/distribution.plist \
+             --resources . \
+             --package-path ${package_name}-tmp.pkg ${package_name}.pkg
+
+rm -rf ${package_file} ${package_name}-tmp.pkg ${package_name}

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="1">
+  <title>TypTop</title>
+  <readme file="../install/welcome.txt"/>
+  <license file="../LICENSE"/>
+  <!-- pkg-ref id="com.typtop.cornell.edu"/-->
+  <!-- options customize="never" require-scripts="false"/-->
+  <background file="../install/typtop-logo.png" alignment="bottomleft" scale="proportional"/>
+  <choices-outline>
+    <line choice="default">
+      <line choice="com.typtop.cornell.edu"/>
+    </line>
+  </choices-outline>
+  <choices-outline>
+    <line choice="default">
+      <line choice="com.typtop.cornell.edu"/>
+    </line>
+  </choices-outline>
+  <choice id="default"/>
+  <choice id="com.typtop.cornell.edu" visible="false">
+    <pkg-ref id="com.typtop.cornell.edu"/>
+  </choice>
+  <pkg-ref id="com.typtop.cornell.edu" version="1.0.5" onConclusion="none">typtop-1.0.5-Darwin-x86_64.20170630_1449.pkg</pkg-ref>
+</installer-gui-script>

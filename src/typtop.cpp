@@ -109,7 +109,7 @@ void TypTop::add_to_waitlist(const string &typo, time_t ts) {
     wlent.set_pw(typo);
     wlent.set_ts((int64_t)ts);
 
-    pkobj.pk_encrypt(wlent.SerializeAsString(), ctx);
+    pkobj.pw_pk_encrypt(wlent.SerializeAsString(), ctx);
     int32_t curr_index = db.h().indexj();
     db.set_w(curr_index, ctx);
     curr_index = (curr_index + 1) % W_size;
@@ -214,10 +214,25 @@ void TypTop::insert_into_log(const string &pw, bool in_cache, time_t ts) {
     assert(!real_pw.empty());
     float _this_pw_ent = entropy(pw);
     size_t len = pw.size();
-    // Why 10, that's the 3-quartile of RockYou dataset with passwords>6. 
-    int pass_complexity = (len>10 || _this_pw_ent>32)?1:0;
-    SecByteBlock g_salt((const byte *) db.ch().global_salt().data(), db.ch().global_salt().size());
+    // Why 10, that's the 3-quartile of RockYou dataset with passwords>6.
+    int pass_complexity = (len>10 || _this_pw_ent>32)?2:
+                          (len>8 || _this_pw_ent>16)?1:
+                          0;
     int edist = edit_distance(pw, real_pw);
+
+    /** For small stats **/
+    if (ts>0 && edist>0 && edist<5) {
+        db.mutable_logs()->set_typos(db.logs().typos() + 1);
+        if (in_cache)
+            db.mutable_logs()->set_typos_saved(db.logs().typos_saved() + 1);
+    }
+
+    if (!db.ch().allow_upload() && db.logs().l_size() > 30) {
+        LOG_INFO << "Not participating in the study, and Log size is too large, so ignoring further logs.";
+        return;
+    }
+
+    SecByteBlock g_salt((const byte *) db.ch().global_salt().data(), db.ch().global_salt().size());
     Log *l = db.mutable_logs()->add_l();
     l->set_in_cache(in_cache);
     l->set_istop5fixable(top5fixable(real_pw, pw));
@@ -227,12 +242,6 @@ void TypTop::insert_into_log(const string &pw, bool in_cache, time_t ts) {
     l->set_tid(compute_id(g_salt, pw));
     l->set_ts((int64_t)ts);
     l->set_localtime(localtime());
-    /** For small stats **/
-    if (ts>0 && edist>0 && edist<5) {
-        db.mutable_logs()->set_typos(db.logs().typos() + 1);
-        if (in_cache)
-            db.mutable_logs()->set_typos_saved(db.logs().typos_saved() + 1);
-    }
 }
 
 int TypTop::is_typo_present(const string &pw, string &sk_str) const {
@@ -413,7 +422,7 @@ void TypTop::process_waitlist(const string &sk_str) {
     WaitlistEntry wlent;
     for (int i = 0; i < W_size; i++) {
         string wlent_str;
-        pkobj.pk_decrypt(db.w(i), wlent_str);
+        pkobj.pw_pk_decrypt(db.w(i), wlent_str);
         wlent.ParseFromString(wlent_str);
         if (wlent.ts() > 0) // no points logging the garbage of the Wait-list
             insert_into_log(wlent.pw(), false, wlent.ts());

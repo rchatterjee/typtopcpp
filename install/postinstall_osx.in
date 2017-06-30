@@ -19,7 +19,8 @@ if [ -d "/etc/pam.d/" ]; then
         exit
     fi
     pushd /etc/pam.d > /dev/null
-    for f in /etc/pam.d/*; do
+    for f in /etc/pam.d/{su,screensaver,authorization}; do
+        if [ ! -e $f ]; then continue; fi
         if [[ "$f" == *"typtop-auth"* ]]; then continue; fi
         if [[ $(grep -e "^auth.*${pam_mod}" $f) ]]; then
             sed -i '.orig' "/^auth*.*${pam_mod}.*/ i\\

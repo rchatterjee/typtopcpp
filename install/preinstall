@@ -29,6 +29,10 @@ if [ "$typtopexec" ]; then
    echo "yes" | ${typtopexec} --uninstall
 fi
 
+if [ $(which typtop) ]; then
+    typtop --uninstall
+fi
+
 find "/usr/local/etc/typtop.d/" -type d | xargs rm -rf
 
 uniq_id_f=~/.typtop.uniq.id

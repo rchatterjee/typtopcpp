@@ -134,6 +134,44 @@ protected:
     void set_params();
 };
 
+class PwPkCrypto: public PkCrypto {
+private:
+    unsigned int _len = 128;
+
+public:
+    int len_limit() const {
+        return _len;
+    }
+    string pad(const string& msg) const {
+        string s;
+        s = msg;
+        s.resize(_len, '\1');
+        return s;
+    }
+    string unpad(const string& msg) const {
+        string s;
+        size_t n;
+        for(n = 0; n < msg.size(); n++){
+            if(msg[n] == '\1')
+                break;
+        }
+        s = msg;
+        s.resize(n);
+        return s;
+    }
+    /*
+     * Ensures the msg is padded to certain length before encrypting
+     */
+    inline void pw_pk_encrypt(const string &msg, string &ctx) const {
+        PkCrypto::pk_encrypt(pad(msg), ctx);
+    }
+    inline void pw_pk_decrypt(const string& ctx, string& msg) const {
+        string _tmsg;
+        PkCrypto::pk_decrypt(ctx, _tmsg);
+        msg = unpad(_tmsg);
+    }
+};
+
 void PrintKeyAndIV(SecByteBlock& ekey,
                    SecByteBlock& iv,
                    SecByteBlock& akey);

@@ -203,6 +203,12 @@ TEST_CASE("Test TypTop DB") {
             REQUIRE(indexj == db.h().indexj());
             REQUIRE(db.w_size() == W_size);
         }
+        size_t t = 0;
+        for(int i=0; i<db.w_size(); i++) {
+            if (t<=0) t = db.w(i).size();
+            else
+                CHECK(t == db.w(i).size());
+        }
     }
 
     SECTION("persistence of the db on re-reading") {

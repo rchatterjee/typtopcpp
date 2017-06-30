@@ -24,6 +24,9 @@ else
     echo "Could not determine where to install pam config files, please do so manually"
 fi
 
-cd /
-pkgutil --only-files --files @typtop_identifier@ | grep typtop | xargs rm -rf
-pkgutil --forget @typtop_identifier@
+
+if [ "$1" != "-disengage" ]; then
+    cd /
+    pkgutil --only-files --files @typtop_identifier@ | grep typtop | xargs rm -rf
+    pkgutil --forget @typtop_identifier@
+fi

@@ -49,7 +49,7 @@ private:
     typoDB db;
     EncHeaderData ench;
     string db_fname;
-    PkCrypto pkobj;
+    PwPkCrypto pkobj;
     string real_pw;   // secure object; carefully delete it once done
     void _insert_into_typo_cache(const int index, const string &sk_ctx, const int freq);
 

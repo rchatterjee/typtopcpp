@@ -27,6 +27,67 @@ void get_random_ench(typtop::EncHeaderData& ench) {
 }
 
 TEST_CASE("pw_crypto") {
+    PwPkCrypto pkobj;
+    string large_msg = "very large message";
+    for(int i=0; i < 2; i++) large_msg += large_msg;
+    SECTION("pad-unpad") {
+        string s("Hello Brother");
+        string pad_s = pkobj.pad(s);
+        CHECK(pad_s.size() == pkobj.len_limit());
+        CHECK(pad_s != s);
+        string unpad_s = pkobj.unpad(pad_s);
+        CHECK(unpad_s == s);
+
+        s = large_msg;
+        pad_s = pkobj.pad(s);
+        CHECK(pad_s.size() == pkobj.len_limit());
+        CHECK(pad_s != s);
+        unpad_s = pkobj.unpad(pad_s);
+        CHECK(unpad_s == s.substr(0, pkobj.len_limit()));
+    }
+
+    SECTION("PwPkCrypto.basic") {
+        PwPkCrypto pkobj;
+        string sk_str = b64decode("MEECAQAwEwYHKoZIzj0CAQYIKoZIzj0DAQcEJzAlAg"\
+                                  "EBBCAUsnXuu6Zj3CjT0Xd6BXOqg5jB7zgWfvCGsjC3NZRaQw");
+        pkobj.set_sk(sk_str, true); // generate pk
+        string msg = random_msg(), ctx, rdata;
+        pkobj.pk_encrypt(msg, ctx);
+        pkobj.pk_decrypt(ctx, rdata);
+        REQUIRE(b64encode(rdata) == b64encode(msg));
+
+        SECTION("0: pk encrypt-decrypt") {
+            byte _t1[] = {0x23, 0x56, 0x00, 0xf4, 0x46, 0xff};
+            string msgs[] = {
+                    "Hey here I am",
+                    "aaaaaaa",
+                    {_t1, _t1 + 6},
+                    ""
+            };
+            for (int i = 0; i < 3; i++) {
+                pkobj.pw_pk_encrypt(msgs[i], ctx);
+                pkobj.pw_pk_decrypt(ctx, rdata);
+                REQUIRE(rdata.size() == msgs[i].size());
+                CHECK(rdata == msgs[i]);
+            }
+        }
+    }
+
+    SECTION("Large message") {
+        PwPkCrypto pkobj;
+        pkobj.initialize();
+        string ctx, rdata;
+        string msg = "Hello brother";
+        pkobj.pw_pk_encrypt(msg, ctx);
+        // 85 comes from the other overheads
+        CHECK(ctx.length() <= pkobj.len_limit() * 2);
+        cout << "Ciphertext size: " << ctx.size() << endl;
+        pkobj.pw_pk_decrypt(ctx, rdata);
+        CHECK(rdata.size() <= pkobj.len_limit());
+    }
+}
+
+TEST_CASE("pk_crypto") {
 
     SECTION ("b64 encode decode") {
         byte _t1[] = {0x12, 0x12, 0x45, 0xf2, 0x34};

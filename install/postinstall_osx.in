@@ -5,14 +5,19 @@ if [ "$EUID" -ne 0 ]; then
     exit
 fi
 
+
 sudo chmod 04755 /usr/local/bin/typtop
 pam_mod=@pam_module@
 participate_file=/usr/local/etc/typtop.d/participate
+
 function participate() {
-    local answer=$(osascript -e '
-    set question to display dialog "Do you want to participate in the research study?" buttons {"Yes", "No"} default button 1
-    set answer to button returned of question
-    ' | tr '[:upper:]' '[:lower:]')
+    local answer="yes"
+    if [ "${TYPTOP_NOUI}" != "1" ]; then
+        answer=$(osascript -e '
+        set question to display dialog "Do you want to participate in the research study?" buttons {"Yes", "No"} default button 1
+        set answer to button returned of question
+        ' | tr '[:upper:]' '[:lower:]')
+    fi
 
     echo "Participate: " ${answer}
 

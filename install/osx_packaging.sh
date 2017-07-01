@@ -19,7 +19,7 @@ pkgbuild --root ${package_name} --scripts ${SCRIPT_DIR} \
          --sign "Developer ID Installer" \
          ${package_name}-tmp.pkg
 
-productbuild --distribution ../install/distribution.plist \
+productbuild --distribution ./distribution.plist \
              --resources . \
              --package-path ${package_name}-tmp.pkg ${package_name}.pkg
 

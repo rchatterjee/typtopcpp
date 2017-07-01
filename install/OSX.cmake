@@ -58,6 +58,8 @@ configure_file(${CMAKE_SOURCE_DIR}/install/postinstall_osx.in
         ${CMAKE_BINARY_DIR}/scripts/postinstall @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/install/preinstall
         ${CMAKE_BINARY_DIR}/scripts/preinstall COPYONLY)
+configure_file(${CMAKE_SOURCE_DIR}/install/distribution.plist.in
+        ${CMAKE_BINARY_DIR}/distribution.plist @ONLY)
 
 # SET(CPACK_INSTALL_SCRIPT ${CMAKE_SOURCE_DIR}/install/osx_packaging.sh)
 #        set_target_properties(${PROJECT_NAME} PROPERTIES

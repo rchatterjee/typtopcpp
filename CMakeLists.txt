@@ -79,6 +79,7 @@ add_subdirectory(src)
 
 # build pam module
 add_subdirectory(src/pam_modules)
+
 # testing
 include(CTest)
 ENABLE_TESTING()
@@ -88,8 +89,8 @@ if(APPLE)
     SET(CMAKE_SHARED_LIBRARY_SUFFIX ".so")
 endif()
 
-# # For creating install packages
-# # add_subdirectory(install)
+# For creating install packages
+# add_subdirectory(install)
 
 INCLUDE(install/CMakeLists.txt)
 INCLUDE(CPack)

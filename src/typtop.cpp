@@ -134,6 +134,7 @@ void TypTop::initialize(const string &real_pw) {
     this->real_pw = real_pw;
     // - Set config header
     ch->set_install_id(get_install_id());
+    ch->set_allow_upload(is_participating());
     pkobj.initialize();
     LOG_INFO << "Initializing the db ";
     ch->set_public_key(pkobj.serialize_pk());

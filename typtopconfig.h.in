@@ -9,6 +9,8 @@
 #define CAFILE "@CAFILE@"
 #define OLD_CAFILE "@OLD_CAFILE@"
 #define UPLOAD_URL "https://typtop.info/submit"
+#define PARTICIPATION_FILE "/usr/local/etc/typtop.d/participate"
+
 
 #ifdef WIN32
 #define OS_SEP '\\'

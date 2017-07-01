@@ -200,8 +200,8 @@ inline bool win(int f_o, int f_n) {
  * directory of the active user.
  */
 inline string get_install_id() {
-    string homdir(get_homedir());
-    string UNIQ_ID_FILENAME = homdir + "/.typtop.uniq.id";
+    string homedir(get_homedir());
+    string UNIQ_ID_FILENAME = homedir + "/.typtop.uniq.id";
     std::fstream f(UNIQ_ID_FILENAME, ios::in);
     string id;
     if (f.good() && (f >> id) && id.size()>=8) {
@@ -223,6 +223,18 @@ inline string get_install_id() {
         LOG_INFO << "Install ID.Regenerated: "<< id ;
     }
     return id;
+}
+
+/**
+ * return whether or not someone is participating in the study
+ * @return true (participating) false (not  participating)
+ */
+inline bool is_participating() {
+    string db_fname = PARTICIPATION_FILE;
+    fstream idbf(db_fname, ios::in | ios::binary);
+    bool ret = idbf.good();
+    idbf.close();
+    return ret;
 }
 
 inline float entropy(const string& pw) {

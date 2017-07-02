@@ -21,6 +21,7 @@ pkgbuild --root ${package_name} --scripts ${SCRIPT_DIR} \
 
 productbuild --distribution ./distribution.plist \
              --resources . \
+             --sign "Developer ID Installer" \
              --package-path ${package_name}-tmp.pkg ${package_name}.pkg
 
 rm -rf ${package_file} ${package_name}-tmp.pkg ${package_name}

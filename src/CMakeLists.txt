@@ -1,7 +1,10 @@
 ### Protobuf is a strict dependency here
-find_package(Protobuf REQUIRED)
+find_package(protobuf REQUIRED)
+
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS db.proto)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
+message(STATUS ">>> PROTOBUF_INCLUDE_DIRS: (${PROTOBUF_INCLUDE_DIRS})")
+
 find_library(PROTOBUF_STATIC_LIB libprotobuf.a PROTOBUF_LIBRARIES)
 find_library(PROTOBUF_SHARED_LIB libprotobuf.so PROTOBUF_LIBRARIES)
 

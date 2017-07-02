@@ -1,6 +1,6 @@
 set(TEST_SRCS test-main.cpp test_pw_crypto.cpp test_typtop.cpp test_install.cpp)
 add_executable(tests ${TEST_SRCS})
-find_package(protobuf REQUIRED)
+find_package(Protobuf REQUIRED)
 # if(APPLE)
 #     set(PAM_LIBS "pam")
 # else()

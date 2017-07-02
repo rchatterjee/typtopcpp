@@ -1,5 +1,5 @@
 ### Protobuf is a strict dependency here
-find_package(protobuf REQUIRED)
+find_package(Protobuf REQUIRED)
 
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS db.proto)
 include_directories(${PROTOBUF_INCLUDE_DIRS})

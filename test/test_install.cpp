@@ -27,7 +27,7 @@
 
 using namespace std;
 const char* cmd_uninstall = (const char*)"sudo typtop --uninstall -y";
-const char* cmd_install = (const char*)"sudo typtop --install";
+const char* cmd_install = (const char*)"sudo typtop --install test";
 
 int conv_func(int num_msg, const struct pam_message **msg,
               struct pam_response **resp, void *appdata_ptr) {

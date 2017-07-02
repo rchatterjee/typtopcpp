@@ -19,7 +19,7 @@ function participate() {
     local answer="yes"
     if [ "${TYPTOP_NOUI}" != "1" ]; then
         answer=$(osascript -e '
-        set question to display dialog "Do you want to participate in the research study?" buttons {"Yes", "No"} default button 1
+        set question to display dialog "Do you want to allow TypTop to send anonymous statics for research purposes? Visit https://typtop.info for more details." buttons {"Yes", "No"} default button 1
         set answer to button returned of question
         ' | tr '[:upper:]' '[:lower:]')
     fi

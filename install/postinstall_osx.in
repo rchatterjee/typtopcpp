@@ -10,7 +10,8 @@ sudo chmod 04755 /usr/local/bin/typtop
 pam_mod=@pam_module@
 participate_file=/usr/local/etc/typtop.d/participate
 if [ -z ${TYPTOP_NOUI+x} ]; then
-    if [ $# -ge 1 ]; then
+    echo "Cmd line size: $# ${*}.  TYPTOP_NOUI=${TYPTOP_NOUI}" >>/tmp/typtop-inst
+    if [ "$1" == "1" ]; then
         TYPTOP_NOUI=1
     fi
 fi

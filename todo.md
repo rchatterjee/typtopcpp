@@ -54,3 +54,25 @@ TODO
 * (done) ~~Insert logic of typo-db manipulation.~~
 * (done) ~~FIX the seg-faulting permute cache function.~~
 * (done) ~~**CHECK OUT `ExternalProject_Add`**~~
+
+### Adding a threat intelligence module
+Typtop has information about past password submission attempts.
+It can utilize that to thwart a online guessing attack. As
+suggested by [?] we can look at the history of password submission
+and infer whether or not it is a online attack. Also, typtop should
+deploy lock out on too many wrong guesses. Here I put down some of
+my ideas, about these feature and draw a rough design.
+
+1. Add device specific origin tag and process passwords from the same
+ origin the trusted origins only. (More details to follow.)
+
+2. **Account Blocking.** If there are too many password attempts within
+a short period of time, TypTop should block access for `x` amount of time.
+
+3. **Identifying online guessing attacks.**  Check the last list of
+password attempts stored in the wait list, and check if the guess list
+is suspicious or not. `isSuspicious` function can among many other
+things do the following. Check if the list of guesses are from top 1000
+passwords or not. If it is, and the real password is not from the top 1000,
+block the access for `x` amount of time, and flag that it detects
+threat.

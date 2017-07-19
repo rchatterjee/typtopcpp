@@ -13,13 +13,12 @@ processes, such as su, login, lock-screen etc.
 Thanks for installing TypToP.  This is a research prototype, and
 we are collecting some anonymous non-sensitive data about your
 password typing patterns to verify our design. The details of
-what data we collect, how we collect and store, and the security
-blueprint of this software can be found in the website
-https://typtop.info.
+data we collect and the security blueprint of this software can 
+be found in the website https://typtop.info.
 
 The participation in the study is completely voluntary, and you
 can opt out at any time while still keep using the software.
 
-Checkout the utilit script `typtop` for configuration options
+Checkout the utility script `typtop` for configuration options
 (such as how to opt out of the study) by typing 'typtop' in the
 terminal.

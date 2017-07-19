@@ -412,7 +412,7 @@ void TypTop::permute_typo_cache(const string &sk_str) {
 }
 
 /**
- * 1. Decrypt the waitlist, add to log, and consolidate
+ * 1. Decrypt the wait-list, add to log, and consolidate
  * 2. for each consolidated and validated entries
  *     try to insert in the typo cache
  */

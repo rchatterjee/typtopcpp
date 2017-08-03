@@ -3,22 +3,24 @@ TypTop: Personalized Typo-tolerant Password Checker
 
 Hello!
 
-Typtop observes for password typing mistakes, and enable logging
-in with slight variations of your actual login password that are
-frequent and safe. This software attaches a new pluggable
-authentication module (PAM) to all of your common authentication
-processes, such as su, login, lock-screen etc.
+Typtop observes for password typing mistakes, and enable
+logging in with slight variations of your actual login
+password that are frequent and safe. This software attaches
+a new pluggable authentication module (PAM) to all of your
+common authentication processes, such as su, login,
+lock-screen etc.
 
 
-Thanks for installing TypToP.  This is a research prototype, and
-we are collecting some anonymous non-sensitive data about your
-password typing patterns to verify our design. The details of
-data we collect and the security blueprint of this software can 
-be found in the website https://typtop.info.
+Thanks for installing TypToP.  This is a research prototype,
+and we are collecting some anonymous non-sensitive data
+about your password typing patterns to verify our
+design. The details of the data we collect and the security
+blueprint of this software can be found in the website
+https://typtop.info.
 
-The participation in the study is completely voluntary, and you
+The participation in the study is completely voluntary. You
 can opt out at any time while still keep using the software.
 
-Checkout the utility script `typtop` for configuration options
-(such as how to opt out of the study) by typing 'typtop' in the
-terminal.
+Checkout the utility script `typtop` for configuration
+options (such as how to opt out of the study) by typing
+'typtop' in the terminal.

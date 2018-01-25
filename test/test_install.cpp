@@ -24,6 +24,7 @@
 #include "catch.hpp"
 #include "typtopconfig.h"
 #include <stdlib.h>
+#include <sys/stat.h>
 
 using namespace std;
 const char* cmd_uninstall = (const char*)"sudo typtop --uninstall -y";
@@ -91,6 +92,12 @@ TEST_CASE("Check Install") {
         times(5, auth(user.c_str(), pws[4].c_str()));
         REQUIRE(auth(user.c_str(), pws[1].c_str()));
         REQUIRE(auth(user.c_str(), pws[4].c_str()));
+    }
+    SECTION("File mode") {
+        struct stat info;
+        stat("/usr/local/etc/typtop.d/tmptyptop", &info);
+        CHECK(info.st_uid == 0);
+        CHECK((info.st_mode & 07777) == 0600);
     }
 }
 

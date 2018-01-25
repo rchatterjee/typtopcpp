@@ -48,6 +48,8 @@ TODO
 
 * **Bug**
   - Many paths used in the code is absolute, I should move it to relative or install_prefix dependent.
+  - (Checking) The typo-cache becomes empty after a while. Fixd one bug due to type mismatch between time(NULL) (uint64) and the expiry (uint32). 
+    Cannot test this functionality. I need to learn how to spoof time(NULL) syscall.
 
 
 * Cleanup cmake, it is a mess right now.

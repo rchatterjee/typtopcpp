@@ -14,14 +14,14 @@ message Log {
     required float rel_entropy = 4;
     required float pass_complexity = 5;
     required uint32 tid = 6;
-    required int64 ts = 7;
+    required int64 ts = 7; // timestamp
     required string localtime = 8;
 }
 
 message ConfigHeader {
     optional bool  allowed_typo_login = 1 [default = true];
     optional int32 period_for_sending_log = 2 [default = 21600]; // 6 hours
-    optional int32 typo_expiry_time = 7 [default = 864000];  // expire a typo if not used in 10 days
+    optional int64 typo_expiry_time = 7 [default = 2592000];  // expire a typo if not used in 30 days
     optional bool  allow_upload = 3 [default = true];
     optional TypoPolicy tp = 8;
     required string install_id = 4;

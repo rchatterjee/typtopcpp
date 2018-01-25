@@ -15,6 +15,7 @@ using CryptoPP::FileSource;
 
 #undef GOOGLE_LOG
 pthread_mutex_t db_lock = PTHREAD_MUTEX_INITIALIZER;
+const uint32_t typtop_file_mask = 0600;   // because 0666 & 0600 = 0600
 
 TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
 #ifdef DEBUG
@@ -24,7 +25,7 @@ TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
 #endif
     LOG_INFO << " -- TypTop Begin -- ";
     google::protobuf::SetLogHandler(NULL);  // stop annoying protobuf error messages
-    auto o_mask = umask(0117);
+    auto o_mask = umask(~typtop_file_mask);  // 0666 & ~typtop_file_mask = 0600
     fstream idbf(db_fname, ios::in | ios::binary);
     if(!idbf.good()) {
         LOG_WARNING << "TypTop db is not initialized: " << db.h().sys_state();
@@ -65,20 +66,22 @@ void TypTop::save() const {
     closedir(dir);
     /* Each time this function gets called, the counter is incremented by the calling thread.*/
     string db_bak = db_fname + ".bak";
-    auto o_mask = umask(0117);
+    auto o_mask = umask(~typtop_file_mask);
     int fd = open("/tmp/typtop.lock", O_WRONLY);
     struct flock* lock = (struct flock*)malloc(sizeof(struct flock));
     lock_file(fd, lock);
 #endif
     std::fstream of(db_bak, ios::out | ios::binary);
 
-    if(of.good())
+    if(of.good()) {
+        LOG_DEBUG << "db_bak: ownership: " << endl;
         db.SerializeToOstream(&of);
+    }
     else {
         LOG_ERROR << "Could not open backup file for writing " << db_bak;
         // cerr << "Could not open backup file for writing\n" << strerror(errno) << endl;
     }
-
+    of.close();
     if(rename(db_bak.c_str(), db_fname.c_str()) != 0) {
         LOG_ERROR << "Could not replace original db file " << db_fname;
     }
@@ -90,6 +93,13 @@ void TypTop::save() const {
     close(fd);
 #endif
     LOG_INFO << "db is saved";
+    /* -- Does not work. Making the file only readable by the owner (root).
+    //  Change DB permission
+    if (chown(db_fname.c_str(), 0, 0) != 0) {
+        LOG_ERROR << "Could not set the ownership of the db_file. ErrorNo.: "  << errno;
+    } else {
+        LOG_DEBUG << "db ownership set to root:root";
+    }*/
 }
 
 TypTop::~TypTop() {
@@ -307,7 +317,7 @@ bool TypTop::check(const string &pw, PAM_RETURN pret, bool isfork) {
         add_to_waitlist(pw, now());
         LOG_INFO << "Failed to find match in typocache: " << i;
         return false;
-    } else { // match_found is true
+    } else { // found in typo-cache
         // cerr << __FUNCTION__ << " :: " << b64encode(sk_str) << endl;
         pkobj.set_sk(sk_str);
         // TODO: Verify whether or not this is the correct sk
@@ -398,6 +408,7 @@ void TypTop::permute_typo_cache(const string &sk_str) {
     g.seed(permutation_seed);
     shuffle(ench.mutable_last_used()->begin() + 1, ench.mutable_last_used()->end(), g);
 
+    // remove very old typos from the cache
     int64_t t_now = now();
     string sk_ctx;
     for (int i = 1; i < T_size; i++) { // don't remove real password

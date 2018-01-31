@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>TypTop </title>
+    <meta charset="utf-8">
+    <!--meta http-equiv="X-UA-Compatible" content="IE=edge"-->
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+    <meta name="descriptio" content="TypTop: A personalized password checker">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+
+    <!-- Bootstrap -->
+    <link rel="icon" type="image/svg" href="/images/typtop-logo.svg">
+    <link href="/css/bootstrap.css" rel="stylesheet">
+    <link href="/css/custom.css?4" rel="stylesheet">
+    <link href="/css/bootstrap-social.css" rel="stylesheet">
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <style>
+        .header {
+            margin-top: 10px;
+            padding-left: 10%;
+            /* background-image: url('/images/woman-typing-computer-at-home.jpg'); */
+            /* background-image: url('/images/download.png'); */
+            /* background-image: url('/images/240_F_109084591_bz8wK650mE83l2A3adKxWmbmo0rJIyQj.jpg '); */
+            background-color: #095a1d;
+            background-size: cover;
+            background-repeat: repeat;
+            background-position: 10% 20%;
+            color: #fff;
+        }
+
+        /* Small devices (tablets, 768px and up) */
+        @media (min-width: 768px) {
+            .row.vertical-align {
+                display: flex;
+                align-items: center;
+                margin-top: 10px;
+            }
+        }
+
+        #team {
+            font-family: inherit;
+            font-size: larger;
+            font-weight: 200;
+        }
+
+        .header img {
+            filter: hue-rotate(280deg);
+            -webkit-filter: hue-rotate(280deg);
+            width: 180px;
+            vertical-align: bottom
+        }
+
+        img.contrast {
+            -webkit-filter: contrast(80%);
+            filter: contrast(80%);
+        }
+    </style>
+    <script>
+        (function (i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r;
+            i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+            a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+            a.async = 1;
+            a.src = g;
+            m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+
+        ga('create', 'UA-93247046-3', 'auto');
+        ga('send', 'pageview');
+
+        function bytesToSize(b) {
+            var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            if (b === 0) return '0 Byte';
+            var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+            return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+        }
+        function setSize() {
+            if (screen.width < 786) {
+                $('.navbar-fixed-top').css('position', 'inherit');
+                $('.header').css('margin-top', 0 + 'px')
+            } else {
+                $('.navbar-fixed-top').css('position', 'fixed');
+                $('.header').css('margin-top', 50 + 'px')
+            }
+        }
+        $(document).ready(setSize);
+        $(window).resize(setSize);
+    </script>
+</head>
+
+<body data-gr-c-s-loaded="true">
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class="container navheader">
+        <!-- div class="navbar-header">
+            <a href="#about" class="navbar-brand">TypTop</a>
+            <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+        </div -->
+
+        <ul id="links" class="nav navbar-nav" style="float:left">
+            <li><a href="#about">About</a></li>
+            <li><a href="#install">Install</a></li>
+            <li><a href="#survey">Survey</a></li>
+            <li><a href="#works">Details</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <!-- li>
+                <a href="https://github.com/rchatterjee/TypTopcpp/releases">
+                    GitHub</a></li>
+            <!-- <li><code><a href="#install"> Install</a></code></li> -->
+            <li><a href="#team">Team</a>
+            </li>
+        </ul>
+    </div>
+</div>
+<div class="jumbotron header col-lg-12">
+    <img style="" src="/images/typtop-logo.png"/>
+    <p style="font-size: 32px;margin:10px 0px;">A smart password checker that lets you make mistakes</p>
+    <p class="bs-component">
+        <a href="https://github.com/rchatterjee/typtopcpp/releases/download/v1.0.5/typtop-1.0.5-Darwin-x86_64.20170804_1156.pkg"
+           class="btn btn-primary btn-a">Download for OSX</a>
+        <a href="https://github.com/rchatterjee/typtopcpp/releases/download/v1.0.5/typtop-1.0.5-Linux-x86_64.20170804_1155.deb"
+           class="btn btn-primary btn-a">Download .deb</a>
+        <a href="https://github.com/rchatterjee/typtopcpp/releases/download/v1.0.5/typtop-1.0.5-Linux-x86_64.20170804_1155.rpm"
+           class="btn btn-primary btn-a">Download .rpm</a>
+        <a class="btn btn-primary btn-a"
+           href="https://github.com/rchatterjee/typtopcpp" target="_blank">GitHub</a>
+    </p>
+</div>
+<!-- Main body -->
+<div class="container">
+    <!-- TypTop: Personalized typtop-tolerant password checking  -->
+    <div id="about" class="clearfix">&nbsp;</div>
+    <div id="about-body" class="bs-docs-section clearfix">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-header">
+                    <h2 id="about-h">TypTop: Personalized <span
+                            style="color: #095a1d">Typo-tolerant</span> Password
+                        Checking</h2>
+                </div>
+                <p>
+                    Mistyping your password leads to failed logins and
+                    time wasted. <a href="">Prior study</a> has shown <em>3% of
+                    all users are prevented from logging in due to some simply
+                    correctable typos, such as accidentally tapping on the
+                    caps-lock key.</em> This is not only frustrating, but can also have a negative
+                    effect on users’ security practices. Less secure (but easier to type) passwords
+                    might seem more appealing, and users might be discouraged from locking their
+                    computers.
+                </p>
+                <p>
+                    With this in mind, we built <b>TypTop</b>, a secure
+                    personalized typo-tolerant password checker for your MAC or Linux
+                    computer. It lets you focus on more important things than retyping
+                    your login password.
+                    <!-- Having your login rejected due to accidentally
+                    mistyping your password is annoying. Such typos can make
+                    good security habits less attractive:
+                    longer, more secure passwords are often harder to type and
+                    you may not want to lock your computer as much.
+
+                    We built <b>TypTop</b>, a secure personalized typo-tolerant
+                    password
+                    checker for your MAC or Linux computers. It lets you focus
+                    on more
+                    important things than retyping your login password. -->
+                </p>
+                <p>
+                    TypTop offers typo-tolerance tailored to you. It
+                    learns the typos that you make most frequently and allows you to log
+                    in under a small handful of these typos. Security isn't
+                    sacrificed. TypTop performs a number of safety checks before allowing
+                    authentication under a given typo to ensure this will not degrade
+                    security. We've conducted an in-depth analysis to prove that <span class="text-info">TypTop is
+                    as secure as a conventional password-based authentication</span>.
+
+                    <!-- TypTop learns from your past typing mistakes a policy of
+                    what errors you are make often.
+                    For future logins it will allow login under those errors.
+                    Security isn't sacrificed:
+                    TypTop only allows safe typos of your password, and we've
+                    conducted an in-depth analysis to
+                    prove that TypTop is as secure as conventional
+                    password-based authentication.-->
+                </p>
+            </div>
+        </div>
+    </div> <!-- TypTop: Personalized...  -->
+    <!-- Installation -->
+    <div id="install" class="clearfix">&nbsp;</div>
+    <div id="install-body" class="bs-docs-section clearfix">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-header">
+                    <h2 id="install-h">Installation</h2>
+                </div>
+                <p>
+                    Currently TypTop can be used in Unix based systems including
+                    Mac OSX and Linux distributions.
+                    We have precompiled packages for many systems. See if
+                    you can find yours in <a
+                        href="https://github.com/rchatterjee/TypTopcpp/releases">latest
+                    releases.</a> The installation should be straightforward&#8212;download
+                    the binary, click on it, and follow the
+                    onscreen instructions.
+
+                    Otherwise you can compile it in your machine from the source.
+                    That's right: TypTop is open source software distributed under the MIT license.
+                </p><br/>
+                <h4 id="test-install">How to test installation? </h4>
+                <p>
+                    Once installed successfully, TypTop should register itself
+                    with the
+                    <a href="https://en.wikipedia.org/wiki/Pluggable_authentication_module">pluggable
+                        authentication module (PAM)</a>, so
+                    that it is invoked for all PAM based authentications requiring a password
+                    to be typed.
+                    It securely records typographical errors and enables login
+                    with common
+                    typos as it learns about them. If you are eager to check
+                    whether
+                    or not it is working, you can lock the screen and re-login
+                    first with the correct
+                    password, and then with a typo by adding '1' at the end of
+                    your
+                    password. For example, say your password is
+                    <code>KuteCitten</code>, try to log in with
+                    <code>KuteCitten1</code>. If you can login with the mistyped
+                    password, then TypTop
+                    is working fine!
+                </p>
+                <p>
+                    You can do the same experiment in the terminal with the
+                    command 'su'; type <code>su $USER</code>,
+                    in the terminal, type the correct password for the first
+                    time, and next time try a typo of it
+                    as described above.
+                </p>
+                <p>
+                    We are conducting <a
+                        href="https://docs.google.com/forms/d/e/1FAIpQLSfHWAPedMVT7ETaW3qUUaueOg87TaDAllQYIgoqJZ8nWjF88A/viewform">
+                    a short survey</a> about users' password habits, and request
+                    you fill it in. Check <a href="#survey">below</a>
+                    for more details.
+                </p><br/>
+                <h4 id="uninstall">How to uninstall TypTop? </h4>
+                <p>
+                    To uninstall, you have to open the terminal and type the
+                    following command,
+                    <code>sudo typtop --uninstall</code>.
+                </p>
+            </div>
+        </div>
+    </div> <!-- Installation -->
+    <!-- How it works-->
+    <div id="works" class="clearfix">&nbsp;</div>
+    <div id="works-body" class="bs-docs-section clearfix">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-header">
+                    <h2>How TypTop Works</h2>
+                </div>
+                <p>
+                    TypTop is a new kind of a password checker that learns about
+                    your old password
+                    typing mistakes, and lets you login with the typos that you
+                    frequently
+                    make&#8212;if it is safe to do
+                    so. We only allow typos that are very close to your
+                    original password (i.e., off by one character) and that do
+                    not degrade
+                    unpredictability of the password by too great an amount. To
+                    achieve this,
+                    TypTop uses a new kind of encrypted cache to store recent
+                    incorrect entries, and
+                    unlocks these upon a correct entry of the password.
+                    Incorrect entries that satisfy
+                    TypTop's safety checks are then securely hashed and added to
+                    a set of allowable
+                    login passwords. On subsequent logins, TypTop not only
+                    checks the original password,
+                    but also checks against the entire set of allowed passwords.
+                    If any match, then login
+                    is allowed. All sensitive data (your password and typos of
+                    it) are stored in secured
+                    form on your system.
+                </p>
+
+                <p>
+                    All this is presented in detail and analyzed in an
+                    <a href="https://eprint.iacr.org/2017/810">academic research paper</a>.
+                    We will post it here soon.  The <a href="https://github.com/rchatterjee/typtopcpp">code for TypTop</a> is
+                    open source as well, and we welcome any feedback on it.
+                </p>
+            </div>
+        </div>
+    </div> <!-- How it works -->
+    <!-- Data Collection -->
+    <div id="survey" class="clearfix">&nbsp;</div>
+    <div id="survey-body" class="bs-docs-section clearfix">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-header">
+                    <h2>Data Collection</h2>
+                </div>
+                <p>
+                    TypTop is a research prototype and while our initial pilot
+                    deployment has evidenced its
+                    efficacy for users that make typos frequently, we need data
+                    from a larger set of users
+                    to understand what fraction of users benefit from TypTop's
+                    design. We therefore have
+                    built into TypTop an anonymized and secure feedback
+                    mechanism, similar to how most modern
+                    software reports back to the designers information useful
+                    for improving the system.
+                    There is absolutely no way to utilize the collected data to
+                    learn about your
+                    password or other sensitive information!
+                </p>
+                <h4>What data do we collect?</h4>
+
+                <p> We do not record IP addresses or any other
+                    information about the system from which an anonymous report
+                    is collected. In fact we will not
+                    even be able to associate data collected to individual
+                    installations. <br/>
+
+                    For each login we collect:</p>
+                <ol>
+                    <li> The timestamp and local time of the login.</li>
+                    <li> A unique identifier of the submitted password. The
+                        identifier is obtained by computing an
+                        <a href="https://en.wikipedia.org/wiki/Hash-based_message_authentication_code">HMAC</a>
+                        of the submitted password with a random 128-bit
+                        secret unique to each installation of TypTop.
+                        The 128-bit secret never leaves the user's computer.
+                        Without the secret,
+                        it is impossible to perform <a
+                                href="https://en.wikipedia.org/wiki/Dictionary_attack">
+                            brute-force dictionary attack</a> and invert those
+                        identifiers.
+                    </li>
+                    <li>A boolean stating whether or not the entered
+                        password / typo was in the cache of allowed typos at the
+                        time of login.
+                    </li>
+                    <li> Whether or not the entered password is an
+                        easy-to-correct typo (i.e., flipped capitalization,
+                        or a character added to the end or beginning of the
+                        original password, etc.).
+                    </li>
+                    <li> The relative change in the <a
+                            href='https://en.wikipedia.org/wiki/Password_strength'>
+                        strength of the typo </a> with respect to the original
+                        password, as measured by the
+                        <a href="https://github.com/dropbox/zxcvbn">zxcvbn</a>
+                        password strength meter.
+                    </li>
+                </ol>
+
+                <p>
+                    <strong> On installation of TypTop, you are included in the
+                        study by default.</strong>
+                    You can opt out of the study at any time without affecting
+                    the functionality of TypTop by
+                    running the following command (in the terminal): &nbsp; <code>typtop --participate $USER no</code>
+                </p>
+
+                <p>
+                    The data collected will only ever be used by our research
+                    team to understand the efficacy of
+                    TypTop. We may publish summary statistics (e.g., average
+                    improvement to login efficacy) in future
+                    research papers. The collected data will never be released
+                    publicly.
+                </p>
+                <p>
+                    We are also conducting <a
+                        href="https://docs.google.com/forms/d/e/1FAIpQLSfHWAPedMVT7ETaW3qUUaueOg87TaDAllQYIgoqJZ8nWjF88A/viewform">an
+                    anonymous, short survey</a>
+                    on users' password typing behaviors, if you are interested
+                    in helping us out by taking it.
+                </p>
+
+                <!-- <ol>
+                     <li> Are you right-handed or left-handed?</li>
+                     <li>hand do you  to use to sign on your check? <b>Right hand</b> or <b>Left hand</b> </li>
+                     <li> How do you identify your gender? <b> Male </b>, <b>Female</b>, or <b>Other</b></li>
+                     <li> What is your age-group? <b>18-30</b>, <b>31-45</b>, <b>45-60</b>, or <b>Above 60</b>.</li>
+                     </ol-> -->
+            </div>
+        </div>
+    </div> <!-- Data Collection -->
+    <!-- Frequently Asked Questions -->
+    <div id="faq" class="clearfix">&nbsp;</div>
+    <div id="faq-body" class="bs-docs-section clearfix">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-header">
+                    <h2>Frequently Asked Questions</h2>
+                </div>
+                <ol>
+                    <li><span class="question">How can I be sure that you are not stealing my password?</span>
+                        The code is openly available in <a
+                                href="https://github.com/rchatterjee/typtopcpp">GitHub</a>
+                        and
+                        you are more than welcome to review. Privacy and
+                        security is our utmost
+                        concern (that is what we do research on, after all!). We
+                        have analyzed the design and
+                        implementation of TypTop thoroughly including the data
+                        that we collect. We are confident
+                        that no one can learn any sensitive information from the
+                        data that we collect or store.
+                    </li>
+
+                    <li><span
+                            class="question">Really, allowing typos is secure?</span>
+                        Yes! We have conducted significant analysis of the
+                        TypTop design, which will be
+                        released shortly in an academic paper. While the
+                        analysis is a bit involved,
+                        ultimately it boils down to the fact that guessing a
+                        typo of your password is not
+                        easier than guessing your password&#8212;as long as one
+                        is careful about what counts
+                        as a typo. That's why TypTop only allows safe
+                        typos.<br/>
+
+                        Moreover, allowing typos might encourage people to
+                        choose longer and stronger
+                        passwords, as entering them will no longer be as
+                        cumbersome as it is now. Thus,
+                        TypTop might actually improve security overall.
+                    </li>
+
+                    <li><span class="question">What kinds of typos are allowed in TypTop?</span>
+                        TypTop only allows safe variants of your password.
+                        First, a typo can only differ by a single
+                        character. For example, <code>Kutecitten</code> versus
+                        the real password <code>KuteCitten</code>.
+                        Second, we ensure that a typo does not collide with an
+                        easy-to-guess password, by ruling out
+                        typos
+                        that have low scores on state-of-the-art industry
+                        strength meters (we use <a
+                                href="https://github.com/dropbox/zxcvbn">
+                            Dropbox's zxcvbn</a>). Third, we make sure that a
+                        typo does not degrade the guessability of your real
+                        password, again by ensuring that the drop in score under
+                        a strength meter is not too large.
+                        For example, if your real password is
+                        <code>Pa%ssword</code>, then <code>Password</code>
+                        is not an allowed typo, as the later is much easier to
+                        guess than the former. These
+                        restrictions,
+                        taken together, ensure that typos will not be much
+                        easier to guess than your actual password.
+
+                        <!--The definition of typos in our setting is the passwords that are very close-->
+                        <!--to your password, but not exactly the same. For example, <code>kuteCitten</code>-->
+                        <!--can be typo of <code>KuteCitten</code>. <br/>We also make sure that a typo should-->
+                        <!--not be much easier to guess than the real password. For example, if your real password is-->
+                        <!--<code>Pa%ssword</code>, then <code>Password</code> is not an allowed typo, as-->
+                        <!--the later is much easier to guess than the former.-->
+                    </li>
+
+                    <li><span class="question">Can someone train TypTop to allow any password?</span>
+                        No. As just mentioned, we restrict typos to be close
+                        variants of your true password.
+                        <!--Unfortunately NOT! :-)<br/>-->
+                        <!--First of all the allowed typo has to be very close to your-->
+                        <!--original password (not to a typo), and <a-->
+                        <!--href="https://en.wikipedia.org/wiki/Password_strength">the strength</a> of-->
+                        <!--the typo must not be much less than that of the real password. <br/> Also,-->
+                        <!--only the legitimate user can alter the cache of TypTop, as a typo is accepted-->
+                        <!--in the cache only after the user logs in successfully.-->
+                    </li>
+
+                    <li><span class="question">What if your software is buggy, and I am locked out?</span>
+                        We have tested TypTop on a variety of software and
+                        hardware configurations. Even
+                        if there are unexpected problems (please contact us if
+                        so), you can go into recovery mode
+                        and remove the line <code>auth include
+                            typtop-auth</code> from all files in <code>/etc/pam.d</code>.
+                        Alternatively, you can uninstall using the command
+                        <code>sudo typtop --uninstall</code> in the
+                        terminal in recovery mode.
+                    </li>
+
+                    <!-- li><span class="question">Can TypTop be hijacked/used to create backdoor in my computer?</span>
+                        Security is our utmost concern, and hence, we have given
+                        special attention to these issues.
+                        Most of TypTop is written in Python, which decreases
+                        probability of many security critical bugs.
+                        We could not find any weakness in your design or
+                        implementation. We are absolutely open to
+                        suggestions and comments about TypTop. Please send them
+                        to the email address given above.
+                    </li-->
+                </ol>
+            </div>
+        </div> <!-- End of main div-->
+    </div> <!-- FAQs -->
+
+    <!-- Reference -->
+    <div id="reference" class="clearfix">&nbsp;</div>
+    <div id="reference-body" class="bs-docs-section clearfix">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-header">
+                    <h2>Reference Publication</h2>
+                </div>
+                <ol>
+                    <li>Chatterjee, R., Athayle, A., Akhawe, D., Juels, A., &
+                        Ristenpart, T. (2016, May). pASSWORD tYPOS and How to
+                        Correct Them Securely. <em>In 2016 IEEE Symposium on Security and Privacy (SP)</em>(pp. 799-818). IEEE.
+                    </li>
+                    <li>Chatterjee, R., Woodage, J., Pnueli, Y., Chowdhury, A.,
+                        & Ristenpart, T. (2017, Oct). The TypTop System:
+                        Personalized Typo-tolerant Password Checking. <em>In 2017 ACM Computers and Communication Systems(CCS).</em> ACM.
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div> <!-- Reference -->
+    
+    <!-- Team -->
+    <div id="team" class="clearfix">&nbsp;</div>
+    <div id="team-body" class="bs-docs-section clearfix">
+        <div class="row">
+            <div class="col-lg-12" style="height: 100vh; clear:both;">
+                <div class="page-header">
+                    <h2>Team</h2>
+                </div>
+                <div class="row vertical-align">
+                    <div class="col-lg-3">
+                        <img src="/images/CT_logo1.png" height="240px" class=""/>
+                    </div>
+                    <div class="col-lg-5">
+                        Rahul Chatterjee (<a href="mailto:rahul@cs.cornell.edu">rahul@cs.cornell.edu</a>)<br/>
+                        Joanne Woodage<sup>1</sup> <br/>
+                        Yuval Pnueli<sup>1</sup> <br/>
+                        Anusha Chowdhury<br/>
+                        Thomas Ristenpart <br/>
+                        <hr/>
+                        <sup>1</sup> <span class="small">Work done while in Cornell Tech</span>
+
+                    </div>
+                </div>
+                <!-- div class="row vertical-align">
+                    <div class="col-lg-3">
+                        <img src="/images/rhul.png" width="200px"/>
+                    </div>
+                    <div class="col-lg-5">
+                      Joanne Woodage
+                    </div>
+                </div>
+                <div class="row vertical-align">
+                    <div class="col-lg-3">
+                        <img src="/images/technion.jpg" width="200px"/>
+                    </div>
+                    <div class="col-lg-5">
+                        Yuval Pnueli
+                    </div>
+                </div -->
+            </div>
+        </div>
+    </div> <!-- Team -->
+</div><!-- Main body -->
+</body>
+</html>

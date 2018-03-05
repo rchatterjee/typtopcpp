@@ -21,12 +21,13 @@ message Log {
 message ConfigHeader {
     optional bool  allowed_typo_login = 1 [default = true];
     optional int32 period_for_sending_log = 2 [default = 21600]; // 6 hours
-    optional int64 typo_expiry_time = 7 [default = 2592000];  // expire a typo if not used in 30 days
-    optional bool  allow_upload = 3 [default = true];
-    optional TypoPolicy tp = 8;
-    required string install_id = 4;
-    required bytes public_key = 5;
-    required bytes global_salt = 6;
+    optional bool expire_typos = 3 [default = true];  // Should I expire unused typos?
+    optional int64 typo_expiry_time = 4 [default = 2592000];  // expire a typo if not used in 30 days
+    optional bool  allow_upload = 5 [default = true];
+    optional TypoPolicy tp = 6;
+    required string install_id = 7;
+    required bytes public_key = 8;
+    required bytes global_salt = 9;
 }
 
 enum SystemStatus {

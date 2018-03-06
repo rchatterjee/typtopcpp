@@ -243,9 +243,9 @@ int main(int argc, char *argv[])  {
             tp.print_log();
         } else if (strncmp("--install", argv[1], 9) == 0 && (argc==2 || argc==3)) {
             if(argc==3)
-                cout << "Installed: " << (system("sudo bash /usr/local/bin/typtop.postinst 1")?"No":"Yes")<< endl;
+                cout << __LINE__ << " (argc=3): Installed: " << (system("sudo bash /usr/local/bin/typtop.postinst 1")?"No":"Yes")<< endl;
             else
-                cout << "Installed: " << (system("sudo bash /usr/local/bin/typtop.postinst")?"No":"Yes")<< endl;
+                cout << __LINE__ << " (argc!=3): Installed: " << (system("sudo bash /usr/local/bin/typtop.postinst")?"No":"Yes")<< endl;
         } else if (strncmp("--uninstall", argv[1], 11) == 0 && (argc==2 || argc==3)) {
             if(geteuid() != 0) {
                 cerr << "Need to be root to be able to call this!" << endl;

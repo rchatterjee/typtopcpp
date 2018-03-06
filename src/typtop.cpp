@@ -15,7 +15,7 @@ using CryptoPP::FileSource;
 
 #undef GOOGLE_LOG
 pthread_mutex_t db_lock = PTHREAD_MUTEX_INITIALIZER;
-const uint32_t typtop_file_mask = 0600;   // because 0666 & 0600 = 0600
+const mode_t typtop_file_mask = 0007;   // because 0666 & 0600 = 0600
 
 TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
 #ifdef DEBUG
@@ -25,7 +25,7 @@ TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
 #endif
     LOG_INFO << " -- TypTop Begin -- ";
     google::protobuf::SetLogHandler(NULL);  // stop annoying protobuf error messages
-    auto o_mask = umask(~typtop_file_mask);  // 0666 & ~typtop_file_mask = 0600
+    auto o_mask = umask(typtop_file_mask);  // 0666 & ~typtop_file_mask = 0600
     fstream idbf(db_fname, ios::in | ios::binary);
     if(!idbf.good()) {
         LOG_WARNING << "TypTop db is not initialized: " << db.h().sys_state();
@@ -66,7 +66,7 @@ void TypTop::save() const {
     closedir(dir);
     /* Each time this function gets called, the counter is incremented by the calling thread.*/
     string db_bak = db_fname + ".bak";
-    auto o_mask = umask(~typtop_file_mask);
+    auto o_mask = umask(typtop_file_mask);
     int fd = open("/tmp/typtop.lock", O_WRONLY);
     struct flock* lock = (struct flock*)malloc(sizeof(struct flock));
     lock_file(fd, lock);

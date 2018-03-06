@@ -269,8 +269,8 @@ TEST_CASE("Test TypTop DB") {
 
         SECTION("try inserting a typo with typo") {
             REQUIRE(tp.check(pws[1], FIRST_TIME, false));
-            times(5, CHECK_FALSE(tp.check(pws[4], FIRST_TIME, false)));
-            times(5, CHECK_FALSE(tp.check(pws[5], FIRST_TIME, false)));
+            times(8, CHECK_FALSE(tp.check(pws[4], FIRST_TIME, false)));
+            times(8, CHECK_FALSE(tp.check(pws[5], FIRST_TIME, false)));
             REQUIRE(tp.check(pws[1], FIRST_TIME, false));
             CHECK(tp.check(pws[4], FIRST_TIME, false));
             CHECK_FALSE(tp.check(pws[5], FIRST_TIME, false));

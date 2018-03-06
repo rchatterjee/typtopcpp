@@ -15,7 +15,7 @@ using CryptoPP::FileSource;
 
 #undef GOOGLE_LOG
 pthread_mutex_t db_lock = PTHREAD_MUTEX_INITIALIZER;
-const mode_t typtop_file_mask = 0007;   // because 0666 & 0600 = 0600
+const mode_t typtop_file_mask = 0177;   // because 0666 & 0600 = 0600
 
 TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
 #ifdef DEBUG
@@ -25,7 +25,7 @@ TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
 #endif
     LOG_INFO << " -- TypTop Begin -- ";
     google::protobuf::SetLogHandler(NULL);  // stop annoying protobuf error messages
-    auto o_mask = umask(typtop_file_mask);  // 0666 & ~typtop_file_mask = 0600
+    mode_t o_mask = umask(typtop_file_mask);  // 0777 & ~typtop_file_mask = 0600
     fstream idbf(db_fname, ios::in | ios::binary);
     if(!idbf.good()) {
         LOG_WARNING << "TypTop db is not initialized: " << db.h().sys_state();
@@ -39,6 +39,8 @@ TypTop::TypTop(const string &_db_fname) : db_fname(_db_fname) {
         } else {
             db.mutable_ch()->set_install_id(get_install_id());
             LOG_ERROR << "Could not parse the DB file.";
+            // Delete the file, that it cannot parse. 
+            LOG_DEBUG << "Deleted offending file: " << remove(db_fname.c_str());
         }
     } catch (google::protobuf::FatalException ex) {
         db.mutable_h()->set_sys_state(SystemStatus::UNINITIALIZED);

@@ -122,15 +122,15 @@ inline vector<size_t> sort_indexes(const vector<T> &v) {
     return idx;
 }
 
-#ifndef TESTING
-inline int64_t now() {
-    return time(NULL);
-}
-#else
+#ifdef DEBUG
 static int64_t st=time(NULL);
 inline int64_t now() {
     st += 5;
     return st;
+}
+#else
+inline int64_t now() {
+    return time(NULL);
 }
 #endif
 

@@ -78,6 +78,7 @@ protected:
     void add_to_waitlist(const string& pw, time_t ts);
     void process_waitlist(const string& sk_str);
     void permute_typo_cache(const string& sk_str);
+    void expire_typos(const string& sk_str);
 
     // For testing
     inline const typoDB& get_db(){ return db; }

@@ -20,7 +20,7 @@ endif()
 
 ### Set the sources for typtop
 file(GLOB TYPTOP_SRCS "*.cpp")
-file(GLOB TYPTOP_HDRS "*.h")
+file(GLOB TYPTOP_HDRS "*.h" "*.hpp")
 set(TYPTOP_SRCS ${TYPTOP_SRCS} ${TYPTOP_HDRS} ${PROTO_SRCS} ${PROTO_HDRS} typtopconfig.h)
 
 ### Build the main typtop functionality (in particular, the db) as library

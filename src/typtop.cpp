@@ -410,6 +410,11 @@ void TypTop::permute_typo_cache(const string &sk_str) {
     g.seed(permutation_seed);
     shuffle(ench.mutable_last_used()->begin() + 1, ench.mutable_last_used()->end(), g);
 
+    if (db.ch().expire_typos())
+        expire_typos(sk_str);
+}
+
+void TypTop::expire_typos(const string &sk_str) {
     // remove very old typos from the cache
     int64_t t_now = now();
     string sk_ctx;
@@ -418,7 +423,9 @@ void TypTop::permute_typo_cache(const string &sk_str) {
             string fake_pw(DEFAULT_PW_LENGTH, 0);
             PRNG.GenerateBlock((byte *) fake_pw.data(), fake_pw.size());
             pwencrypt(fake_pw, sk_str, sk_ctx);
-            LOG_DEBUG << "Inserting " << fake_pw << " at " << i;
+            LOG_INFO << "Expiring typo at " << i
+                      << " time_now:" << t_now
+                      << " Last used:" << ench.last_used(i);
             _insert_into_typo_cache(i, sk_ctx, -1);
         }
     }

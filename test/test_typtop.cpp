@@ -116,24 +116,25 @@ TEST_CASE("Test TypTop DB") {
             vector<string> T(db.t().begin(), db.t().end());
             tp.permute_typo_cache(sk_str);
             const EncHeaderData &new_ench = tp.get_ench();
+            /* Check if the first entry matches */
             CHECK(db.t(0) == T[0]); // Fist index should always match
             CHECK(new_ench.last_used(0) == ench.last_used(0));
             CHECK(new_ench.freq(0) == ench.freq(0));
+            /* check if all other entry matches */
             int j = 0;
             bool at_least_permuted = false;
             for (int i = 0; i < T_size; i++) {
                 for (j = 0; j < T_size; j++) {
-                    if (new_ench.freq(j) == ench.freq(i)) {
+                    if (db.t(j) == T[i]) {
+                        CHECK(new_ench.freq(j) == ench.freq(i));
                         CHECK(new_ench.last_used(j) == ench.last_used(i));
-                        CHECK(T[i] == db.t(j));
                         at_least_permuted |= (i != j);
                         // cerr << i << " <<-->> " << j << endl;
-                        break;
+                        // break;
                     }
                 }
-                REQUIRE(j < T_size);
             }
-            // REQUIRE(at_least_permuted); // TODO: Fix permute cache function;
+            REQUIRE(at_least_permuted);
         }
 
         SECTION("Verify inserted typos") {

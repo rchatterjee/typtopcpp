@@ -80,7 +80,7 @@ TEST_CASE("Check Install") {
     REQUIRE(auth(user.c_str(), pws[0].c_str()));
     SECTION("Basic") {
         int i = 0;
-        for (string pw: pws) {
+        for (auto pw: pws) {
             if (i <= 3) {
                 cerr << "Trying " << i << " " << user << " " << pw << endl;
                 REQUIRE(auth(user.c_str(), pw.c_str()));

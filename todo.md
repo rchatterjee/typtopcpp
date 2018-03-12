@@ -78,3 +78,23 @@ things do the following. Check if the list of guesses are from top 1000
 passwords or not. If it is, and the real password is not from the top 1000,
 block the access for `x` amount of time, and flag that it detects
 threat.
+
+
+### Can we use same salt across all password/typos?
+An interesting modification to this code could be to hash all the passwords
+and typos under one salt `sa`. Though, this will increase the run time of the code
+for each authentication attempt (even the user enters the correct password), this
+will simplify lots of security analysis and remove scope of timing side channel
+due to different processing time for a typo vs the real password. Below I try to
+formally analyze the time-security-utility trade off for three scenarios---without
+any typo correction, typo correction with distinct salts (typtop current version),
+and typo correction with one salt.
+
+Here is some analysis. (Will latex it later).
+
+
+![Comparison of time for different salts vs same salt - 1][img1]
+![Comparison of time for different salts vs same salt - 2][img2]
+
+[img2]: https://lh3.googleusercontent.com/A8M7YaJjjSXZ8B1ZhP0TeN-a_k12Pg2AM282bP6lySERwR0dip4ktI2pweZCsAeXjjP-p8mFm9Eb1dThWLhtQ8Ae9rCF8LMYy_PEBhf4wiFkqRZMmDxb2E5xYfTagLDw8jwnq7JVxOk=w704-h956-no
+[img1]: https://lh3.googleusercontent.com/kFYNtcDpehJDoClkpGQ8K-blqx_2GWCTNbhQjcDbbIMTyvBuVNu9f62X5slyHy_UoM25rZ-EV3SGh85WcxrO9Vd5OcFBB17oNMXcNjG_vgGiTu8c6H6qI8zBAqz6dFZMtEjus19GivU=w691-h956-no

@@ -41,7 +41,7 @@ target_include_directories(b64 PUBLIC ${CRYPTOPP_INCLUDE_DIRS} ${CMAKE_CURRENT_B
 ### Link libraries. These are configured through 3rdparty/${lib_name}
 target_link_libraries(typtopdb cryptopp)
 target_link_libraries(typtop typtopdb cryptopp zxcvbn typtopdb curl)
-target_link_libraries(b64 typtopdb ${PROTOBUF_STATIC_LIB})
+target_link_libraries(b64 typtopdb)
 
 ### Make sure cryptopp and zxcvbn are built when necessary.
 add_dependencies(typtopdb cryptopp zxcvbn)
@@ -51,14 +51,18 @@ add_dependencies(typtopdb cryptopp zxcvbn)
 if(CMAKE_PREFER_SHARED_LIBRARIES)
     if(PROTOBUF_SHARED_LIB)
         target_link_libraries(typtop ${PROTOBUF_SHARED_LIB})
+        target_link_libraries(b64 ${PROTOBUF_SHARED_LIB})
     else(PROTOBUF_STATIC_LIB)
         target_link_libraries(typtop ${PROTOBUF_STATIC_LIB})
+        target_link_libraries(b64 ${PROTOBUF_STATIC_LIB})
     endif()
 else()
     if(PROTOBUF_STATIC_LIB)
         target_link_libraries(typtop ${PROTOBUF_STATIC_LIB})
+        target_link_libraries(b64 ${PROTOBUF_STATIC_LIB})
     else(PROTOBUF_SHARED_LIB)
         target_link_libraries(typtop ${PROTOBUF_SHARED_LIB})
+        target_link_libraries(b64 ${PROTOBUF_SHARED_LIB})
     endif()
 endif()
 # ### --- INSTALL --- ###

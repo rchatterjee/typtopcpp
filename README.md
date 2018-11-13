@@ -1,7 +1,11 @@
 # TypTop-CPP #
 [![Build Status](https://travis-ci.org/rchatterjee/typtopcpp.svg?branch=master)](https://travis-ci.org/rchatterjee/typtopcpp)
 
-An effort to port [typtop](https://github.com/rchatterjee/pam-typopw) to C++.
+**tl;dr** TypToP (pronounced as 'tip-top') is a password checking scheme that learns from your mistakes in typing login password and let you log in to your laptop with small typos.
+
+If you install this software and want to participate in our research study, please fill in this this short survey. Thanks!!
+
+An python version of this is [here](https://github.com/rchatterjee/pam-typopw). I am not acively maintaining that repo, so it might be out of date by now.
 
 ## Dependencies
 For compiling the project from source, you need following libraries.

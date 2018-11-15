@@ -90,6 +90,24 @@ formally analyze the time-security-utility trade off for three scenarios---witho
 any typo correction, typo correction with distinct salts (typtop current version),
 and typo correction with one salt.
 
+Here, `a` is the probability that a user makes a typo while entering their
+password. (User's probability of making typo might be different after first
+entry, but we are ignoring that for now.) The time takes to enter a password is
+`t_u`, and the time of hashing is `t_a`, total `t = t_u + t_a`.  Let `t_a'` be
+the extra time required to check the typos.  
+
+The probability of typo correction is `a'`, and `a'' = a(1-a')` is the total
+fraction of incorrect submissions are accepted by a typo-tolerant password based
+authentication system (TT-PBAS). `n` number of typos to allow, `\lambda = t_u/
+t_a` : ration of typing time over the other time required for password
+verification (network latency, hashing, etc.). 
+
+We assume users only make typos, and no other mistakes. This is a strong
+assumption, as many users make memory errors, typing passwords of other
+websites. However, for frequently typed passwords this isn't a huge
+problem. Also TypTop replies immediately if the password is correct in `t_a`
+sec. It takes additional `t_a'` sec, for processing an incorrect submission. 
+
 Here is some analysis. (Will latex it later).
 
 

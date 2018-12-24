@@ -252,7 +252,7 @@ inline float entropy(const string& pw) {
     } catch (exception &ex){
         LOG_ERROR << ex.what();
     }
-    return ent;
+    return (float) ent;
 }
 
 /**
@@ -266,11 +266,12 @@ inline float entropy(const string& pw) {
  */
 inline bool meets_typo_policy(const string& pw, const string& typo, const typtop::TypoPolicy& tp) {
     double entropy_pw = entropy(pw);
-    double entropy_typo = entropy(pw);
+    double entropy_typo = entropy(typo);
     if (entropy_typo < (entropy_pw - tp.rel_entcutoff()) or
         entropy_typo < tp.abs_entcutoff())
         return false;
-    return (int)typo.size() > tp.min_length() && edit_distance(pw, typo) <= tp.edit_cutoff();
+    return ((int)typo.size() > tp.min_length())
+           && (edit_distance(pw, typo) <= tp.edit_cutoff());
 }
 
 #endif //TYPTOP_C_TYPO_UTIL_HPP

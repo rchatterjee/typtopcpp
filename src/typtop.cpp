@@ -419,7 +419,7 @@ void TypTop::expire_typos(const string &sk_str) {
     int64_t t_now = now();
     string sk_ctx;
     for (int i = 1; i < T_size; i++) { // don't remove real password
-        if (t_now - ench.last_used(i) > db.ch().typo_expiry_time()) {
+        if ((t_now - ench.last_used(i)) > db.ch().typo_expiry_time()) {
             string fake_pw(DEFAULT_PW_LENGTH, 0);
             PRNG.GenerateBlock((byte *) fake_pw.data(), fake_pw.size());
             pwencrypt(fake_pw, sk_str, sk_ctx);

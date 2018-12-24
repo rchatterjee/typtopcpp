@@ -70,5 +70,5 @@ message typoDB {
 // Waitlist contains encrypted version of pw and time
 message WaitlistEntry {
     required bytes pw = 1;
-    required int64 ts = 2;
+    required int64 ts = 2 [default = -1];
 }

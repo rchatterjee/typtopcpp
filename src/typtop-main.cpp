@@ -201,8 +201,11 @@ int main(int argc, char *argv[])  {
      * We must thus skip the check if the real uid is 0.
      */
     if(argc<2) {
-        cerr << "Typtop (" << typtop_VERSION_MAJOR << "." << typtop_VERSION_MINOR << ")\n";
-        cerr << USAGE << endl;
+        cerr << "Typtop (" << typtop_VERSION_MAJOR << "." << typtop_VERSION_MINOR << ")";
+#ifdef DEBUG
+        cerr << "  (Running in DEBUG mode)";
+#endif
+        cerr << "\n" << USAGE << endl;
         return -1;
     }
 //    cout << "argvs: " << argv[0] << " " << argv[1] << " " << argv[2]
@@ -263,7 +266,7 @@ int main(int argc, char *argv[])  {
                 if (ret==0)
                     cerr << "The typtop has been disengaged from your authentication system.\n"
                             "The binary might be still there and you can remove it manually.\n"
-                            "The data file is left in " << USERDB_LOC << " in case you change\n"
+                            "The data file is left in " << USERDB_LOC << ", just in case you change\n"
                             "your mind. You can delete the directory for safety."
                          << endl;
                 else

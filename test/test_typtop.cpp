@@ -71,14 +71,27 @@ TEST_CASE("typtop_util") {
         CHECK_FALSE(win(1, 0));
         //CHECK_THROWS(win(0, 0));
     }
+    SECTION("typo_policy_abs_entropy_cutoff") {
+        typtop::TypoPolicy tp;
+        string pw[2] = {"Password1!", "Password1"};
+        tp.set_rel_entcutoff(10);
+        REQUIRE(entropy(pw[1]) < 6); // weak password
+        CHECK_FALSE(meets_typo_policy(pw[0], pw[1], tp)); // fails abs_cutoff
+        tp.set_abs_entcutoff(5);
+        CHECK(meets_typo_policy(pw[0], pw[1], tp)); // passes abs_cutoff of 5
+
+        tp.set_rel_entcutoff(2);
+        REQUIRE((entropy(pw[0]) - entropy(pw[1])) > 2);
+        CHECK_FALSE(meets_typo_policy(pw[0], pw[1], tp)); // fails rel_ent_cutoff
+    }
     SECTION("meets_typo_policy") {
         const typtop::TypoPolicy tp;
         CHECK(meets_typo_policy(pws[0], pws[0], tp));
         CHECK(meets_typo_policy(pws[3], swapcase(pws[3]), tp));
         CHECK(meets_typo_policy(pws[0], pws[3], tp)); // edit distance >1
         CHECK_FALSE(meets_typo_policy(pws[0], pws[5], tp)); // edit distance >1
-        CHECK_FALSE(meets_typo_policy(pws[0].substr(6), pws[0].substr(0, 6), tp));
-        CHECK_FALSE(meets_typo_policy(pws[0].substr(0, 6), pws[1].substr(0, 6), tp));
+        CHECK_FALSE(meets_typo_policy(pws[0].substr(6), pws[0].substr(0, 6), tp)); // pw length too small
+        CHECK_FALSE(meets_typo_policy(pws[0].substr(0, 6), pws[1].substr(0, 6), tp)); // pw length too small
     }
 }
 
